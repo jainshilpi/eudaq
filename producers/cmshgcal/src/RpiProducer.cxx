@@ -7,6 +7,7 @@
 #include "eudaq/OptionParser.hh"
 #include <iostream>
 #include <ostream>
+#include <string>
 #include <vector>
 
 #include <mutex>
@@ -36,48 +37,99 @@ class RpiProducer : public eudaq::Producer {
     // and the runcontrol connection string, and initialize any member variables.
     RpiProducer(const std::string & name, const std::string & runcontrol)
       : eudaq::Producer(name, runcontrol),
-      m_run(0), m_ev(0), m_stopping(false), m_done(false),
-      m_sockfd1(0), m_sockfd2(0), m_running(false), m_configured(false){}
+        m_run(0), m_ev(0), m_stopping(false), m_done(false),
+        m_sockfd1(0), m_sockfd2(0), m_running(false), m_configured(false),
+        WARN_MSG("if_you_see_this_the_conf_file_is_incomplete")
+  {}
     
+    int synchronizeFolder(std::string sourceFolderPath, std::string targetFolderPath, std::string targetRPi) {
+      EUDAQ_INFO("Synchronizing files in source directory sv1:" + sourceFolderPath + " with target directory " + targetRPi + ":" + targetFolderPath);
+      int synchronizationStatus = system(("rsync --progress -a -v -c -e ssh " + sourceFolderPath + "/ " + targetRPi + ":" + targetFolderPath + "/").data());
+      if (synchronizationStatus != 0) {
+        EUDAQ_ERROR("Error: unable to synchronize folders between sv1 and " + targetRPi);
+      }
+      else {
+        EUDAQ_INFO("Successfully synchronized files!");
+      }
+      return synchronizationStatus;
+    }
+
+    int executeScript(std::string targetRPi, std::string targetFolderPath, std::string scriptFileName) {
+      EUDAQ_INFO("Executing script " + scriptFileName + " on " + targetRPi + ":" + targetFolderPath);
+      int executionStatus = system(("ssh -T " + targetRPi + " \"cd " + targetFolderPath + " && source " + scriptFileName + "\"").data());
+      if (executionStatus != 0) {
+        EUDAQ_ERROR("Error: unable to execute script " + scriptFileName);
+      }
+      else {
+        EUDAQ_INFO("Successfully executed script!");
+      }
+      return executionStatus;
+    }
+
     // This gets called whenever the DAQ is configured
     virtual void OnConfigure(const eudaq::Configuration & config) {
       std::cout << "Configuring: " << config.Name() << std::endl;
 
       bool configurationSuccessful = true;
 
-
       // Do any configuration of the hardware here
       // Configuration file values are accessible as config.Get(name, default)
       
       // Fetch parameters needed to reset configuration
-      m_resetConfiguration_exe_fileName = config.Get("resetConfiguration_exe_fileName", "resetConfiguraton.sh");
-      m_sourceDirPath = config.Get("sourceDirPath", "thisShouldBeReset");
-      m_targetDirPath = config.Get("targetDirPath", "thisShouldBeReset");
-      m_configureSkirocs_exe_fileName = config.Get("configureSkirocs_exe_fileName", "configureSkirocs.sh");
+
+      m_piSynch_IP = config.Get("piSynch_IP", WARN_MSG);
+      for (int RDOUTCounter = 0; RDOUTCounter <= 3; ++RDOUTCounter) {
+        m_piRDOUT_IPs[RDOUTCounter] = config.Get("piRDOUT" + eudaq::to_string(1+RDOUTCounter) + "_IP", WARN_MSG);
+      }
+      m_RDOUTMask = config.Get("RDOUTMask", WARN_MSG);
+
+      m_sourceDirPath_Synch = config.Get("sourceDirPath_Synch", WARN_MSG);
+      m_targetDirPath_Synch = config.Get("targetDirPath_Synch", WARN_MSG);
+      m_resetConfiguration_Synch_exe_fileName = config.Get("resetConfiguration_Synch_exe_fileName", WARN_MSG);
+      m_sourceDirPath_Readout = config.Get("sourceDirPath_Readout", WARN_MSG);
+      m_targetDirPath_Readout = config.Get("targetDirPath_Readout", WARN_MSG);
+      m_resetConfiguration_Readout_exe_fileName = config.Get("resetConfiguration_Readout_exe_fileName", WARN_MSG);
+      m_sourceDirPath_Skirocs = config.Get("sourceDirPath_Skirocs", WARN_MSG);
+      m_targetDirPath_Skirocs = config.Get("targetDirPath_Skirocs", WARN_MSG);
+      m_resetConfiguration_Skirocs_exe_fileName = config.Get("resetConfiguration_Skirocs_exe_fileName", WARN_MSG);
+
+      for (int RDOUTCounter = 0; RDOUTCounter <= 3; ++RDOUTCounter) {
+        m_skirocIndices_RDOUTs[RDOUTCounter] = config.Get("skirocIndices_RDOUT" + eudaq::to_string(1+RDOUTCounter), WARN_MSG);
+      }
 
       // reset configuration by programming FPGAs on the SYNCH and RDOUT boards, and the RDOUT and CTL ORMs
 
-      // first make sure the folder on the target rpi is up-to-date
-      EUDAQ_INFO(("Synchronizing files in source directory " + m_sourceDirPath + " with target directory pi1:" + m_targetDirPath + "...").data());
-      int folderSyncReturnStatus = 0; // =system(("rsync --progress -a -v -c -e ssh " + m_sourceDirPath + "/ pi1:" + m_targetDirPath + "/").data());
-      if (folderSyncReturnStatus != 0) {
-        EUDAQ_ERROR(("Synchronization failed with exit status: " + eudaq::to_string(folderSyncReturnStatus)).data());
-        configurationSuccessful = false;
-      }
-      else {
-        EUDAQ_INFO("Successfully synchronized folder!");
-      }
+      // synchronize folders:
 
-      // now execute code to reset configuration
-      EUDAQ_INFO("Now trying to execute configuration reset script " + m_resetConfiguration_exe_fileName + "...");
-      int configurationResetReturnStatus = 0; //system(("ssh -T \"sudo source " + m_targetDirPath + "/" + m_resetConfiguration_exe_fileName + "\"").data());
-      if (configurationResetReturnStatus != 0) {
-        EUDAQ_ERROR(("Execution of configuration reset script failed with exit status: " + eudaq::to_string(configurationResetReturnStatus)).data());
-        configurationSuccessful = false;
+      int folderSyncStatus;
+      // First the Synch board, commented out for now
+      // folderSyncStatus = synchronizeFolder(m_sourceDirPath_Synch, m_targetDirPath_Synch, m_piSynch_IP);
+      // configurationSuccessful = (folderSyncStatus == 0);
+      
+      // Next the Readout boards, also commented out for now
+      for (int RDOUTCounter = 0; RDOUTCounter <= 3; ++RDOUTCounter) {
+        if (m_RDOUTMask.substr(RDOUTCounter, 1) == std::string("1")) {
+          // folderSyncStatus = synchronizeFolder(m_sourceDirPath_Readout, m_targetDirPath_Readout, m_piRDOUT_IPs[RDOUTCounter]); // Commented out for now
+          // configurationSuccessful = (folderSyncStatus == 0);
+          folderSyncStatus = synchronizeFolder(m_sourceDirPath_Skirocs, m_targetDirPath_Skirocs, m_piRDOUT_IPs[RDOUTCounter]);
+          configurationSuccessful = (folderSyncStatus == 0);
+        }
       }
-      else {
-        EUDAQ_INFO("Successfully executed configuration reset script!");
-      }
+      
+      // Reset configurations:
+      
+      int scriptExecutionStatus;
+      // First on the synch, commented out
+      // scriptExecutionStatus = executeScript(m_piSynch_IP, m_targetDirPath_Synch, m_resetConfiguration_Synch_exe_fileName);
+      // configurationSuccessful = (scriptExecutionStatus == 0);
+
+      // Next on the Readout boards, commented out
+      // for (int RDOUTCounter = 0; RDOUTCounter <= 3; ++RDOUTCounter) {
+      //   if (m_RDOUTMask.substr(RDOUTCounter, 1) == std::string("1")) {
+      //     scriptExecutionStatus = executeScript(m_piRDOUT_IPs[RDOUTCounter], m_targetDirPath_Readout, m_resetConfiguration_Readout_exe_fileName);
+      //     configurationSuccessful = (scriptExecutionStatus == 0);
+      //   }
+      // }
       
       m_portTCP = config.Get("portTCP", 55511);
       m_portUDP = config.Get("portUDP", 55512);
@@ -92,6 +144,18 @@ class RpiProducer : public eudaq::Producer {
         SetStatus(eudaq::Status::LVL_ERROR, "Unable to reset configuration!");
       }
 
+      // Copied over from onStartRun temporarily
+
+      for (int RDOUTCounter = 0; RDOUTCounter <= 3; ++RDOUTCounter) {
+        if (m_RDOUTMask.substr(RDOUTCounter, 1) == std::string("1")) {
+          scriptExecutionStatus = executeScript(m_piRDOUT_IPs[RDOUTCounter], m_targetDirPath_Skirocs, m_resetConfiguration_Skirocs_exe_fileName + " " + m_skirocIndices_RDOUTs[RDOUTCounter]);
+          if (scriptExecutionStatus != 0) {
+            EUDAQ_WARN("Unable to configure Skirocs!");
+            return;
+          }
+        }
+      }
+
       // At the end, set the status that will be displayed in the Run Control.
       // SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
 
@@ -102,15 +166,17 @@ class RpiProducer : public eudaq::Producer {
     // This gets called whenever a new run is started
     // It receives the new run number as a parameter
     virtual void OnStartRun(unsigned param) {
-      EUDAQ_INFO("Configuring SKIROCS...");
-      int skirocConfReturnStatus = 0; //=system(("ssh -T \"sudo ./" + m_targetDirPath + "/" + m_configureSkirocs_exe_fileName + "\"").data());
-      if (skirocConfReturnStatus != 0) {
-        EUDAQ_ERROR(("Configuration of SKIROCS failed with status: " + eudaq::to_string(skirocConfReturnStatus)).data());
-        return;
-      }
-      else {
-        EUDAQ_INFO("Successfully configured SKIROCS!");
-      }
+      // Commented out for now
+      // int scriptExecutionStatus;
+      // for (int RDOUTCounter = 0; RDOUTCounter <= 3; ++RDOUTCounter) {
+      //   if (m_RDOUTMask.substr(RDOUTCounter, 1) == std::string("1")) {
+      //     scriptExecutionStatus = executeScript(m_piRDOUT_IPs[RDOUTCounter], m_targetDirPath_Skirocs, m_resetConfiguration_Skirocs_exe_fileName + " " + m_skirocIndices_RDOUTs[RDOUTCounter]);
+      //     if (scriptExecutionStatus != 0) {
+      //       EUDAQ_WARN("Unable to configure Skirocs!");
+      //       return;
+      //     }
+      //   }
+      // }
     
       m_run = param;
       m_ev = 0;
@@ -503,9 +569,11 @@ class RpiProducer : public eudaq::Producer {
     
 private:
     unsigned m_run, m_ev;
-    // std::string m_commonHostnamePrefix, m_pathToExampleFile, m_localScriptDir, m_testScriptName;
-    // std::string m_path_programFPGA_SYNCH_exe, m_path_programFPGAs_RDOUT_exe, m_path_programORMs_RDOUT_exe, m_path_programORM_CTL_ext, m_sourceDirPath, m_targetDirPath;
-    std::string m_resetConfiguration_exe_fileName, m_sourceDirPath, m_targetDirPath, m_configureSkirocs_exe_fileName;
+    std::string WARN_MSG;
+    std::string m_piSynch_IP, m_RDOUTMask;
+    std::string m_piRDOUT_IPs[4];
+    std::string m_sourceDirPath_Synch, m_targetDirPath_Synch, m_resetConfiguration_Synch_exe_fileName, m_sourceDirPath_Readout, m_targetDirPath_Readout, m_resetConfiguration_Readout_exe_fileName, m_sourceDirPath_Skirocs, m_targetDirPath_Skirocs, m_resetConfiguration_Skirocs_exe_fileName;
+    std::string m_skirocIndices_RDOUTs[4];
     unsigned m_ski;
     bool m_stopping, m_stopped, m_done, m_started, m_running, m_configured;
     int m_sockfd1, m_sockfd2; //TCP and UDP socket connection file descriptors (fd)
