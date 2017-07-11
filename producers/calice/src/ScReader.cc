@@ -1139,7 +1139,7 @@ void ScReader::readLDATimestamp(std::deque<char> &buf, std::map<int, LDATimeData
 
          if (trigIDdifference != 1) { //serious error, we missed a trigger ID, we got it more time, or the data is corrupted
             //int cycle_difference = static_cast<int>((_trigID + 1) & 0xFFFF) - static_cast<int>(rawTrigID);
-            if ((trigIDdifference > 1) && (trigIDdifference < 100)) {
+            if ((trigIDdifference > 1) && (trigIDdifference < _producer->getMaxTrigidSkip())) {
                //we do accept small jumps forward
                _trigID += trigIDdifference;
                _RunTimesStatistics.triggers_lost += trigIDdifference - 1;
@@ -1153,11 +1153,11 @@ void ScReader::readLDATimestamp(std::deque<char> &buf, std::map<int, LDATimeData
             }
 
             //TODO fix the case, when the trigger comes as the very first event. Not the case for TLU - it starts sending triggers later
-            if ((trigIDdifference < 1) || (trigIDdifference >= 100)) {
+            if ((trigIDdifference < 1) || (trigIDdifference >= _producer->getMaxTrigidSkip())) {
                //too big difference to be compensated. Dropping this packet
                if (_producer->getColoredTerminalMessages()) std::cout << "\033[31;1m";
                cout << "Unexpected TriggerID in run " << _runNo << ". ROC=" << _cycleNo << ", Expected TrigID=" << (_trigID + 1) << ", received:" << rawTrigID
-                     << ". SKipping" << endl;
+                     << ". " << "Time=" << timestamp << " SKipping" << endl;
                if (_producer->getColoredTerminalMessages()) std::cout << "\033[0m";
                EUDAQ_ERROR("Unexpected TriggerID in run " + to_string(_runNo) + ". ROC=" + to_string(_cycleNo) + ", Expected TrigID=" +
                      to_string(_trigID + 1) + ", received:" + to_string(rawTrigID) + ". SKipping");

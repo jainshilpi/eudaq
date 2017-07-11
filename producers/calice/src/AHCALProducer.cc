@@ -60,7 +60,8 @@ AHCALProducer::AHCALProducer(const std::string & name, const std::string & runco
             _waitsecondsForQueuedEvents(2),
             _writerawfilename_timestamp(true),
             _writeRaw(true),
-            _StartWaitSeconds(0)
+            _StartWaitSeconds(0),
+            _maxTrigidSkip(1000)
 {
    //m_id_stream = eudaq::cstr2hash(name.c_str());
 }
@@ -98,7 +99,7 @@ void AHCALProducer::OnConfigure(const eudaq::Configuration & param) {
    //         SetReader(std::unique_ptr<ScReader>(new ScReader(this))); // in sc dif ID is not specified
 
    _reader->OnConfigLED(_fileLEDsettings); //newLED
-
+   _maxTrigidSkip = param.Get("MaximumTrigidSkip", 1000);
    _redirectedInputFileName = param.Get("RedirectInputFromFile", "");
    _ColoredTerminalMessages = param.Get("ColoredTerminalMessages", 1);
    _LdaTrigidOffset = param.Get("LdaTrigidOffset", 0);
@@ -287,6 +288,8 @@ void AHCALProducer::sendallevents(std::deque<eudaq::RawDataEvent *> &deqEvent, i
 
       std::lock_guard<std::mutex> lock(_reader->_eventBuildingQueueMutex);
       if (deqEvent.front()) {
+         deqEvent.front()->Print(std::cout);
+         std::cout<<std::endl;
          if (!_BORE_sent) {
             _BORE_sent = true;
             //deqEvent.front()->SetBORE();
@@ -458,6 +461,11 @@ int AHCALProducer::getColoredTerminalMessages() const
 int AHCALProducer::getIgnoreLdaTimestamps() const
 {
    return _IgnoreLdaTimestamps;
+}
+
+int AHCALProducer::getMaxTrigidSkip() const
+{
+   return _maxTrigidSkip;
 }
 
 }	//end namespace eudaq
