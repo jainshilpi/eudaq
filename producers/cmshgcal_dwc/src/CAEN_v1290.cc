@@ -238,6 +238,8 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   int status = 0; 
 
   if (handle_<0) {
+    v.push_back( (0x4 << 28) | (0 & 0x7FFF ));
+    std::cout << "[CAEN_V1290]::[ERROR]::V1290 board handle not found" << status << std::endl; 
     return ERR_CONF_NOT_FOUND;
   }
 
@@ -339,6 +341,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
     } else if (wordType == CAEN_V1290_TDCERROR ) {
       std::cout << "[CAEN_V1290]::[ERROR]::TDC ERROR!" << std::endl; 
       v.clear();
+      v.push_back( (0x4 << 28) | (4 & 0x7FFF ));
       return ERR_READ;
     } else if (wordType == CAEN_V1290_TDCMEASURE ) {
       v.push_back(data);
@@ -353,6 +356,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
     } else {
       std::cout << "[CAEN_V1290]::[ERROR]::UNKNOWN WORD TYPE!" << std::endl; 
       v.clear();
+      v.push_back( (0x4 << 28) | (5 & 0x7FFF ));
       return ERR_READ;
     }
   }
@@ -360,6 +364,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   if (status) {
     std::cout << "[CAEN_V1290]::[ERROR]::READ ERROR!" << std::endl; 
     v.clear();
+    v.push_back( (0x4 << 28) | (6 & 0x7FFF ));
     return ERR_READ;
   }
 
