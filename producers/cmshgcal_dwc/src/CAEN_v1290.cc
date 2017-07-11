@@ -261,11 +261,14 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   }
 
   if (v1290_rdy==0) {
+    std::cout << "[CAEN_V1290]::[ERROR]::V1290 board not ready" << status << std::endl;   
+    v.push_back( (0x4 << 28) | (1 & 0x7FFF ));
     return ERR_READ;
   }
 
   if (status || v1290_error!=0) {
     std::cout << "[CAEN_V1290]::[ERROR]::Cannot get a valid data from V1290 board " << status << std::endl;   
+    v.push_back( (0x4 << 28) | (2 & 0x7FFF ));
     return ERR_READ;
   }  
 
@@ -283,6 +286,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
 
 
   if ( ! (data & 0x40000000) || status ) {
+    v.push_back( (0x4 << 28) | (3 & 0x7FFF ));
     std::cout << "[CAEN_V1290]::[ERROR]::First word not a Global header" << std::endl; 
     return ERR_READ;
   }
