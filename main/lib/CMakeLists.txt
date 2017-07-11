@@ -65,6 +65,7 @@ endif()
 
 if (BUILD_cmshgcal)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
 endif()
 
 if (BUILD_cmshgcal_dwc)
