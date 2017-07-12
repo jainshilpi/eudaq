@@ -17,11 +17,9 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard=24;
-const uint32_t skiMask = 0x00FFFFFF;
+const size_t nSkiPerBoard=8;
+const uint32_t skiMask = 0x000000FF;
 //const uint32_t skiMask = 0;
-
-//const char mainFrameOffset=4;
 
 const int nSCA=13;
 
@@ -83,7 +81,7 @@ namespace eudaq {
 	// If the event type is used for different sensors
 	// they can be differentiated here
 	const std::string sensortype = "HexaBoard";
-
+	
 	std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
 
 	const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );

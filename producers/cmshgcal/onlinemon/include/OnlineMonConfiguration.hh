@@ -37,6 +37,11 @@ public:
   int getDqmColorMap() const;
   void setDqmColorMap(int colorID);
 
+  int getMainFrameTS() const;
+  int getThreshLG() const;
+  int getThreshHG() const;
+
+  
   double getHotpixelcut() const;
   void setHotpixelcut(double hotpixelcut);
 
@@ -57,6 +62,8 @@ private:
   std::string SnapShotDir;
   std::string SnapShotFormat;
   int DqmColorMap;
+  int mainFrameTS, thresh_LG, thresh_HG;
+
   // MIMOSA26 Settings
   unsigned int mimosa26_max_sections;
   unsigned int mimosa26_section_boundary;

@@ -1,3 +1,4 @@
+
 // -*- mode: c -*-
 
 #include <TROOT.h>
@@ -9,7 +10,6 @@
 #include <sstream>
 
 const int nSCA = 13;
-const int mainFrameTS = 4;
 
 HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
   :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false),
@@ -197,6 +197,18 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     std::cout << "No max sensorsize known!" << std::endl;
   }
 
+
+
+  // Parameters that are read-out from configuration file:
+
+  mainFrameTS = _mon->mon_configdata.getMainFrameTS();
+  thresh_LG = _mon->mon_configdata.getThreshLG();
+  thresh_HG = _mon->mon_configdata.getThreshHG();
+  
+  //const int tmp_int = _mon->mon_configdata.getDqmColorMap();
+  //std::cout<<"DQM value from config file: "<<tmp_int<<std::endl;
+
+  
   Set_SkiToHexaboard_ChannelMap();
 }
 
@@ -263,8 +275,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
       //const int ped_LG = plane.GetPixel(pix, 0);
       //const int ped_HG = plane.GetPixel(pix, nSCA);
 
-      const int thresh_LG = 60;
-      const int thresh_HG = 120;
+      //const int thresh_LG = 60; // this should be configurable
+      //const int thresh_HG = 120;// this should be configurable
 
       if (_pedLG!=NULL)
 	_pedLG->Fill(ped_LG);

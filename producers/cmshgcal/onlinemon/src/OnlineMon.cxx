@@ -40,6 +40,7 @@
 
 //ONLINE MONITOR Includes
 #include "OnlineMon.hh"
+#include "eudaq/Configuration.hh"
 
 using namespace std;
 // Enable this for debug options:
@@ -391,6 +392,20 @@ void RootMonitor::OnStopRun()
   }
   onlinemon->UpdateStatus("Run stopped");
 }
+
+
+/* TODO: implement onconfigure in here:
+virtual void RootMonitor::OnConfigure(const eudaq::Configuration &param) {
+  if (mon_configdata.ReadConfigurationFile()!=0) {
+    // reset defaults, as Config file is bad
+    cerr <<" As Config file can't be found, re-applying hardcoded defaults"<<endl;
+    mon_configdata.SetDefaults();
+  }
+
+  // print the configuration
+  mon_configdata.PrintConfiguration();
+}
+*/
 
 void RootMonitor::OnStartRun(unsigned param) {
 

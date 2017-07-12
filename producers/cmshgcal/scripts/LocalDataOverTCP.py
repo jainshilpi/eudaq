@@ -32,7 +32,7 @@ RAW_EV_SIZE = 30787 # 8 bit format
 parser =  argparse.ArgumentParser(description='RPI DAQ: a TCP server')
 parser.add_argument('-f', '--inputFile', dest="fname", type=str, default=None, required=True,
                     help="Raw data file to open")
-parser.add_argument('--bit', dest="bit", type=int,  choices=[8,32], default=32, required=True,
+parser.add_argument('--bit', dest="bit", type=int,  choices=[8,32], default=32,
                     help="Format of the input data file (32 or 8 bit)")
 
 opt = parser.parse_args()
