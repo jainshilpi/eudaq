@@ -102,9 +102,18 @@ public:
   OnlineMonWindow *getOnlineMon() { return onlinemon; }
 
   virtual void OnConfigure(const eudaq::Configuration &param) {
-    std::cout << "Configure: " << param.Name() << std::endl;
+    std::cout << "Configure OnlineMon with file: " << param.Name() << std::endl;
     SetStatus(eudaq::Status::LVL_OK, "Configured (" + param.Name() + ")");
+    
+    if (mon_configdata.ReadConfigurationFile()!=0) {
+      // reset defaults, as Config file is bad
+      cerr <<" As Config file can't be found, re-applying hardcoded defaults"<<endl;
+      mon_configdata.SetDefaults();
+    }
+    
+    mon_configdata.PrintConfiguration();
   }
+  
   virtual void OnTerminate() {
     std::cout << "Terminating" << std::endl;
     EUDAQ_SLEEP(1);

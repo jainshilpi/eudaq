@@ -107,7 +107,8 @@ private:
 
   RootMonitor *_mon;
 
-  //bool is_HEXABOARD;
+  int mainFrameTS, thresh_LG, thresh_HG;
+
 };
 
 

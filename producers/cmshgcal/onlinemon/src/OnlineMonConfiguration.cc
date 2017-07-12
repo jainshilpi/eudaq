@@ -124,6 +124,15 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         } else if (key.compare("DqmColorMap") == 0) {
           value = remove_this_character(value, '"');
           DqmColorMap = StringToNumber<int>(value);
+        } else if (key.compare("mainFrameTS") == 0) {
+          value = remove_this_character(value, '"');
+          mainFrameTS = StringToNumber<int>(value);
+        } else if (key.compare("thresh_LG") == 0) {
+          value = remove_this_character(value, '"');
+          thresh_LG = StringToNumber<int>(value);
+        } else if (key.compare("thresh_HG") == 0) {
+          value = remove_this_character(value, '"');
+          thresh_HG = StringToNumber<int>(value);
         } else {
           cerr << "Unknown Key " << key << endl;
         }
@@ -198,6 +207,10 @@ void OnlineMonConfiguration::SetDefaults() {
   mimosa26_max_sections = 4;
   mimosa26_section_boundary = 288;
 
+  mainFrameTS = 6;
+  thresh_LG = 50;
+  thresh_HG = 50;
+  
   // hotpixel settings
   hotpixelcut = 0.01;
 
@@ -244,6 +257,15 @@ void OnlineMonConfiguration::setSnapShotFormat(string SnapShotFormat) {
 int OnlineMonConfiguration::getDqmColorMap() const {
   return DqmColorMap;
 }
+int OnlineMonConfiguration::getMainFrameTS() const {
+  return mainFrameTS;
+}
+int OnlineMonConfiguration::getThreshLG() const {
+  return thresh_LG;
+}
+int OnlineMonConfiguration::getThreshHG() const {
+  return thresh_HG;
+}
 
 void OnlineMonConfiguration::setDqmColorMap(int colorID) {
   this->DqmColorMap = colorID;
@@ -265,6 +287,7 @@ void OnlineMonConfiguration::PrintConfiguration() {
     cout << planes_to_be_skipped[i] << " ";
   }
   cout << endl;
+
   cout << "Clusterizer Settings" << endl;
   cout << "HotPixelFinder Settings" << endl;
   cout << "HotPixelCut         : " << hotpixelcut << endl;
