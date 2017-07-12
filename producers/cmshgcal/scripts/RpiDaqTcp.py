@@ -12,17 +12,18 @@ parser.add_argument('-f', '--inputFile', dest="fname", type=str, default=None,
                     help="Raw data file to open")
 parser.add_argument('--ev', dest="nEvents", type=int,  default=20, help="Number of events to take")
 parser.add_argument('--ped', dest="ped", action="store_true", default=False, help="This is a pedestal Run")
+parser.add_argument('--bit', dest="bit", type=int,  choices=[8,32], default=32,
+                    help="Format of the input data file (32 or 8 bit)")
 
 opt = parser.parse_args()
 
 nEvents = opt.nEvents
 
-MYHOSTIP = '192.168.222.3'
+#MYHOSTIP = '192.168.222.3'
+MYHOSTIP = '127.0.0.1'
 PORTTCP = 55511
 HOSTUDP = '' # To be determined from connection
 PORTUDP = 55512
-
-
 
 workingPath = os.getcwd()
 print 'My working directory is: ', workingPath
@@ -31,16 +32,19 @@ PathToData = workingPath+'/'
 #PathToData = workingPath+'/data/'
 
 if opt.ped:
-  executable = workingPath+'/Test_DAQ_Pedestal'
+  executable = workingPath+'/bin/new_rdout.exe'
 else:
-  executable = workingPath+'/Test_DAQ'
+  executable = workingPath+'/bin/new_rdout.exe'
 
 # Use this for testing (will not run any data-taking):
-# executable = workingPath+'/take_a_nap.exe'
+executable = workingPath+'/take_a_nap.exe'
 
 t1_stop = threading.Event()
 
-RAW_EV_SIZE = 30787
+RAW_EV_SIZE = 123152
+if opt.bit==8:
+  RAW_EV_SIZE = 30787
+
 
 #EventRate = 20 # Events per spill
 #SpillTime = 5  # Duration of the spill in seconds
@@ -88,7 +92,7 @@ def sendData(sudp, stop_event, runNumber = 3):
   while (not stop_event.is_set()):
 
     rawData = f.read(RAW_EV_SIZE)
-    
+        
     #if ev%EventRate==0:
     #  stop_event.wait(InterSpill)
 
@@ -112,15 +116,21 @@ def sendData(sudp, stop_event, runNumber = 3):
       d = rawData
       print rawData[0].encode('hex') , len(d)
       # d = rawData[evmod*RAW_EV_SIZE:(evmod+1)*RAW_EV_SIZE]
-      npd = np.fromstring(d, dtype=np.uint8)
-      #print len(npd), npd.nbytes, npd
-      npd32 = npd.astype(np.uint32)
-      #print len(npd32), npd32.nbytes, npd32.nbytes/4, npd32
-      half1 = npd32[0:15500]
-      half2 = np.append(npd32[15500:], [0x0a0b0c0d]).astype(np.uint32) # this is to check endienness
-      # print len(half1), half1.nbytes, len(half2), half2.nbytes, half2.dtype
-      # print half2[-3], half2[-2], half2[-1]
-      
+      if opt.bit==8:
+        npd = np.fromstring(d, dtype=np.uint8)
+        #print len(npd), npd.nbytes, npd
+        npd32 = npd.astype(np.uint32)
+        #print len(npd32), npd32.nbytes, npd32.nbytes/4, npd32
+        half1 = npd32[0:15500]
+        half2 = np.append(npd32[15500:], [0x0a0b0c0d]).astype(np.uint32) # this is to check endienness
+        # print len(half1), half1.nbytes, len(half2), half2.nbytes, half2.dtype
+        # print half2[-3], half2[-2], half2[-1]
+      else:
+        npd32 = np.fromstring(d, np.uint32)
+
+        half1 = npd32[0:15500]
+        half2 = npd32[15500:]
+
     else:
       d = 'Hello World'
 
@@ -179,7 +189,8 @@ def clientthread(conn, sudp):
               print 'The executable to run is:', executable
               print 'The log file of the executable will be:', logFile
 
-              pro = subprocess.Popen(['sudo', executable, str(runNumber), str(nEvents)], stdin=None, stdout=logFile, stderr=logFile, shell=False)
+              pro = subprocess.Popen([executable, str(runNumber), str(nEvents)], stdin=None, stdout=logFile, stderr=logFile, shell=False)
+              #pro = subprocess.Popen(['sudo', executable, str(runNumber), str(nEvents)], stdin=None, stdout=logFile, stderr=logFile, shell=False)
 
             # Let's take a quick sleep, to let the DAQ create the needed datafile.
             time.sleep(3)
