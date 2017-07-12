@@ -18,6 +18,7 @@
 #include "CAEN_v1290.h"
 #include "Unpacker.h"
 
+#include <chrono>
 
 enum RUNMODE{
   DWC_DEBUG = 0,
@@ -125,7 +126,11 @@ class WireChamberProducer : public eudaq::Producer {
   virtual void OnStartRun(unsigned param) {
     m_run = param;
     m_ev = 0;
+
     EUDAQ_INFO("Start Run: "+param);
+    // It must send a BORE to the Data Collector
+    eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
+    SendEvent(bore);
 
     if (_mode==DWC_RUN) {
       if (initialized)
@@ -150,12 +155,11 @@ class WireChamberProducer : public eudaq::Producer {
     outTree->Branch("event", &m_ev);
     outTree->Branch("channels", &channels);
     outTree->Branch("dwc_timestamps", &dwc_timestamps);
+    outTree->Branch("timeSinceStart", &timeSinceStart);
 
 
-    // It must send a BORE to the Data Collector
-    eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
-    SendEvent(bore);
     SetStatus(eudaq::Status::LVL_OK, "Running");
+    startTime = std::chrono::steady_clock::now();
     started=true;
   }
 
@@ -209,7 +213,7 @@ class WireChamberProducer : public eudaq::Producer {
       if (_mode==DWC_RUN && initialized) {
         tdc->Read(dataStream);
       } else if (_mode==DWC_DEBUG) {
-        eudaq::mSleep(1000);
+        eudaq::mSleep(541);
         tdc->generatePseudoData(dataStream);
       }
 
@@ -226,11 +230,12 @@ class WireChamberProducer : public eudaq::Producer {
         dwc_timestamps[channel] = channels_enabled[channel] ? unpacked.timeOfArrivals[channel] : defaultTimestamp;
       }
 
-      std::cout<<"+++ Event: "<<m_ev<<" +++"<<std::endl;
-      for (int channel=0; channel<N_channels; channel++) std::cout<<" "<<dwc_timestamps[channel]; std::cout<<std::endl;
-
+      //get the timestamp since start:
+      timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
       outTree->Fill();
 
+      std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart<<" mu s +++"<<std::endl;
+      for (int channel=0; channel<N_channels; channel++) std::cout<<" "<<dwc_timestamps[channel]; std::cout<<std::endl;
 
       // ------
       // Here, can we do a conversion of the raw data to X,Y positions of the Wire Chambers ->yes
@@ -300,6 +305,8 @@ class WireChamberProducer : public eudaq::Producer {
 
     std::vector<int> dwc_timestamps;
     std::vector<int> channels;
+    std::chrono::steady_clock::time_point startTime;
+    int timeSinceStart;
 
     int defaultTimestamp;
 
@@ -326,9 +333,9 @@ int main(int /*argc*/, const char ** argv) {
   try {
     op.Parse(argv);
     EUDAQ_LOG_LEVEL(level.Value());
+    EUDAQ_INFO("Starting the producer");
     WireChamberProducer producer(name.Value(), rctrl.Value());
     producer.ReadoutLoop();
-
     EUDAQ_INFO("Quitting");
   } catch (...) {
     return op.HandleMainException();

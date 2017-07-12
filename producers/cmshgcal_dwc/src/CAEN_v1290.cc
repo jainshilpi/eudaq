@@ -263,7 +263,9 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   }
 
   if (v1290_rdy==0) {
-    std::cout << "[CAEN_V1290]::[ERROR]::V1290 board not ready" << status << std::endl;   
+    #ifdef CAENV1290_DEBUG
+      std::cout << "[CAEN_V1290]::[ERROR]::V1290 board not ready" << status << std::endl;   
+    #endif
     //v.push_back( (0x4 << 28) | (1 & 0x7FFF ));
     return ERR_READ;
   }
