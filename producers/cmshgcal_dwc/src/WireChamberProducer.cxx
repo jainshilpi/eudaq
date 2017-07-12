@@ -125,7 +125,11 @@ class WireChamberProducer : public eudaq::Producer {
   virtual void OnStartRun(unsigned param) {
     m_run = param;
     m_ev = 0;
+
     EUDAQ_INFO("Start Run: "+param);
+    // It must send a BORE to the Data Collector
+    eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
+    SendEvent(bore);
 
     if (_mode==DWC_RUN) {
       if (initialized)
@@ -152,9 +156,6 @@ class WireChamberProducer : public eudaq::Producer {
     outTree->Branch("dwc_timestamps", &dwc_timestamps);
 
 
-    // It must send a BORE to the Data Collector
-    eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
-    SendEvent(bore);
     SetStatus(eudaq::Status::LVL_OK, "Running");
     started=true;
   }
@@ -326,9 +327,9 @@ int main(int /*argc*/, const char ** argv) {
   try {
     op.Parse(argv);
     EUDAQ_LOG_LEVEL(level.Value());
+    EUDAQ_INFO("Starting the producer");
     WireChamberProducer producer(name.Value(), rctrl.Value());
     producer.ReadoutLoop();
-
     EUDAQ_INFO("Quitting");
   } catch (...) {
     return op.HandleMainException();
