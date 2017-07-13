@@ -17,17 +17,17 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard=8;
-const uint32_t skiMask = 0x000000FF;
+const size_t nSkiPerBoard=20;
+const uint32_t skiMask = 0x000FFFFF;
 //const uint32_t skiMask = 0;
 
 const int nSCA=13;
 
 // For zero suppression:
 //( these are not used anymore, because ZS is done with HA bit )
-//const int ped = 150;  // pedestal. It is now calculated as median from all channels in hexaboard
+//const int ped = 250;  // pedestal. It is now calculated as median from all channels in hexaboard
 //const int noi = 10;   // noise
-//const int thresh = 50; // ZS threshold (above pedestal)
+const int thresh = 250; // ZS threshold (above pedestal)
 
 // Size of ZS data ()per channel
 const char hitSizeZS = 31;
@@ -366,7 +366,8 @@ namespace eudaq {
 
 	  // This is the position of "track" in TS array:
 	  const int TS0 = (GetRollMaskEnd(r)+1)%13;
-	
+
+	  //const int mainFrame = (TS0+3)%13;
 
 	  /*
 	    std::vector<unsigned short> tmp_adc;
@@ -458,13 +459,25 @@ namespace eudaq {
 	      //	     << "  mainFrame = "<<mainFrame<<"  TS0 = "<<TS0<<std::endl;
 	  
 	      */
-	  
+
 	    unsigned short adc = 0;
-	    //adc = gray_to_brady(decoded[ski][mainFrame*128 + 64 + chArrPos] & 0x0FFF);
-	    //if (adc==0) adc=4096;
 
-	    //const int chargeHG = adc;
+	    /*
+	    const int TS2 = (TS0+2)%13;
+	    const int TS3 = (TS0+3)%13;
+	    const int TS4 = (TS0+4)%13;
 
+	    int chargeHG_avg_in3TS = 0;
+	    
+	    adc = gray_to_brady(decoded[ski][TS2*128 + 64 + chArrPos] & 0x0FFF);
+	    chargeHG_avg_in3TS += adc; 
+	    adc = gray_to_brady(decoded[ski][TS3*128 + 64 + chArrPos] & 0x0FFF);
+	    chargeHG_avg_in3TS += adc; 
+	    adc = gray_to_brady(decoded[ski][TS4*128 + 64 + chArrPos] & 0x0FFF);
+	    chargeHG_avg_in3TS += adc; 
+
+	    chargeHG_avg_in3TS = chargeHG_avg_in3TS/3;
+	    */
 	    //adc = gray_to_brady(decoded[ski][mainFrame*128 + chArrPos] & 0x0FFF);
 	    //if (adc==0) adc=4096;
 
@@ -478,10 +491,8 @@ namespace eudaq {
 	    //std::cout<<"Warning: HA is not what we think it is..."<<std::endl;
 	  
 	    // ZeroSuppress it:
-	    //if (chargeHG - (ped+noi) < thresh)  // - Based on ADC in LG/HG
-
-
-	    if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit
+	    //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
+	    if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
 	      continue;
 
 	    dataBlockZS[hexa].push_back((ski%4)*100+ch);

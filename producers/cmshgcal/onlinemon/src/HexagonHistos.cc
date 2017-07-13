@@ -224,12 +224,19 @@ int HexagonHistos::zero_plane_array() {
 
 void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
   // std::cout<< "FILL with a plane." << std::endl;
-
+  
   if (_nHits != NULL)
-    _nHits->Fill(plane.HitPixels());
+    if (plane.HitPixels()>20)
+      _nHits->Fill(20); // Overflow bin
+    else
+      _nHits->Fill(plane.HitPixels());
   if ((_nbadHits != NULL)) {
     _nbadHits->Fill(0);
   }
+
+  // Temporary lets just not show events with too many channels 
+  if (plane.HitPixels()>20)
+    return;
 
 
   // This one needs to be reset every event:

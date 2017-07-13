@@ -183,6 +183,9 @@ class RpiProducer : public eudaq::Producer {
 
       std::cout << "Start Run: " << m_run << std::endl;
 
+      int status = system("source /home/daq/HGCAL_DAQ_remote_scripts/pwr_cycle_fpgas");
+      // this echoes stuff, so you can't check it's status. It should always work.
+
       // openinig socket:
 
       bool con = OpenConnection();
