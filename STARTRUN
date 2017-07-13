@@ -18,6 +18,8 @@ elif [[ $1 == "ahcal" ]]; then
     script=./producers/calice/runscripts/STARTRUN_AHCAL
 elif [[ $1 == "all" ]]; then
     script=./producers/cmshgcal/STARTRUN_ALL
+elif [[ $1 == "ped" ]]; then
+    script=./producers/cmshgcal/STARTRUN_PED
 else
     # default
     echo "This producer is not known to me: ${1}. Sorry."
