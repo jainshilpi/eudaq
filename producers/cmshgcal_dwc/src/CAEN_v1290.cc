@@ -140,10 +140,10 @@ int CAEN_V1290::SetupModule() {
     eudaq::mSleep(20);
   }
   
-  eudaq::mSleep(100);
-  std::cout << "[CAEN_V1290]::[INFO]::Setting max hits per trigger " << configuration_.maxHitsPerEvent << std::endl;
-  status |= OpWriteTDC(CAEN_V1290_MAXHITS_OPCODE); 
-  status |= OpWriteTDC(configuration_.maxHitsPerEvent); 
+  //eudaq::mSleep(100);
+  //std::cout << "[CAEN_V1290]::[INFO]::Setting max hits per trigger " << configuration_.maxHitsPerEvent << std::endl;
+  //status |= OpWriteTDC(CAEN_V1290_MAXHITS_OPCODE); 
+  //status |= OpWriteTDC(configuration_.maxHitsPerEvent); 
   
   
   eudaq::mSleep(100);

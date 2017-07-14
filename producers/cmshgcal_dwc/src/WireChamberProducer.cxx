@@ -231,10 +231,10 @@ class WireChamberProducer : public eudaq::Producer {
       }
 
       //get the timestamp since start:
-      timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
+      timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
       outTree->Fill();
 
-      std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart<<" mu s +++"<<std::endl;
+      std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart<<" ms +++"<<std::endl;
       for (int channel=0; channel<N_channels; channel++) std::cout<<" "<<dwc_timestamps[channel]; std::cout<<std::endl;
 
       // ------
