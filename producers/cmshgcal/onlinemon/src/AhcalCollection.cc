@@ -13,7 +13,7 @@ bool AhcalCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 void AhcalCollection::fillHistograms(const eudaq::StandardPlane &pl) {
   std::cout<<"In AhcalCollection::fillHistograms(StandardPlane)"<<std::endl;
 
-  if (pl.Sensor()!="Calice")
+  if (pl.Sensor().find("Calice")==std::string::npos)
     return;
   
   if (!isPlaneRegistered(pl)) {
@@ -33,7 +33,7 @@ void AhcalCollection::bookHistograms(const eudaq::StandardEvent &ev) {
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
-      if (Plane.Sensor()=="Calice")
+      if (Plane.Sensor().find("Calice")!=std::string::npos)
 	registerPlane(Plane);
     }
   }
@@ -91,7 +91,9 @@ void AhcalCollection::Fill(const eudaq::StandardEvent &ev) {
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-    if (Plane.Sensor()=="Calice")
+
+    //std::cout<<"Trying to Fill a plane: "<<plane<<" sensor="<<Plane.Sensor()<<"  ID="<<Plane.ID()<<std::endl;
+    if (Plane.Sensor().find("Calice")!=std::string::npos)
       fillHistograms(Plane);
   }
 }
@@ -104,6 +106,8 @@ void AhcalCollection::Fill(const eudaq::StandardEvent &ev) {
 
 AhcalHistos *AhcalCollection::getAhcalHistos(std::string sensor, int id) {
   const eudaq::StandardPlane p(id, "Calice", sensor);
+
+  std::cout<<"In getAhcalHistos..  sensor="<<sensor<<"  id="<<id<<std::endl;
   return _map[p];
 }
 

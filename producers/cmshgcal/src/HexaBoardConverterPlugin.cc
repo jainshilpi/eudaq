@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard=4;
-const uint32_t skiMask = 0x0000000F;
+const size_t nSkiPerBoard=16;
+const uint32_t skiMask = 0x0000FFFF;
 //const uint32_t skiMask = 0;
 
 const int nSCA=13;
@@ -42,7 +42,7 @@ namespace eudaq {
 
   // Declare a new class that inherits from DataConverterPlugin
   class HexaBoardConverterPlugin : public DataConverterPlugin {
-      
+
     public:
       // This is called once at the beginning of each run.
       // You may extract information from the BORE and/or configuration
@@ -81,7 +81,7 @@ namespace eudaq {
 	// If the event type is used for different sensors
 	// they can be differentiated here
 	const std::string sensortype = "HexaBoard";
-	
+
 	std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
 
 	const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
@@ -91,18 +91,31 @@ namespace eudaq {
 	const unsigned nBlocks = rev->NumBlocks();
 	std::cout<<"Number of Raw Data Blocks: "<<nBlocks<<std::endl;
 
-	const unsigned nPlanes = nBlocks*nSkiPerBoard/4;
+	const unsigned nPlanes = nSkiPerBoard/4;
 	std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
+
+
+	int RDBOARD = 0;
 
 	for (unsigned blo=0; blo<nBlocks; blo++){
 
 	  std::cout<<"Block = "<<blo<<"  Raw GetID = "<<rev->GetID(blo)<<std::endl;
 
+
 	  const RawDataEvent::data_t & bl = rev->GetBlock(blo);
 
 	  std::cout<<"size of block: "<<bl.size()<<std::endl;
 
-	  if (bl.size()!=RAW_EV_SIZE_32) {
+	  if (blo==0){
+	    // This block contains a string with
+	    std::vector<int> brdID;
+	    brdID.resize(bl.size() / sizeof(int));
+	    std::memcpy(&brdID[0], &bl[0], bl.size());
+	    RDBOARD = brdID[0];
+	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
+	    continue;
+	  }
+	  else if (blo==1 && bl.size()!=RAW_EV_SIZE_32) {
 	    EUDAQ_WARN("There is something wrong with the data. Size= "+eudaq::to_string(bl.size()));
 	    return true;
 	  }
@@ -121,7 +134,10 @@ namespace eudaq {
 
 	    //std::cout<<"Hexa plane = "<<h<<std::endl;
 
-	    StandardPlane plane(blo*8+h, EVENT_TYPE, sensortype);
+	    std::ostringstream oss;
+	    oss << sensortype <<"-RDB" << RDBOARD;
+	    StandardPlane plane(h, EVENT_TYPE, oss.str());
+	    //StandardPlane plane(blo*8+h, EVENT_TYPE, sensortype);
 
 	    // -------------
 	    // Now we can use the data to fill the euDAQ Planes
@@ -304,10 +320,10 @@ namespace eudaq {
 	  last = k1;
 
 	printf("last = %d\n", last);
-      
+
 	return last;
       }
-    
+
 
       /*
 	std::array<int, 13> rollPositions(const unsigned int r) const {
@@ -316,7 +332,7 @@ namespace eudaq {
 	std::bitset<nSCA> bits = r;
 	//for( size_t i=0; i<nSCA; i++ )
 	//bits[i]=bitstmp[nSCA-1-i];
-      
+
 	std::array<int, nSCA> roll;
 	if(bits.test(0) && bits.test(nSCA-1)){
 	roll[0]=0;
@@ -338,7 +354,7 @@ namespace eudaq {
 	}
 	return roll;
 	}
-      */    
+      */
 
       std::vector<std::vector<unsigned short>> GetZSdata(const std::vector<std::array<unsigned int,1924>> &decoded) const{
 
@@ -383,7 +399,7 @@ namespace eudaq {
 
 	    std::sort(tmp_adc.begin(), tmp_adc.end());
 
-	
+
 	    unsigned median = 0 ;
 
 	    if (tmp_adc.size() == 32){
@@ -404,7 +420,7 @@ namespace eudaq {
 	    //	 <<"\t also, first guy:"<<tmp_adc.front()<<"  and last guy:"<<tmp_adc.back()<<std::endl;
 
 	    tmp_adc.clear();
-	
+
 	    //const int ped = 150;
 	    //const int ped = median;
 
@@ -423,7 +439,7 @@ namespace eudaq {
 	    std::cout<<"  "<<nSCA-1-rollPos[i];
 	  std::cout<<std::endl;
 	  */
-	  
+
 	  for (int ch = 0; ch < 64; ch+=2){
 
 	    const int chArrPos = 63-ch; // position of the hit in array
@@ -457,7 +473,7 @@ namespace eudaq {
 	      //&& maxADC - (ped+noi) > thresh)
 	      //std::cout<<ch <<": Max charge of HG="<<maxADC<<"  at ts="<<tmp_TS
 	      //	     << "  mainFrame = "<<mainFrame<<"  TS0 = "<<TS0<<std::endl;
-	  
+
 	      */
 
 	    unsigned short adc = 0;
@@ -468,13 +484,13 @@ namespace eudaq {
 	    const int TS4 = (TS0+4)%13;
 
 	    int chargeHG_avg_in3TS = 0;
-	    
+
 	    adc = gray_to_brady(decoded[ski][TS2*128 + 64 + chArrPos] & 0x0FFF);
-	    chargeHG_avg_in3TS += adc; 
+	    chargeHG_avg_in3TS += adc;
 	    adc = gray_to_brady(decoded[ski][TS3*128 + 64 + chArrPos] & 0x0FFF);
-	    chargeHG_avg_in3TS += adc; 
+	    chargeHG_avg_in3TS += adc;
 	    adc = gray_to_brady(decoded[ski][TS4*128 + 64 + chArrPos] & 0x0FFF);
-	    chargeHG_avg_in3TS += adc; 
+	    chargeHG_avg_in3TS += adc;
 
 	    chargeHG_avg_in3TS = chargeHG_avg_in3TS/3;
 	    */
@@ -485,11 +501,11 @@ namespace eudaq {
 
 	    //std::cout<<ch <<": charge LG:"<<chargeLG
 	    //<<"ped + noi = "<<ped+noi<<"   charge-(ped+noi) = "<<chargeLG - (ped+noi)<<std::endl;
-	  
+
 	    // Check that all Ha hits are the same for a given channel
 	    //if ((decoded[ski][chArrPos] & 0x1000) != (decoded[ski][chArrPos + 64] & 0x1000))
 	    //std::cout<<"Warning: HA is not what we think it is..."<<std::endl;
-	  
+
 	    // ZeroSuppress it:
 	    //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
 	    if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
@@ -507,7 +523,7 @@ namespace eudaq {
 	      //std::cout<<"  ts:"<<ts<<" adc="<<adc;
 	    }
 	    //std::cout<<std::endl;
-	    
+
 	    /*
 	      std::cout<<"\t From track::"<<std::endl;
 	      for (int ts=0; ts<nSCA; ts++){
@@ -519,12 +535,12 @@ namespace eudaq {
 	      }
 	      std::cout<<std::endl;
 	    */
-	    
-	    
+
+
 	    // High gain:
 	    for (int ts=0; ts<nSCA; ts++){
 	      const int t = 12-(TS0+ts)%13;
-	      
+
 	      adc = gray_to_brady(decoded[ski][t*128 + 64 + chArrPos] & 0x0FFF);
 	      if (adc==0) adc=4096;
 	      dataBlockZS[hexa].push_back(adc);

@@ -235,8 +235,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
   }
 
   // Temporary lets just not show events with too many channels 
-  if (plane.HitPixels()>20)
-    return;
+  //if (plane.HitPixels()>20)
+  //return;
 
 
   // This one needs to be reset every event:
