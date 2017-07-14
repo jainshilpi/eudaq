@@ -433,7 +433,7 @@ class RpiProducer : public eudaq::Producer {
 	  continue;
 	}
 	
-	SetStatus(eudaq::Status::OK, "Running");
+	SetStatus(eudaq::Status::LVL_OK, "Running");
 
 	std::cout<<"First few bytes of the RAW event:"<<std::endl;
 	for (int b=0; b<3; b++)

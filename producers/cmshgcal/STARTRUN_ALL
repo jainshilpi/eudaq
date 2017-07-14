@@ -137,7 +137,12 @@ sleep 2
 printf '\033[22;33m\t delay wire chamber Producer \033[0m \n'
 #ssh -Y -T wc "xterm -sb -sl 1000 -geom 80x600-280-900 -fn fixed -T \"Delay Wire Chamber Producer\" -e \"/home/cmsdaq/DAQ/eudaq/bin/WireChamberProducer.exe -l INFO -r tcp://192.168.222.1:44000\"" &
 flog="../logs/Run${NEWRUNNUM}_WireChamberProducer_$dt.log"
+ssh -Y -T wc "killall WireChamberProducer.exe"  &
+sleep 1
 nohup ssh -Y -T wc "/home/cmsdaq/DAQ/eudaq/bin/WireChamberProducer.exe -l INFO -r tcp://192.168.222.1:44000"  > $flog 2>&1 &
+
+echo "\n"
+
 sleep 2
 
 

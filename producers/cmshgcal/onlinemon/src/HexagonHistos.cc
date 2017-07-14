@@ -448,7 +448,7 @@ void HexagonHistos::Write() {
   _LGvsTOTslow->Write();
   _HGvsLG->Write();
   
-  std::cout<<"Doing HexagonHistos::Write() before canvas drawing"<<std::endl;
+  //std::cout<<"Doing HexagonHistos::Write() before canvas drawing"<<std::endl;
 
   /*
   gSystem->Sleep(100);
@@ -474,7 +474,7 @@ void HexagonHistos::Write() {
 
   */
 
-  std::cout<<"Doing HexagonHistos::Write() after canvas drawing"<<std::endl;
+  //std::cout<<"Doing HexagonHistos::Write() after canvas drawing"<<std::endl;
 
 }
 
