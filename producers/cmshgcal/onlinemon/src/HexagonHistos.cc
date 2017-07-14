@@ -231,7 +231,7 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
     else
       _nHits->Fill(plane.HitPixels());
   if ((_nbadHits != NULL)) {
-    _nbadHits->Fill(0);
+    _nbadHits->Fill(2);
   }
 
   // Temporary lets just not show events with too many channels 
@@ -250,13 +250,16 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++)
     {
 
-
       const int pixel_x = plane.GetX(pix);
       const int pixel_y = plane.GetY(pix);
       const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
 
-      std::cout<<" We are getting a pixel with pix="<<pix
-	       <<"\t in hexagon channel:"<<ch<<",  ski="<<pixel_x<<"  Ch="<<pixel_y<<std::endl;
+      // These are noisy pixels in every hexaboard. Let's just mask them from DQM:
+      if (pixel_x==3 && (pixel_y==32 || pixel_y==48))
+	continue;
+      
+      //std::cout<<" We are getting a pixel with pix="<<pix
+      //       <<"\t in hexagon channel:"<<ch<<",  ski="<<pixel_x<<"  Ch="<<pixel_y<<std::endl;
 
       // Arrays to store Time Samples
       std::array<int, nSCA> sig_LG;
@@ -269,11 +272,11 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
 
       const auto max_LG = std::max_element(std::begin(sig_LG), std::end(sig_LG));
       const int pos_max_LG =  std::distance(std::begin(sig_LG), max_LG);
-      std::cout << "Max element in LG is " << *max_LG << " at position " << pos_max_LG << std::endl;
+      //std::cout << "Max element in LG is " << *max_LG << " at position " << pos_max_LG << std::endl;
 
       const auto max_HG = std::max_element(std::begin(sig_HG), std::end(sig_HG));
       const int pos_max_HG =  std::distance(std::begin(sig_HG), max_HG);
-      std::cout << "Max element in HG is " << *max_HG << " at position " << pos_max_HG << std::endl;
+      //std::cout << "Max element in HG is " << *max_HG << " at position " << pos_max_HG << std::endl;
 
 
       // Get pedestal estimates from the first time samples:
