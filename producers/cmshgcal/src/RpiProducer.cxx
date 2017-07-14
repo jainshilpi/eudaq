@@ -131,11 +131,16 @@ class RpiProducer : public eudaq::Producer {
       //   }
       // }
       
+      m_RDBOARD = config.Get("RDBOARD", 0);
+      
       m_portTCP = config.Get("portTCP", 55511);
       m_portUDP = config.Get("portUDP", 55512);
-      m_rpi_1_ip = config.Get("RPI_1_IP", "192.168.222.3");
+      m_rpi_ip = config.Get("RPI_1_IP", "192.168.222.3");
 
-      std::cout<<"RPI IP address: "<<m_rpi_1_ip<<std::endl;
+      std::cout<<"RPI IP address: "<<m_rpi_ip<<std::endl;
+      std::cout<<"TCP port: "<<m_portTCP<<std::endl;
+      std::cout<<"UDP port: "<<m_portUDP<<std::endl;
+      std::cout<<"Readout board: "<<m_RDBOARD<<std::endl;
 
       if (configurationSuccessful) {
         SetStatus(eudaq::Status::LVL_OK, "Configuration reset!");
@@ -234,7 +239,7 @@ class RpiProducer : public eudaq::Producer {
 
       // Let's open a file for raw data:
       char rawFilename[256];
-      sprintf(rawFilename, "../data/HexaData_Run%04d.raw", m_run); // The path is relative to eudaq/bin
+      sprintf(rawFilename, "../data/HexaData_Run%04d_RDBOARD%d.raw", m_run, m_RDBOARD); // The path is relative to eudaq/bin
       m_rawFile.open(rawFilename, std::ios::binary);
       
       //fout = fopen("myOUT.txt", "w");
@@ -450,7 +455,10 @@ class RpiProducer : public eudaq::Producer {
 	  // Create a RawDataEvent to contain the event data to be sent
 	  eudaq::RawDataEvent ev(EVENT_TYPE, m_run, m_ev);
 
-	  ev.AddBlock(0, m_raw32bitData, RAW_EV_SIZE_32);
+	  int head[1];
+	  head[0] = m_RDBOARD;
+	  ev.AddBlock(0, head, sizeof(head));
+	  ev.AddBlock(1, m_raw32bitData, RAW_EV_SIZE_32);
 	  SendEvent(ev);
 
 	}
@@ -494,7 +502,7 @@ class RpiProducer : public eudaq::Producer {
       struct sockaddr_in tcp_addr;
       bzero((char *) &tcp_addr, sizeof(tcp_addr));
       tcp_addr.sin_family = AF_INET;
-      tcp_addr.sin_addr.s_addr = inet_addr(m_rpi_1_ip.c_str());
+      tcp_addr.sin_addr.s_addr = inet_addr(m_rpi_ip.c_str());
       tcp_addr.sin_port = htons(m_portTCP);
  
       int ret = connect(m_sockfd1, (struct sockaddr *) &tcp_addr, sizeof(tcp_addr));
@@ -582,7 +590,7 @@ private:
     int m_sockfd1, m_sockfd2; //TCP and UDP socket connection file descriptors (fd)
     //std::mutex m_mufd;
 
-    std::string m_rpi_1_ip;
+    std::string m_rpi_ip;
     int m_portTCP, m_portUDP;
 
     std::time_t m_last_readout_time;
@@ -593,6 +601,7 @@ private:
 
     bool m_gotPart1, m_gotPart2;
 
+    int m_RDBOARD;
 };
 
 // The main function that will create a Producer instance and run it
