@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard=20;
-const uint32_t skiMask = 0x000FFFFF;
+const size_t nSkiPerBoard=4;
+const uint32_t skiMask = 0x0000000F;
 //const uint32_t skiMask = 0;
 
 const int nSCA=13;

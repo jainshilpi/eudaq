@@ -14,12 +14,6 @@ import threading
 import time
 import numpy as np
 
-#MYIP = '192.168.222.3'
-MYIP = '127.0.0.1'
-PORTTCP = 55511
-
-HOSTUDP = '' # To be determined from connection
-PORTUDP = 55512
 
 t1_stop = threading.Event()
 
@@ -34,8 +28,19 @@ parser.add_argument('-f', '--inputFile', dest="fname", type=str, default=None, r
                     help="Raw data file to open")
 parser.add_argument('--bit', dest="bit", type=int,  choices=[8,32], default=32,
                     help="Format of the input data file (32 or 8 bit)")
+parser.add_argument('--tport', dest="tport", type=int,  choices=[55511, 55311], default=55511,
+                    help="TCP port for connection")
+parser.add_argument('--uport', dest="uport", type=int,  choices=[55512, 55312], default=55512,
+                    help="UDP port for connection")
 
 opt = parser.parse_args()
+
+#MYIP = '192.168.222.3'
+MYIP = '127.0.0.1'
+PORTTCP = opt.tport
+
+HOSTUDP = '' # To be determined from connection
+PORTUDP = opt.uport
 
 def sendData(sudp, stop_event):
 
