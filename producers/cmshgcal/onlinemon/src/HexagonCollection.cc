@@ -13,7 +13,7 @@ bool HexagonCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl) {
   std::cout<<"In HexagonCollection::fillHistograms(StandardPlane)"<<std::endl;
 
-  if (pl.Sensor()!="HexaBoard")
+  if (pl.Sensor().find("HexaBoard")==std::string::npos)
     return;
   
   if (!isPlaneRegistered(pl)) {
@@ -33,7 +33,7 @@ void HexagonCollection::bookHistograms(const eudaq::StandardEvent &ev) {
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
-      if (Plane.Sensor()=="HexaBoard")
+      if (Plane.Sensor().find("HexaBoard")!=std::string::npos)
 	registerPlane(Plane);
     }
   }
@@ -91,7 +91,9 @@ void HexagonCollection::Fill(const eudaq::StandardEvent &ev) {
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-    if (Plane.Sensor()=="HexaBoard")
+    std::cout<<"Trying to Fill a plane: "<<plane<<" sensor="<<Plane.Sensor()<<"  ID="<<Plane.ID()<<std::endl;
+
+    if (Plane.Sensor().find("HexaBoard")!=std::string::npos)
       fillHistograms(Plane);
   }
 }

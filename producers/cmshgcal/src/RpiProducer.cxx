@@ -188,7 +188,7 @@ class RpiProducer : public eudaq::Producer {
 
       std::cout << "Start Run: " << m_run << std::endl;
 
-      int status = system("source /home/daq/HGCAL_DAQ_remote_scripts/pwr_cycle_fpgas");
+      //int status = system("source /home/daq/HGCAL_DAQ_remote_scripts/pwr_cycle_fpgas");
       // this echoes stuff, so you can't check it's status. It should always work.
 
       // openinig socket:
@@ -362,7 +362,7 @@ class RpiProducer : public eudaq::Producer {
 	// If we are below this point, we listen for data
 	// ***********
 
-	SetStatus(eudaq::Status::LVL_DEBUG, "Running");
+	//SetStatus(eudaq::Status::LVL_DEBUG, "Running");
 	//EUDAQ_DEBUG("Running again");
 
 	const int bufsize = split1;
@@ -428,10 +428,12 @@ class RpiProducer : public eudaq::Producer {
 	}
 	else {
 	  EUDAQ_WARN("The event size is not right! n="+eudaq::to_string(n));
-	  SetStatus(eudaq::Status::LVL_WARN, "Wrong event size.");
+	  if (n!=-1)
+	    SetStatus(eudaq::Status::LVL_WARN, "Wrong event size.");
 	  continue;
 	}
 	
+	SetStatus(eudaq::Status::LVL_OK, "Running");
 
 	std::cout<<"First few bytes of the RAW event:"<<std::endl;
 	for (int b=0; b<3; b++)
@@ -455,6 +457,9 @@ class RpiProducer : public eudaq::Producer {
 	  // Create a RawDataEvent to contain the event data to be sent
 	  eudaq::RawDataEvent ev(EVENT_TYPE, m_run, m_ev);
 
+	  //std::ostringstream oss;
+	  //oss << "RDB" << m_RDBOARD;
+	  //ev.AddBlock(0, oss.str(), sizeof(oss.str()));
 	  int head[1];
 	  head[0] = m_RDBOARD;
 	  ev.AddBlock(0, head, sizeof(head));
