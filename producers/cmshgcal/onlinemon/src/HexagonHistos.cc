@@ -73,38 +73,10 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     _pedHG = new TH1I(out2, out, 100, 0, 400);
     SetHistoAxisLabelx(_pedHG, "ADC counts");
 
-    /*
-    sprintf(out, "%s %i Cluster Hitmap", _sensor.c_str(), _id);
-    sprintf(out2, "h_clustermap_%s_%i", _sensor.c_str(), _id);
-    _clusterMap = new TH2I(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
-    SetHistoAxisLabels(_clusterMap, "X", "Y");
-    // std::cout << "Created Histogram " << out2 << std::endl;
-    */
     sprintf(out, "%s %i, hot Pixel Map", _sensor.c_str(), _id);
     sprintf(out2, "h_hotpixelmap_%s_%i", _sensor.c_str(), _id);
     _HotPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
     SetHistoAxisLabels(_HotPixelMap, "X", "Y");
-
-    /*
-    sprintf(out, "%s %i LVL1 Pixel Distribution", _sensor.c_str(), _id);
-    sprintf(out2, "h_lvl1_%s_%i", _sensor.c_str(), _id);
-    _lvl1Distr = new TH1I(out2, out, 16, 0, 16);
-
-    sprintf(out, "%s %i LVL1 Cluster Distribution", _sensor.c_str(), _id);
-    sprintf(out2, "h_lvl1cluster_%s_%i", _sensor.c_str(), _id);
-    _lvl1Cluster = new TH1I(out2, out, 16, 0, 16);
-
-    sprintf(out, "%s %i LVL1 Clusterwidth", _sensor.c_str(), _id);
-    sprintf(out2, "h_lvl1width_%s_%i", _sensor.c_str(), _id);
-    _lvl1Width = new TH1I(out2, out, 16, 0, 16);
-    */
-
-
-    //sprintf(out, "%s %i Hitoccupancy", _sensor.c_str(), _id);
-    //sprintf(out2, "h_hitocc%s_%i", _sensor.c_str(), _id);
-
-    //_hitOcc = new TH1F(out2, out, 250, 0.01, 1);
-    //SetHistoAxisLabelx(_hitOcc, "Frequency");
 
 
     sprintf(out, "%s %i, Number of Hits", _sensor.c_str(), _id);
@@ -287,13 +259,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
 
 
       // Get pedestal estimates from the first time samples:
-      const int ped_LG = std::accumulate(sig_LG.begin(), sig_LG.begin()+2, 0)/3; // average of the first three TS
-      const int ped_HG = std::accumulate(sig_HG.begin(), sig_HG.begin()+2, 0)/3; // average of the first three TS
-      //const int ped_LG = plane.GetPixel(pix, 0);
-      //const int ped_HG = plane.GetPixel(pix, nSCA);
-
-      //const int thresh_LG = 60; // this should be configurable
-      //const int thresh_HG = 120;// this should be configurable
+      const int ped_LG = std::accumulate(sig_LG.begin(), sig_LG.begin()+1, 0)/2; // average of the first two TS
+      const int ped_HG = std::accumulate(sig_HG.begin(), sig_HG.begin()+1, 0)/2; // average of the first two TS
 
       if (_pedLG!=NULL)
 	_pedLG->Fill(ped_LG);
@@ -432,8 +399,7 @@ void HexagonHistos::Write() {
   _hexagons_charge->Write();
   _hit2Dmap->Write();
   _hit1Docc->Write();
-  //_clusterSize->Write();
-  //_nClusters->Write();
+
   _nHits->Write();
   _nbadHits->Write();
   _HotPixelMap->Write();
