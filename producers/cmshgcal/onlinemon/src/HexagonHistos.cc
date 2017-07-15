@@ -226,6 +226,7 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
       const int pixel_y = plane.GetY(pix);
       const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
 
+      // ----- Maskig noisy channels ----
       // These are noisy pixels in every hexaboard. Let's just mask them from DQM:
       if (pixel_x==3 && (pixel_y==32 || pixel_y==48))
 	continue;
@@ -236,7 +237,17 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
 	     plane.Sensor()=="HexaBoard-RDB3" && plane.ID()==1 ) &&
 	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
-      
+
+      if ( plane.Sensor()=="HexaBoard-RDB3" && plane.ID()==0 &&
+	   pixel_x==1 && pixel_y==4 )
+	continue;
+
+      if ( plane.Sensor()=="HexaBoard-RDB3" && plane.ID()==2 &&
+	   pixel_x==0 && pixel_y==22 )
+	continue;
+
+      // -------- end masking -------------
+
       //std::cout<<" We are getting a pixel with pix="<<pix
       //       <<"\t in hexagon channel:"<<ch<<",  ski="<<pixel_x<<"  Ch="<<pixel_y<<std::endl;
 
