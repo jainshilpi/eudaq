@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard=16;
-const uint32_t skiMask = 0x0000FFFF;
+const size_t nSkiPerBoard[2] = {16,24};
+const uint32_t skiMask[2] = {0x0000FFFF, 0x00FFFFFF};
 //const uint32_t skiMask = 0;
 
 const int nSCA=13;
@@ -27,7 +27,7 @@ const int nSCA=13;
 //( these are not used anymore, because ZS is done with HA bit )
 //const int ped = 250;  // pedestal. It is now calculated as median from all channels in hexaboard
 //const int noi = 10;   // noise
-const int thresh = 250; // ZS threshold (above pedestal)
+//const int thresh = 250; // ZS threshold (above pedestal)
 
 // Size of ZS data ()per channel
 const char hitSizeZS = 31;
@@ -91,10 +91,6 @@ namespace eudaq {
 	const unsigned nBlocks = rev->NumBlocks();
 	std::cout<<"Number of Raw Data Blocks: "<<nBlocks<<std::endl;
 
-	const unsigned nPlanes = nSkiPerBoard/4;
-	std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
-
-
 	int RDBOARD = 0;
 
 	for (unsigned blo=0; blo<nBlocks; blo++){
@@ -113,6 +109,10 @@ namespace eudaq {
 	    std::memcpy(&brdID[0], &bl[0], bl.size());
 	    RDBOARD = brdID[0];
 	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
+
+	    const unsigned nPlanes = nSkiPerBoard[RDBOARD-2]/4;
+	    std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
+
 	    continue;
 	  }
 	  else if (blo==1 && bl.size()!=RAW_EV_SIZE_32) {
@@ -125,7 +125,7 @@ namespace eudaq {
 	  rawData32.resize(bl.size() / sizeof(uint32_t));
 	  std::memcpy(&rawData32[0], &bl[0], bl.size());
 
-	  const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, skiMask);
+	  const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
 
 	  // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
 	  const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded);
@@ -244,14 +244,16 @@ namespace eudaq {
       }
 
 
-      std::vector<std::array<unsigned int,1924>> decode_raw_32bit(std::vector<uint32_t>& raw, const uint32_t ch_mask) const{
+      std::vector<std::array<unsigned int,1924>> decode_raw_32bit(std::vector<uint32_t>& raw, const int board_id) const{
+	
+	const uint32_t ch_mask = skiMask[board_id-2];
+	
 	//std::cout<<"In decoder"<<std::endl;
 	//printf("\t SkiMask: 0x%08x;   Length of Raw: %d\n", ch_mask, raw.size());
 
 	// Check that an external mask agrees with first 32-bit word in data
 	if (ch_mask!=raw[0])
 	  EUDAQ_DEBUG("You extarnal mask ("+eudaq::to_hex(ch_mask)+") does not agree with the one found in data ("+eudaq::to_hex(raw[0])+")");
-
 
 
 	//for (int b=0; b<2; b++)
@@ -266,7 +268,7 @@ namespace eudaq {
 	//std::cout<<"ski mask: "<<ski_mask<<std::endl;
 
 	const int mask_count = ski_mask.count();
-	if (mask_count!= nSkiPerBoard) {
+	if (mask_count!= nSkiPerBoard[board_id-2]) {
 	  EUDAQ_WARN("The mask does not agree with expected number of SkiRocs. Mask count:"+ eudaq::to_string(mask_count));
 	}
 
