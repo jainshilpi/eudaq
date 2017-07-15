@@ -126,7 +126,12 @@ void WireChamberHistos::Fill(const eudaq::StandardPlane &plane) {
 void WireChamberHistos::Reset() {
 
   _XYmap->Reset();
-
+  _recoX->Reset();
+  _recoY->Reset();
+  _goodAll->Reset();
+  _goodX->Reset();
+  _goodY->Reset();
+    
   // we have to reset the aux array as well
   zero_plane_array();
 }
@@ -141,6 +146,12 @@ void WireChamberHistos::Write() {
 
   _XYmap->Write();
 
+  _recoX->Write();
+  _recoY->Write();
+  _goodAll->Write();
+  _goodX->Write();
+  _goodY->Write();
+    
   //std::cout<<"Doing WireChamberHistos::Write() before canvas drawing"<<std::endl;
 
   /*
