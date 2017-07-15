@@ -128,7 +128,7 @@ namespace eudaq {
 	  const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
 
 	  // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
-	  const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded);
+	  const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded, RDBOARD);
 
 	  for (unsigned h = 0; h < dataBlockZS.size(); h++){
 
@@ -358,7 +358,7 @@ namespace eudaq {
 	}
       */
 
-      std::vector<std::vector<unsigned short>> GetZSdata(const std::vector<std::array<unsigned int,1924>> &decoded) const{
+    std::vector<std::vector<unsigned short>> GetZSdata(const std::vector<std::array<unsigned int,1924>> &decoded, const int board_id) const{
 
 	//std::cout<<"In GetZSdata() method"<<std::endl;
 
@@ -366,7 +366,7 @@ namespace eudaq {
 	const int nHexa =  nSki/4;
 	if (nSki%4!=0)
 	  EUDAQ_WARN("Number of SkiRocs is not right: "+ eudaq::to_string(nSki));
-	if (nHexa != nSkiPerBoard/4)
+	if (nHexa != nSkiPerBoard[board_id-2]/4)
 	  EUDAQ_WARN("Number of HexaBoards is not right: "+ eudaq::to_string(nHexa));
 
 	// A vector per HexaBoard of vector of Hits from 4 ski-rocs
