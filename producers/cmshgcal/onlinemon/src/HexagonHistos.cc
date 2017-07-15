@@ -226,13 +226,16 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
   // std::cout<< "FILL with a plane." << std::endl;
   
   if (_nHits != NULL)
-    if (plane.HitPixels()>20)
-      _nHits->Fill(20); // Overflow bin
+    if (plane.HitPixels()>=20)
+      _nHits->Fill(19); // Overflow bin
     else
       _nHits->Fill(plane.HitPixels());
   if ((_nbadHits != NULL)) {
     _nbadHits->Fill(2);
   }
+
+  if (plane.HitPixels()>40)
+    continue;
 
   // Temporary lets just not show events with too many channels 
   //if (plane.HitPixels()>20)
@@ -256,6 +259,13 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
 
       // These are noisy pixels in every hexaboard. Let's just mask them from DQM:
       if (pixel_x==3 && (pixel_y==32 || pixel_y==48))
+	continue;
+
+      // These are bad on some boards:
+      if ( ( plane.Sensor()=="HexaBoard-RDB2" && plane.ID()==1 ||
+	     plane.Sensor()=="HexaBoard-RDB2" && plane.ID()==3 ||
+	     plane.Sensor()=="HexaBoard-RDB3" && plane.ID()==1 ) &&
+	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
       
       //std::cout<<" We are getting a pixel with pix="<<pix
@@ -360,7 +370,7 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
 	  std::ostringstream oss;  oss << "Sensor_" << icell+1;
           const string bin_name = oss.str();
 
-          if (avg_hg > 100 && _hexagons_occ_adc!=NULL)
+          if (avg_hg > thresh_HG && _hexagons_occ_adc!=NULL)
             _hexagons_occ_adc->Fill(bin_name.c_str(), 1);
 
           if (tot_slow!=4 &&_hexagons_occ_tot!=NULL)

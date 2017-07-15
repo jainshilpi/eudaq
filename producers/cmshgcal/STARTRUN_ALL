@@ -46,7 +46,7 @@ if [ ! -d ./snapshots ]; then
   mkdir -p ./snapshots;
 fi
 
-mkdir -p ./snapshots/run$NEWRUNNUM/;
+#mkdir -p ./snapshots/run$NEWRUNNUM/;
 
 
 printf '\033[1;32;48m \t STARTING DAQ LOCALLY\033[0m \n'
