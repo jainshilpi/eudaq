@@ -49,10 +49,11 @@ AhcalHistos::AhcalHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
     sprintf(out, "%s %i Number of Hits", _sensor.c_str(), _id);
     sprintf(out2, "h_raw_nHits_%s_%i", _sensor.c_str(), _id);
-    _nHits = new TH1I(out2, out, 20, 0, 20);
+    _nHits = new TH1I(out2, out, 50, 0, 50);
     SetHistoAxisLabelx(_nHits, "Number of Hits above ZS");
     //_nHits->SetStats(1);
 
+    /* Not used
     sprintf(out, "%s %i Number of Invalid Hits", _sensor.c_str(), _id);
     sprintf(out2, "h_nbadHits_%s_%i", _sensor.c_str(), _id);
     _nbadHits = new TH1I(out2, out, 50, 0, 50);
@@ -62,7 +63,7 @@ AhcalHistos::AhcalHistos(eudaq::StandardPlane p, RootMonitor *mon)
     sprintf(out2, "h_nhotpixels_%s_%i", _sensor.c_str(), _id);
     _nHotPixels = new TH1I(out2, out, 50, 0, 50);
     SetHistoAxisLabelx(_nHotPixels, "n_{HotPixels}");
-
+    */
 
     // make a plane array for calculating e..g hotpixels and occupancy
 
@@ -99,11 +100,15 @@ int AhcalHistos::zero_plane_array() {
 void AhcalHistos::Fill(const eudaq::StandardPlane &plane) {
   // std::cout<< "FILL with a plane." << std::endl;
 
-  if (_nHits != NULL)
-    _nHits->Fill(plane.HitPixels());
-  if ((_nbadHits != NULL)) {
-    _nbadHits->Fill(0);
+  if (_nHits != NULL) {
+    if (plane.HitPixels() >= 50)
+      _nHits->Fill(49); // overflow
+    else
+      _nHits->Fill(plane.HitPixels());
   }
+  //if ((_nbadHits != NULL)) {
+  //_nbadHits->Fill(0);
+  //}
 
 
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++)
