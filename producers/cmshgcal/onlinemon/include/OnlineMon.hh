@@ -27,15 +27,15 @@
 // Project Includes
 
 #include "BaseCollection.hh"
-#include "HitmapHistos.hh"
-#include "CorrelationHistos.hh"
-#include "EUDAQMonitorHistos.hh"
+//#include "HitmapHistos.hh"
+//#include "CorrelationHistos.hh"
+//#include "EUDAQMonitorHistos.hh"
 
 #include "HexagonCollection.hh"
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
 
-#include "CorrelationCollection.hh"
+//#include "CorrelationCollection.hh"
 #include "MonitorPerformanceCollection.hh"
 #include "EUDAQMonitorCollection.hh"
 
@@ -95,7 +95,7 @@ public:
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
 
-  CorrelationCollection *corrCollection;
+  //CorrelationCollection *corrCollection;
   EUDAQMonitorCollection *eudaqCollection;
 
   virtual void StartIdleing() {}
@@ -136,12 +136,14 @@ public:
   void autoReset(const bool reset);
   void setReduce(const unsigned int red);
   void setUpdate(const unsigned int up);
-  void setCorr_width(const unsigned c_w) {
-    corrCollection->setWindowWidthForCorrelation(c_w);
-  }
-  void setCorr_planes(const unsigned c_p) {
-    corrCollection->setPlanesNumberForCorrelation(c_p);
-  }
+
+  //void setCorr_width(const unsigned c_w) {
+  //corrCollection->setWindowWidthForCorrelation(c_w);
+  //}
+  //void setCorr_planes(const unsigned c_p) {
+  //corrCollection->setPlanesNumberForCorrelation(c_p);
+  //}
+  
   void setUseTrack_corr(const bool t_c) { useTrackCorrelator = t_c; }
   bool getUseTrack_corr() const { return useTrackCorrelator; }
   void setTracksPerEvent(const unsigned int tracks) { tracksPerEvent = tracks; }

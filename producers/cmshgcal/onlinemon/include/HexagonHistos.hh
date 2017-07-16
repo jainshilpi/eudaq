@@ -31,6 +31,9 @@ protected:
   TH2I *_hit2Dmap;
   TH1I *_hit1Docc;
 
+  //std::vector<*TH2Poly> _EventDisplays;
+  TList *ev_display_list = new TList;
+
   TH2D *_HotPixelMap;
   //TH1F *_hitOcc;
   TH1I *_nHits;
@@ -97,8 +100,9 @@ private:
   int SetHistoAxisLabelx(TH1 *histo, string xlabel);
   int SetHistoAxisLabely(TH1 *histo, string ylabel);
   int SetHistoAxisLabels(TH1 *histo, string xlabel, string ylabel);
-  int filling_counter; // we don't need occupancy to be refreshed for every
-                       // single event
+
+   // Using this for event display plots (ADC HG charge):
+  int filling_counter; // should be equal to event number, unless we miss some events
 
   void Set_SkiToHexaboard_ChannelMap();
   map < pair < int,int >, int > _ski_to_ch_map;

@@ -24,32 +24,31 @@ AhcalHistos::AhcalHistos(eudaq::StandardPlane p, RootMonitor *mon)
   if (_maxX != -1 && _maxY != -1) {
 
     sprintf(out, "%s %i Raw Hitmap", _sensor.c_str(), _id);
-    sprintf(out2, "h_hitmap_%s_%i", _sensor.c_str(), _id);
+    sprintf(out2, "h_hitmap_%s_%02d", _sensor.c_str(), _id);
     _hitmap = new TH2I(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
     SetHistoAxisLabels(_hitmap, "X", "Y");
     // std::cout << "Created Histogram " << out2 << std::endl;
 
     sprintf(out, "%s %i Raw Hitmap X-Projection", _sensor.c_str(), _id);
-    sprintf(out2, "h_hitXmap_%s_%i", _sensor.c_str(), _id);
+    sprintf(out2, "h_hitXmap_%s_%02d", _sensor.c_str(), _id);
     _hitXmap = new TH1I(out2, out, _maxX + 1, 0, _maxX);
     SetHistoAxisLabelx(_hitXmap, "X");
 
     sprintf(out, "%s %i Raw Hitmap Y-Projection", _sensor.c_str(), _id);
-    sprintf(out2, "h_hitYmap_%s_%i", _sensor.c_str(), _id);
+    sprintf(out2, "h_hitYmap_%s_%02d", _sensor.c_str(), _id);
     _hitYmap = new TH1I(out2, out, _maxY + 1, 0, _maxY);
     SetHistoAxisLabelx(_hitYmap, "Y");
 
 
     sprintf(out, "%s %i hot Pixel Map", _sensor.c_str(), _id);
-    sprintf(out2, "h_hotpixelmap_%s_%i", _sensor.c_str(), _id);
+    sprintf(out2, "h_hotpixelmap_%s_%02d", _sensor.c_str(), _id);
     _HotPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
     SetHistoAxisLabels(_HotPixelMap, "X", "Y");
 
 
-
     sprintf(out, "%s %i Number of Hits", _sensor.c_str(), _id);
-    sprintf(out2, "h_raw_nHits_%s_%i", _sensor.c_str(), _id);
-    _nHits = new TH1I(out2, out, 50, 0, 50);
+    sprintf(out2, "h_raw_nHits_%s_%02d", _sensor.c_str(), _id);
+    _nHits = new TH1I(out2, out, 60, 0, 60);
     SetHistoAxisLabelx(_nHits, "Number of Hits above ZS");
     //_nHits->SetStats(1);
 

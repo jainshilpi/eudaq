@@ -12,7 +12,7 @@
 const int nSCA = 13;
 
 HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
-  :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false),
+:_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), filling_counter(0), _wait(false),
   _hexagons_occ_HA_bit(NULL), _hexagons_occ_adc(NULL), _hexagons_occ_tot(NULL), _hexagons_occ_toa(NULL), _hexagons_charge(NULL),
   _hit2Dmap(NULL), _hit1Docc(NULL),
   _nHits(NULL), _nbadHits(NULL), _nHotPixels(NULL),
@@ -141,7 +141,7 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
     sprintf(out, "%s %i, LG vs TOT (slow)", _sensor.c_str(), _id);
     sprintf(out2, "h_LGvsTOTslow_%s_%i", _sensor.c_str(), _id);
-    _LGvsTOTslow = new TH2I(out2, out, 20, 0, 600, 60, 0, 2000);
+    _LGvsTOTslow = new TH2I(out2, out, 20, 0, 800, 60, 0, 2000);
     SetHistoAxisLabels(_LGvsTOTslow, "TOT (slow) ADC", "LG ADC");
 
     sprintf(out, "%s %i, HG vs LG", _sensor.c_str(), _id);
@@ -261,11 +261,11 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
       }
 
       const auto max_LG = std::max_element(std::begin(sig_LG), std::end(sig_LG));
-      const int pos_max_LG =  std::distance(std::begin(sig_LG), max_LG);
+      const int pos_max_LG = std::distance(std::begin(sig_LG), max_LG);
       //std::cout << "Max element in LG is " << *max_LG << " at position " << pos_max_LG << std::endl;
 
       const auto max_HG = std::max_element(std::begin(sig_HG), std::end(sig_HG));
-      const int pos_max_HG =  std::distance(std::begin(sig_HG), max_HG);
+      const int pos_max_HG = std::distance(std::begin(sig_HG), max_HG);
       //std::cout << "Max element in HG is " << *max_HG << " at position " << pos_max_HG << std::endl;
 
 
@@ -361,6 +361,20 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
       }
     }
 
+
+  /* THis is not working as expected
+
+  if (_hexagons_charge!=NULL && filling_counter%10==0){
+    ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%03d",
+						      _sensor.c_str(), _id,
+						      10*filling_counter)));
+  }
+
+  // We need to increase the counter once per event.
+  // Since this Fill() method is done once per plane, let's just increment it at zeros plane
+  if (plane.Sensor()=="HexaBoard-RDB2" && plane.ID()==0)
+    filling_counter += 1;
+  */
 }
 
 void HexagonHistos::Reset() {
@@ -407,7 +421,7 @@ void HexagonHistos::Write() {
   _hexagons_occ_adc->Write();
   _hexagons_occ_tot->Write();
   _hexagons_occ_toa->Write();
-  _hexagons_charge->Write();
+  //_hexagons_charge->Write();
   _hit2Dmap->Write();
   _hit1Docc->Write();
 
@@ -431,7 +445,15 @@ void HexagonHistos::Write() {
   _LGvsTOTfast->Write();
   _LGvsTOTslow->Write();
   _HGvsLG->Write();
+
+  /*
+  TIter next(ev_display_list);
+  while (TObject *obj = next()){
+    obj->Write();
+  }
+  */
   
+
   //std::cout<<"Doing HexagonHistos::Write() before canvas drawing"<<std::endl;
 
   /*
