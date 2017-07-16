@@ -141,7 +141,7 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
     sprintf(out, "%s %i, LG vs TOT (slow)", _sensor.c_str(), _id);
     sprintf(out2, "h_LGvsTOTslow_%s_%i", _sensor.c_str(), _id);
-    _LGvsTOTslow = new TH2I(out2, out, 20, 0, 600, 60, 0, 2000);
+    _LGvsTOTslow = new TH2I(out2, out, 20, 0, 800, 60, 0, 2000);
     SetHistoAxisLabels(_LGvsTOTslow, "TOT (slow) ADC", "LG ADC");
 
     sprintf(out, "%s %i, HG vs LG", _sensor.c_str(), _id);

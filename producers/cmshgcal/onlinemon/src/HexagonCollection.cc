@@ -147,17 +147,17 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHitmapHisto(), "COLZ2", 0);
     
-    sprintf(tree, "%s/Module %i/Hit_1D_Occupancy", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHit1DoccHisto());
+    //sprintf(tree, "%s/Module %i/Hit_1D_Occupancy", p.Sensor().c_str(), p.ID());
+    //_mon->getOnlineMon()->registerTreeItem(tree);
+    //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHit1DoccHisto());
     
     sprintf(tree, "%s/Module %i/NumHits", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getNHitsHisto());
 
-    sprintf(tree, "%s/Module %i/HotPixelMap", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHotPixelMapHisto(), "COLZ2", 0);
+    //sprintf(tree, "%s/Module %i/HotPixelMap", p.Sensor().c_str(), p.ID());
+    //_mon->getOnlineMon()->registerTreeItem(tree);
+    //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHotPixelMapHisto(), "COLZ2", 0);
 
     
     sprintf(tree, "%s/Module %i/PedestalLG", p.Sensor().c_str(), p.ID());
