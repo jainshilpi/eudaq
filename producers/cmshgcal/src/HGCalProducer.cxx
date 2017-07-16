@@ -32,7 +32,7 @@ static const std::string EVENT_TYPE = "HexaBoard";
 
 void readFIFOThread( ipbus::IpbusHwController* orm, uint32_t *blockSize)
 {
-  orm->ReadDataBlock("RDOUT.FIFO",*blockSize);
+  orm->ReadDataBlock("FIFO",*blockSize);
 }
 
 void startTriggerThread( TriggerController* trg_ctrl, uint32_t *run, ACQ_MODE* mode)
@@ -46,15 +46,14 @@ public:
   // The constructor must call the eudaq::Producer constructor with the name
   // and the runcontrol connection string, and initialize any member variables.
   HGCalProducer(const std::string & name, const std::string & runcontrol)
-    : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), m_uhalLogLevel(5), m_blockSize(963), m_state(STATE_UNCONF), m_sync_orm(nullptr){}
+    : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), m_uhalLogLevel(5), m_blockSize(963), m_state(STATE_UNCONF){}
 
  private:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
-  ipbus::IpbusHwController*  m_sync_orm;
   TriggerController *m_triggerController;
-  TFile *m_outrootfile;
-  TH1D *m_htime;
+  //  TFile *m_outrootfile;
+  //TH1D *m_htime;
   ACQ_MODE m_acqmode;
   boost::thread m_triggerThread;
   enum DAQState {
@@ -115,9 +114,9 @@ public:
       }    
 
       if (m_state == STATE_RUNNING) {
-	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) || m_triggerController->eventNumber()!=m_ev+1 ) continue;
-	boost::timer::cpu_timer timer;
-	boost::timer::cpu_times times;
+	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) || m_ev==m_triggerController->eventNumber() ) continue;
+	//boost::timer::cpu_timer timer;
+	//boost::timer::cpu_times times;
 	eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
 	boost::thread threadVec[m_rdout_orms.size()];
 	
@@ -126,7 +125,7 @@ public:
 	
 	for( int i=0; i<(int)m_rdout_orms.size(); i++){
 	  threadVec[i].join();
-	  checkCRC( "RDOUT.CRC",m_rdout_orms[i]);
+	  //  checkCRC( "RDOUT.CRC",m_rdout_orms[i]);
 	  uint32_t trailer=i;//8 bits for orm id
 	  trailer|=m_triggerController->eventNumber()<<8;//24 bits for trigger number
 	  m_rdout_orms[i]->addTrailerToData(trailer);
@@ -142,9 +141,9 @@ public:
 	  ev.AddBlock( i, the_data);
 	  
 	}
-	times=timer.elapsed();
-	m_htime->Fill(times.wall/1e9);
-	m_ev++;
+	//times=timer.elapsed();
+	//m_htime->Fill(times.wall/1e9);
+	m_ev=m_triggerController->eventNumber();
 	SendEvent(ev);
 	for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
 	  (*it)->ResetTheData();
@@ -176,7 +175,6 @@ private:
     switch( mode ){
     case 0 : m_acqmode = DEBUG; break;
     case 1 : m_acqmode = BEAMTEST; break;
-    case 2 : m_acqmode = PEDESTAL; break;
     default : m_acqmode = DEBUG; break;
     }
     int n_orms = config.Get("NumberOfORMs",1);
@@ -186,15 +184,41 @@ private:
       ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),deviceName.str());
       m_rdout_orms.push_back( orm );
     }    
-    m_sync_orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),
-					      config.Get("SYNC_ORM_NAME","SYNC_ORM"));
-    m_triggerController = new TriggerController(m_rdout_orms,m_sync_orm);
+    m_triggerController = new TriggerController(m_rdout_orms);
 
     // <-- Need to catch the errors here. What if there is now hardware connection, etc.
     
     m_state=STATE_CONFED;
     // At the end, set the status that will be displayed in the Run Control.
     SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
+
+    for( int iorm=0; iorm<n_orms; iorm++ ){
+      std::cout << "ORM " << iorm << "\n"
+		<< "Check0 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check0") << "\t"
+		<< "Check1 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check1") << "\t"
+		<< "Check2 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check2") << "\t"
+		<< "Check3 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check3") << "\t"
+		<< "Check4 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check4") << "\t"
+		<< "Check5 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check5") << "\t"
+		<< "Check6 = " << std::hex << m_rdout_orms[iorm]->ReadRegister("check6") << "\n"
+		<< "Check31 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check31") << "\t"
+		<< "Check32 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check32") << "\t"
+		<< "Check33 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check33") << "\t"
+		<< "Check34 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check34") << "\t"
+		<< "Check35 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check35") << "\t"
+		<< "Check36 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check36") << std::endl;
+
+      uint32_t mask=m_rdout_orms[iorm]->ReadRegister("SKIROC_MASK");
+      std::cout << "ORM " << iorm << "\t SKIROC_MASK = " << mask << std::endl;
+      uint32_t cst0=m_rdout_orms[iorm]->ReadRegister("CONSTANT0");
+      std::cout << "ORM " << iorm << "\t CONST0 = " << std::hex << cst0 << std::endl;
+      uint32_t cst1=m_rdout_orms[iorm]->ReadRegister("CONSTANT1");
+      std::cout << "ORM " << iorm << "\t CONST1 = " << std::hex << cst1 << std::endl;
+      
+      
+      boost::this_thread::sleep( boost::posix_time::milliseconds(1000) );
+    }    
+
   }
 
   // This gets called whenever a new run is started
@@ -214,12 +238,12 @@ private:
     std::cout << "ca a du marcher" << std::endl;
 
     //create root objects
-    m_outrootfile = new TFile("../data/time.root","RECREATE");
-    m_htime = new TH1D("rdoutTime","",10000,0,1);    
+    //m_outrootfile = new TFile("../data/time.root","RECREATE");
+    //m_htime = new TH1D("rdoutTime","",10000,0,1);    
     
     // Let's open a file for raw data:
     char rawFilename[256];
-    sprintf(rawFilename, "../data/HexaData_Run%04d.raw", m_run); // The path is relative to eudaq/bin
+    sprintf(rawFilename, "/disk2_2TB/July2017_TB_data/HexaData_Run%04d.raw", m_run); // The path is relative to eudaq/bin
     m_rawFile.open(rawFilename, std::ios::binary);
 
     uint32_t header[2];
@@ -245,8 +269,8 @@ private:
       //      m_triggerThread.join();
       eudaq::mSleep(1000);
       m_state = STATE_GOTOSTOP;
-      m_outrootfile->Write();
-      m_outrootfile->Close();
+      //m_outrootfile->Write();
+      //m_outrootfile->Close();
       while (m_state == STATE_GOTOSTOP) {
 	eudaq::mSleep(1000); //waiting for EORE being send
       }

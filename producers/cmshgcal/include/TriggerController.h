@@ -8,7 +8,6 @@
 
 enum STATES{ 
   WAIT,
-  BUSY,
   RDOUT_RDY,
   RDOUT_FIN,
   END_RUN
@@ -16,7 +15,6 @@ enum STATES{
 
 enum ACQ_MODE{
   BEAMTEST,
-  PEDESTAL,
   DEBUG
 };
 
@@ -24,11 +22,11 @@ class TriggerController
 {
  public:
   TriggerController(){;}
-  TriggerController(std::vector< ipbus::IpbusHwController* > rdout, ipbus::IpbusHwController* sync);
+  TriggerController(std::vector< ipbus::IpbusHwController* > rdout);
   ~TriggerController(){;}
   void startrunning( uint32_t runNumber, const ACQ_MODE mode=BEAMTEST );
   bool checkState( STATES st ) const { return m_state==st; }
-  void stopRun() { m_gotostop=true; /*std::cout << "receive stop command : gotostop = " << m_gotostop << std::endl;*/ }
+  void stopRun() { m_gotostop=true; std::cout << "receive stop command : gotostop = " << m_gotostop << std::endl; }
   void readoutCompleted();
 
   void setAcqMode( const ACQ_MODE mode ){m_acqmode=mode;}
@@ -38,12 +36,10 @@ class TriggerController
   uint32_t runNumber() const {return m_run;}
 
  private:
-  void runBeamTest();
-  void runPedestal();
+  void run();
   void runDebug();
 
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
-  ipbus::IpbusHwController*  m_sync_orm;
   STATES m_state;
   ACQ_MODE m_acqmode;
   uint32_t m_run;
