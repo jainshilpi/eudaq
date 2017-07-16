@@ -304,16 +304,19 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
     my_event_processing_time.Start(true); //start the stopwatch again
     for (unsigned int i = 0 ; i < _colls.size(); ++i)
     {
-      if (_colls.at(i) == corrCollection)
-      {
-        my_event_inner_operations_time.Start(true);
 
-	std::cout<<" correlation collection disabled"<<std::endl;
+      _colls.at(i)->Fill(ev);
+
+      //if (_colls.at(i) == corrCollection)
+      //{
+      //my_event_inner_operations_time.Start(true);
+
+      //std::cout<<" correlation collection disabled"<<std::endl;
 	//_colls.at(i)->Fill(simpEv);
 	
-        my_event_inner_operations_time.Stop();
-        previous_event_correlation_time = my_event_inner_operations_time.RealTime();
-      }
+        //my_event_inner_operations_time.Stop();
+        //previous_event_correlation_time = my_event_inner_operations_time.RealTime();
+      //}
 
       //else if (_colls.at(i) == hexaCollection && sensorname==std::string("HexaBoard"))
       //else if (_colls.at(i)->getCollectionType()==HEXAGON_COLLECTION_TYPE)
@@ -325,11 +328,10 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
       //else if (_colls.at(i)->getCollectionType()==WIRECHAMBER_COLLECTION_TYPE)
       //_colls.at(i)->Fill(ev);
       
-      else {
-	_colls.at(i)->Fill(ev);
+      //else {
 	//std::cout<<" No Fill method is implemented for this situation:\n"
 	//	 <<"collection type: "<<_colls.at(i)->getCollectionType()<<std::endl;
-      }
+      // }
       
       //_colls.at(i)->Calculate(ev.GetEventNumber());
     }
@@ -516,8 +518,8 @@ int main(int argc, const char ** argv) {
     mon.autoReset(do_resetatend.IsSet());
     mon.setReduce(reduce.Value());
     mon.setUpdate(update.Value());
-    mon.setCorr_width(corr_width.Value());
-    mon.setCorr_planes(corr_planes.Value());
+    //mon.setCorr_width(corr_width.Value());
+    //mon.setCorr_planes(corr_planes.Value());
     mon.setUseTrack_corr(track_corr.Value());
 
     cout <<"Monitor Settings:" <<endl;
