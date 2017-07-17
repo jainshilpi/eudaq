@@ -102,7 +102,7 @@ namespace eudaq {
 
 	  std::cout<<"size of block: "<<bl.size()<<std::endl;
 
-	  if (blo==0){
+	  if (blo%2==0){
 	    // This block contains a string with
 	    std::vector<int> brdID;
 	    brdID.resize(bl.size() / sizeof(int));
@@ -115,116 +115,116 @@ namespace eudaq {
 
 	    continue;
 	  }
-	  else if (blo==1 && bl.size()!=RAW_EV_SIZE_32) {
+	  else if (blo%1==1 && bl.size()!=RAW_EV_SIZE_32) {
 	    EUDAQ_WARN("There is something wrong with the data. Size= "+eudaq::to_string(bl.size()));
 	    return true;
 	  }
 
-
-	  std::vector<uint32_t> rawData32;
-	  rawData32.resize(bl.size() / sizeof(uint32_t));
-	  std::memcpy(&rawData32[0], &bl[0], bl.size());
-
-	  const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
-
-	  // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
-	  const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded, RDBOARD);
-
-	  for (unsigned h = 0; h < dataBlockZS.size(); h++){
-
-	    //std::cout<<"Hexa plane = "<<h<<std::endl;
-
-	    std::ostringstream oss;
-	    oss << sensortype <<"-RDB" << RDBOARD;
-	    StandardPlane plane(h, EVENT_TYPE, oss.str());
-	    //StandardPlane plane(blo*8+h, EVENT_TYPE, sensortype);
-
-	    // -------------
-	    // Now we can use the data to fill the euDAQ Planes
-	    // -------------
-	    const unsigned nHits  = dataBlockZS[h].size()/hitSizeZS;
-
-	    //std::cout<<"Number of Hits (above ZS threshold): "<<nHits<<std::endl;
-
-	    plane.SetSizeZS(4, 64, nHits, hitSizeZS-1);
-
-	    for (int ind=0; ind<nHits; ind++){
-
-	      // APZ DBG. Test the monitoring:
-	      //for (int ts=0; ts<16; ts++)
-	      //plane.SetPixel(ind, 2, 32+ind, 500-10*ind, false, ts);
-
-
-	      const unsigned skiID_1 = dataBlockZS[h][hitSizeZS*ind]/100;
-	      // This should give us a number between 0 and 3:
-	      const unsigned skiID_2 = 3 - (skiID_1)%4;
-
-	      if (skiID_2 > 3){
-		std::cout<<" EROOR in ski. It is "<<skiID_2<<std::endl;
-		EUDAQ_WARN("There is another error with encoding. ski="+eudaq::to_string(skiID_2));
+	  else {
+	    // This block contains the data
+	    std::vector<uint32_t> rawData32;
+	    rawData32.resize(bl.size() / sizeof(uint32_t));
+	    std::memcpy(&rawData32[0], &bl[0], bl.size());
+	    
+	    const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
+	    
+	    // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
+	    const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded, RDBOARD);
+	    
+	    for (unsigned h = 0; h < dataBlockZS.size(); h++){
+	      
+	      //std::cout<<"Hexa plane = "<<h<<std::endl;
+	      
+	      std::ostringstream oss;
+	      oss << sensortype <<"-RDB" << RDBOARD;
+	      StandardPlane plane(h, EVENT_TYPE, oss.str());
+	      //StandardPlane plane(blo*8+h, EVENT_TYPE, sensortype);
+	      
+	      // -------------
+	      // Now we can use the data to fill the euDAQ Planes
+	      // -------------
+	      const unsigned nHits  = dataBlockZS[h].size()/hitSizeZS;
+	      
+	      //std::cout<<"Number of Hits (above ZS threshold): "<<nHits<<std::endl;
+	      
+	      plane.SetSizeZS(4, 64, nHits, hitSizeZS-1);
+	      
+	      for (int ind=0; ind<nHits; ind++){
+		
+		// APZ DBG. Test the monitoring:
+		//for (int ts=0; ts<16; ts++)
+		//plane.SetPixel(ind, 2, 32+ind, 500-10*ind, false, ts);
+		
+		
+		const unsigned skiID_1 = dataBlockZS[h][hitSizeZS*ind]/100;
+		// This should give us a number between 0 and 3:
+		const unsigned skiID_2 = 3 - (skiID_1)%4;
+		
+		if (skiID_2 > 3){
+		  std::cout<<" EROOR in ski. It is "<<skiID_2<<std::endl;
+		  EUDAQ_WARN("There is another error with encoding. ski="+eudaq::to_string(skiID_2));
+		}
+		else {
+		  const unsigned pix = dataBlockZS[h][hitSizeZS*ind]-skiID_1*100;
+		  
+		  //if (skiID==0 && pix==0)
+		  //std::cout<<" Zero-Zero problem. ind = "<<ind<<"  ID:"<<data[hitSizeZS*ind]<<std::endl;
+		  
+		  for (int ts=0; ts<hitSizeZS-1; ts++)
+		    plane.SetPixel(ind, skiID_2, pix, dataBlockZS[h][hitSizeZS*ind+1 + ts], false, ts);
+		}
+		
+	      }
+	      
+	      // Set the trigger ID
+	      plane.SetTLUEvent(ev.GetEventNumber());
+	      // Add the plane to the StandardEvent
+	      sev.AddPlane(plane);
+	      eudaq::mSleep(10);
+	      
+	      
+	      /* APZ DBG
+	      // These are just to test the planes in onlinemonitor:
+	      if (bl.size()>3000){
+	      plane.SetSizeZS(4, 64, 5, 2);
+	      
+	      plane.SetPixel(0, 2, 32, 500, false, 0);
+	      plane.SetPixel(1, 2, 33, 400, false, 0);
+	      plane.SetPixel(2, 2, 31, 400, false, 0);
+	      plane.SetPixel(3, 1, 32, 400, false, 0);
+	      plane.SetPixel(4, 3, 32, 400, false, 0);
+	      
+	      
+	      plane.SetPixel(0, 2, 32, 300, false, 1);
+	      plane.SetPixel(1, 2, 33, 100, false, 1);
+	      plane.SetPixel(2, 2, 31, 100, false, 1);
+	      plane.SetPixel(3, 1, 32, 100, false, 1);
+	      plane.SetPixel(4, 3, 32, 100, false, 1);
 	      }
 	      else {
-		const unsigned pix = dataBlockZS[h][hitSizeZS*ind]-skiID_1*100;
-
-		//if (skiID==0 && pix==0)
-		//std::cout<<" Zero-Zero problem. ind = "<<ind<<"  ID:"<<data[hitSizeZS*ind]<<std::endl;
-
-		for (int ts=0; ts<hitSizeZS-1; ts++)
-		  plane.SetPixel(ind, skiID_2, pix, dataBlockZS[h][hitSizeZS*ind+1 + ts], false, ts);
+	      plane.SetSizeZS(4, 64, 3, 2);
+	      
+	      plane.SetPixel(0, 1, 15, 500, false, 0);
+	      plane.SetPixel(1, 1, 16, 400, false, 0);
+	      plane.SetPixel(2, 1, 14, 400, false, 0);
+	      
+	      
+	      plane.SetPixel(0, 1, 15, 300, false, 1);
+	      plane.SetPixel(1, 1, 16, 100, false, 1);
+	      plane.SetPixel(2, 1, 14, 100, false, 1);
 	      }
-
+	      */
+	      
 	    }
-
-	    // Set the trigger ID
-	    plane.SetTLUEvent(ev.GetEventNumber());
-	    // Add the plane to the StandardEvent
-	    sev.AddPlane(plane);
-	    eudaq::mSleep(10);
-
-
-	    /* APZ DBG
-	    // These are just to test the planes in onlinemonitor:
-	    if (bl.size()>3000){
-	    plane.SetSizeZS(4, 64, 5, 2);
-
-	    plane.SetPixel(0, 2, 32, 500, false, 0);
-	    plane.SetPixel(1, 2, 33, 400, false, 0);
-	    plane.SetPixel(2, 2, 31, 400, false, 0);
-	    plane.SetPixel(3, 1, 32, 400, false, 0);
-	    plane.SetPixel(4, 3, 32, 400, false, 0);
-
-
-	    plane.SetPixel(0, 2, 32, 300, false, 1);
-	    plane.SetPixel(1, 2, 33, 100, false, 1);
-	    plane.SetPixel(2, 2, 31, 100, false, 1);
-	    plane.SetPixel(3, 1, 32, 100, false, 1);
-	    plane.SetPixel(4, 3, 32, 100, false, 1);
-	    }
-	    else {
-	    plane.SetSizeZS(4, 64, 3, 2);
-
-	    plane.SetPixel(0, 1, 15, 500, false, 0);
-	    plane.SetPixel(1, 1, 16, 400, false, 0);
-	    plane.SetPixel(2, 1, 14, 400, false, 0);
-
-
-	    plane.SetPixel(0, 1, 15, 300, false, 1);
-	    plane.SetPixel(1, 1, 16, 100, false, 1);
-	    plane.SetPixel(2, 1, 14, 100, false, 1);
-	    }
-	    */
-
 	  }
+	  
+	  std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
+	  
+	  // Indicate that data was successfully converted
+	  return true;
 	}
-
-
-	std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
-
-	// Indicate that data was successfully converted
-	return true;
-
       }
-
+      
       unsigned int gray_to_brady(unsigned int gray) const{
 	// Code from:
 	//https://github.com/CMS-HGCAL/TestBeam/blob/826083b3bbc0d9d78b7d706198a9aee6b9711210/RawToDigi/plugins/HGCalTBRawToDigi.cc#L154-L170

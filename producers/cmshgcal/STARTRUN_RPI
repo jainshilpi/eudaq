@@ -97,14 +97,20 @@ sleep 2
 
 
 ######################################################################
-# cnshgcal RpiProducer
+# cmshgcal RpiProducer
 ###############
 printf '\033[22;33m\t cms hgcal *Rpi* Producer \033[0m \n'
-xterm -sb -sl 1000 -geom 80x500-200-900 -fn fixed -T "RPI Producer 2" -e './RpiProducer.exe -n RPI-2 -r tcp://$HOSTIP:$RCPORT' &
-#xterm -sb -sl 1000 -geom 80x500-280-900 -fn fixed -T "RPI Producer 3" -e './RpiProducer.exe -n RPI-3 -r tcp://$HOSTIP:$RCPORT' &
-#flog="../logs/Run${NEWRUNNUM}_HGCalProducer_$dt.log"
-#nohup ./HGCalProducer.exe -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
-#printf "The logs from the HGCalProducer are in $flog file. \n"
+
+#xterm -sb -sl 1000 -geom 80x500-200-900 -fn fixed -T "RPI Producer 2" -e './RpiProducer.exe -n RPI-2 -r tcp://$HOSTIP:$RCPORT' &
+
+flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB2_$dt.log"
+nohup ./RpiProducer.exe -n RPI-BRD2 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+printf "The logs from the RPiProducer are in $flog file. \n"
+
+flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB3_$dt.log"
+nohup ./RpiProducer.exe -n RPI-BRD3 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+printf "The logs from the RPiProducer are in $flog file. \n"
+
 
 sleep 2
 
@@ -116,7 +122,7 @@ then
     flog="../logs/Run${NEWRUNNUM}_HgcOnlineMon_$dt.log"
     config_file="../producers/cmshgcal/conf/OnlineMon.conf"
     #./HgcOnlineMon.exe -u 100 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT
-    #nohup ./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+    nohup ./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
     printf "The logs from the Online Monitor are in $flog file. \n"
     
 else
