@@ -10,7 +10,7 @@ bool HexagonCollection::isPlaneRegistered(eudaq::StandardPlane p) {
   return (it != _map.end());
 }
 
-void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl) {
+void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl, int evNumber) {
   std::cout<<"In HexagonCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (pl.Sensor().find("HexaBoard")==std::string::npos)
@@ -22,7 +22,7 @@ void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl) {
   }
 
   HexagonHistos *hexmap = _map[pl];
-  hexmap->Fill(pl);
+  hexmap->Fill(pl, evNumber);
 
   ++counting;
 }
@@ -86,7 +86,7 @@ void HexagonCollection::Reset() {
 }
 
 
-void HexagonCollection::Fill(const eudaq::StandardEvent &ev) {
+void HexagonCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   std::cout<<"In HexagonCollection::Fill(StandardEvent)"<<std::endl;
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
@@ -94,7 +94,7 @@ void HexagonCollection::Fill(const eudaq::StandardEvent &ev) {
     std::cout<<"Trying to Fill a plane: "<<plane<<" sensor="<<Plane.Sensor()<<"  ID="<<Plane.ID()<<std::endl;
 
     if (Plane.Sensor().find("HexaBoard")!=std::string::npos)
-      fillHistograms(Plane);
+      fillHistograms(Plane, evNumber);
   }
 }
 
@@ -138,9 +138,9 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccTotHisto(), "COLZ2 TEXT");
     //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
     
-    sprintf(tree, "%s/Module %i/Occ_TOA", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccToaHisto(), "COLZ2 TEXT");
+    //sprintf(tree, "%s/Module %i/Occ_TOA", p.Sensor().c_str(), p.ID());
+    //_mon->getOnlineMon()->registerTreeItem(tree);
+    //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccToaHisto(), "COLZ2 TEXT");
     //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
     sprintf(tree, "%s/Module %i/RawHitmap", p.Sensor().c_str(), p.ID());
@@ -160,6 +160,15 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHotPixelMapHisto(), "COLZ2", 0);
 
     
+    sprintf(tree, "%s/Module %i/SignalADC_LG", p.Sensor().c_str(), p.ID());
+    _mon->getOnlineMon()->registerTreeItem(tree);
+    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getSigAdcLGHisto());
+
+    sprintf(tree, "%s/Module %i/SignalADC_HG", p.Sensor().c_str(), p.ID());
+    _mon->getOnlineMon()->registerTreeItem(tree);
+    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getSigAdcHGHisto());
+
+
     sprintf(tree, "%s/Module %i/PedestalLG", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getPedLGHisto());
@@ -168,7 +177,6 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getPedHGHisto());
     //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
-
 
     sprintf(tree, "%s/Module %i/LGvsTOTfast", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
@@ -182,6 +190,9 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHGvsLGHisto(), "COL2");
 
+    sprintf(tree, "%s/Module %i/TOAvsChId", p.Sensor().c_str(), p.ID());
+    _mon->getOnlineMon()->registerTreeItem(tree);
+    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getTOAvsChIdHisto(), "COL2");
 
     // ----------
     // Waveforms

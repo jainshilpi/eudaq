@@ -70,7 +70,7 @@ class BaseCollection {
   /*!This is a pure virtual function which fills the monitor's histograms with
    * the new data*/
   virtual void Fill(const SimpleStandardEvent &simpev) = 0;
-  virtual void Fill(const eudaq::StandardEvent &ev) = 0;
+  virtual void Fill(const eudaq::StandardEvent &ev, int evNumber=-1) = 0;
 
   //!Reset
   /*!This resets all the histograms ready for a new run*/

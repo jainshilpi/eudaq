@@ -100,8 +100,8 @@ void AhcalHistos::Fill(const eudaq::StandardPlane &plane) {
   // std::cout<< "FILL with a plane." << std::endl;
 
   if (_nHits != NULL) {
-    if (plane.HitPixels() >= 50)
-      _nHits->Fill(49); // overflow
+    if (plane.HitPixels() >= 70)
+      _nHits->Fill(69); // overflow
     else
       _nHits->Fill(plane.HitPixels());
   }

@@ -86,7 +86,7 @@ void AhcalCollection::Reset() {
 }
 
 
-void AhcalCollection::Fill(const eudaq::StandardEvent &ev) {
+void AhcalCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   std::cout<<"In AhcalCollection::Fill(StandardEvent)"<<std::endl;
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
