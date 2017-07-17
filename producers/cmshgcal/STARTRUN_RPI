@@ -101,7 +101,7 @@ sleep 2
 ###############
 printf '\033[22;33m\t cms hgcal *Rpi* Producer \033[0m \n'
 xterm -sb -sl 1000 -geom 80x500-200-900 -fn fixed -T "RPI Producer 2" -e './RpiProducer.exe -n RPI-2 -r tcp://$HOSTIP:$RCPORT' &
-xterm -sb -sl 1000 -geom 80x500-280-900 -fn fixed -T "RPI Producer 3" -e './RpiProducer.exe -n RPI-3 -r tcp://$HOSTIP:$RCPORT' &
+#xterm -sb -sl 1000 -geom 80x500-280-900 -fn fixed -T "RPI Producer 3" -e './RpiProducer.exe -n RPI-3 -r tcp://$HOSTIP:$RCPORT' &
 #flog="../logs/Run${NEWRUNNUM}_HGCalProducer_$dt.log"
 #nohup ./HGCalProducer.exe -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
 #printf "The logs from the HGCalProducer are in $flog file. \n"

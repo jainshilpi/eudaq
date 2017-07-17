@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard[2] = {16,24};
-const uint32_t skiMask[2] = {0x0000FFFF, 0x00FFFFFF};
+const size_t nSkiPerBoard[3] = {0, 16,24};
+const uint32_t skiMask[3] = {0x00000000, 0x0000FFFF, 0x00FFFFFF};
 //const uint32_t skiMask = 0;
 
 const int nSCA=13;
@@ -110,7 +110,7 @@ namespace eudaq {
 	    RDBOARD = brdID[0];
 	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
 
-	    const unsigned nPlanes = nSkiPerBoard[RDBOARD-2]/4;
+	    const unsigned nPlanes = nSkiPerBoard[RDBOARD-1]/4;
 	    std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
 
 	    continue;
@@ -246,7 +246,7 @@ namespace eudaq {
 
       std::vector<std::array<unsigned int,1924>> decode_raw_32bit(std::vector<uint32_t>& raw, const int board_id) const{
 	
-	const uint32_t ch_mask = skiMask[board_id-2];
+	const uint32_t ch_mask = skiMask[board_id-1];
 	
 	//std::cout<<"In decoder"<<std::endl;
 	//printf("\t SkiMask: 0x%08x;   Length of Raw: %d\n", ch_mask, raw.size());
@@ -268,7 +268,7 @@ namespace eudaq {
 	//std::cout<<"ski mask: "<<ski_mask<<std::endl;
 
 	const int mask_count = ski_mask.count();
-	if (mask_count!= nSkiPerBoard[board_id-2]) {
+	if (mask_count!= nSkiPerBoard[board_id-1]) {
 	  EUDAQ_WARN("The mask does not agree with expected number of SkiRocs. Mask count:"+ eudaq::to_string(mask_count));
 	}
 
@@ -366,7 +366,7 @@ namespace eudaq {
 	const int nHexa =  nSki/4;
 	if (nSki%4!=0)
 	  EUDAQ_WARN("Number of SkiRocs is not right: "+ eudaq::to_string(nSki));
-	if (nHexa != nSkiPerBoard[board_id-2]/4)
+	if (nHexa != nSkiPerBoard[board_id-1]/4)
 	  EUDAQ_WARN("Number of HexaBoards is not right: "+ eudaq::to_string(nHexa));
 
 	// A vector per HexaBoard of vector of Hits from 4 ski-rocs
