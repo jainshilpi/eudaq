@@ -251,6 +251,10 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
 	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
 
+      if ( (_sensor=="HexaBoard-RDB2" && _id==0 ) &&
+	   ( (pixel_x==0 && pixel_y==0 )  || (pixel_x==0 && pixel_y==2 ) ) )
+	continue;
+      
       if ( _sensor=="HexaBoard-RDB3" && _id==0 &&
 	   pixel_x==1 && pixel_y==4 )
 	continue;
