@@ -107,9 +107,9 @@ flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB2_$dt.log"
 nohup ./RpiProducer.exe -n RPI-BRD2 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
 printf "The logs from the RPiProducer are in $flog file. \n"
 
-flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB3_$dt.log"
-nohup ./RpiProducer.exe -n RPI-BRD3 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
-printf "The logs from the RPiProducer are in $flog file. \n"
+#flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB3_$dt.log"
+#nohup ./RpiProducer.exe -n RPI-BRD3 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+#printf "The logs from the RPiProducer are in $flog file. \n"
 
 
 sleep 2

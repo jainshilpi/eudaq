@@ -42,12 +42,12 @@ protected:
 
   TH2I *_waveformLG, *_waveformHG;
   TH2I *_LGvsTOTslow, *_LGvsTOTfast;
-  TH2I *_HGvsLG;
+  TH2I *_HGvsLG, *_TOAvsChId;
   TProfile *_waveformNormLG, *_waveformNormHG;
 
   TH1I *_posOfMaxADCinLG, *_posOfMaxADCinHG;
 
-  TH1I *_pedLG, *_pedHG;  
+  TH1I *_pedLG, *_pedHG, *_sigAdcLG, *_sigAdcHG;
 
 public:
   HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon);
@@ -82,16 +82,20 @@ public:
   TH2I *getLGvsTOTslowHisto() {return _LGvsTOTslow;}
   TH2I *getLGvsTOTfastHisto() {return _LGvsTOTfast;}
   TH2I *getHGvsLGHisto() {return _HGvsLG;}
+  TH2I *getTOAvsChIdHisto() {return _TOAvsChId;}
 
   TProfile *getWaveformLGProfile() {return _waveformNormLG;}
   TProfile *getWaveformHGProfile() {return _waveformNormHG;}
 
-  TH1I *getPosOfMaxADCinLGHisto() { return _posOfMaxADCinLG;}
-  TH1I *getPosOfMaxADCinHGHisto() { return _posOfMaxADCinHG;}
+  TH1I *getPosOfMaxADCinLGHisto() {return _posOfMaxADCinLG;}
+  TH1I *getPosOfMaxADCinHGHisto() {return _posOfMaxADCinHG;}
 
-  TH1I *getPedLGHisto() { return _pedLG;}
-  TH1I *getPedHGHisto() { return _pedHG;}
-  
+  TH1I *getPedLGHisto() {return _pedLG;}
+  TH1I *getPedHGHisto() {return _pedHG;}
+
+  TH1I *getSigAdcHGHisto() {return _sigAdcHG;}
+  TH1I *getSigAdcLGHisto() {return _sigAdcLG;}
+
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
 
 private:
@@ -106,7 +110,7 @@ private:
 
   void Set_SkiToHexaboard_ChannelMap();
   map < pair < int,int >, int > _ski_to_ch_map;
-  
+
   TH2Poly* get_th2poly(string name, string title);
 
   RootMonitor *_mon;
@@ -260,7 +264,7 @@ static const  char sc_to_ch_map[381] = { //381 = 127*3
   125,1,48,
   126,1,52,
   127,2,34
- }; 
+ };
 
 #ifdef __CINT__
 #pragma link C++ class HexagonHistos - ;
