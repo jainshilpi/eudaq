@@ -39,7 +39,7 @@ public:
     CollectionType = WIRECHAMBER_COLLECTION_TYPE;
   }
   void Fill(const SimpleStandardEvent &simpev) { ; };
-  void Fill(const eudaq::StandardEvent &ev);
+  void Fill(const eudaq::StandardEvent &ev, int evNumber=-1);
   WireChamberHistos *getWireChamberHistos(std::string sensor, int id);
   void Reset();
   virtual void Write(TFile *file);

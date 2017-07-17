@@ -52,7 +52,7 @@ protected:
 public:
   HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon);
 
-  void Fill(const eudaq::StandardPlane &plane);
+  void Fill(const eudaq::StandardPlane &plane, int evNumber=-1);
   void Reset();
 
   void Calculate(const int currentEventNum);

@@ -10,7 +10,7 @@ bool HexagonCollection::isPlaneRegistered(eudaq::StandardPlane p) {
   return (it != _map.end());
 }
 
-void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl) {
+void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl, int evNumber) {
   std::cout<<"In HexagonCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (pl.Sensor().find("HexaBoard")==std::string::npos)
@@ -22,7 +22,7 @@ void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl) {
   }
 
   HexagonHistos *hexmap = _map[pl];
-  hexmap->Fill(pl);
+  hexmap->Fill(pl, evNumber);
 
   ++counting;
 }
@@ -86,7 +86,7 @@ void HexagonCollection::Reset() {
 }
 
 
-void HexagonCollection::Fill(const eudaq::StandardEvent &ev) {
+void HexagonCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   std::cout<<"In HexagonCollection::Fill(StandardEvent)"<<std::endl;
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
@@ -94,7 +94,7 @@ void HexagonCollection::Fill(const eudaq::StandardEvent &ev) {
     std::cout<<"Trying to Fill a plane: "<<plane<<" sensor="<<Plane.Sensor()<<"  ID="<<Plane.ID()<<std::endl;
 
     if (Plane.Sensor().find("HexaBoard")!=std::string::npos)
-      fillHistograms(Plane);
+      fillHistograms(Plane, evNumber);
   }
 }
 

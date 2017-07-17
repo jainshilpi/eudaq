@@ -305,7 +305,7 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
     for (unsigned int i = 0 ; i < _colls.size(); ++i)
     {
 
-      _colls.at(i)->Fill(ev);
+      _colls.at(i)->Fill(ev, ev.GetEventNumber());
 
       //if (_colls.at(i) == corrCollection)
       //{

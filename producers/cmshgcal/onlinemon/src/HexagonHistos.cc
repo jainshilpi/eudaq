@@ -65,13 +65,13 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
     sprintf(out, "%s-%i, Signal at LG", _sensor.c_str(), _id);
     sprintf(out2, "h_sigAdcLG_TS3_%s_%i", _sensor.c_str(), _id);
-    _sigAdcLG = new TH1I(out2, out, 100, -50, 1200);
-    SetHistoAxisLabelx(_sigAdcLG, "LG@peak-Ped, ADC counts");
+    _sigAdcLG = new TH1I(out2, out, 100, -200, 1200);
+    SetHistoAxisLabelx(_sigAdcLG, "LG (peak) - PED, ADC counts");
 
     sprintf(out, "%s-%i, Signal at HG", _sensor.c_str(), _id);
     sprintf(out2, "h_sigAdcHG_TS3_%s_%i", _sensor.c_str(), _id);
-    _sigAdcHG = new TH1I(out2, out, 100, -200, 3000);
-    SetHistoAxisLabelx(_sigAdcHG, "HG@peak-Ped, ADC counts");
+    _sigAdcHG = new TH1I(out2, out, 100, -300, 3000);
+    SetHistoAxisLabelx(_sigAdcHG, "HG (peak) - PED, ADC counts");
 
     
     sprintf(out, "%s-%i, Pedestal LG", _sensor.c_str(), _id);
@@ -207,7 +207,7 @@ int HexagonHistos::zero_plane_array() {
 }
 
 
-void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
+void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
   // std::cout<< "FILL with a plane." << std::endl;
   
   if (_nHits != NULL)
@@ -387,19 +387,17 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane) {
     }
 
 
-  /* THis is not working as expected
+  // This is not working as expected
 
-  if (_hexagons_charge!=NULL && filling_counter%10==0){
-    ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%03d",
+  if (_hexagons_charge!=NULL && evNumber%20==0)
+    ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%03i",
 						      _sensor.c_str(), _id,
-						      10*filling_counter)));
-  }
-
+						      evNumber)));
   // We need to increase the counter once per event.
   // Since this Fill() method is done once per plane, let's just increment it at zeros plane
-  if (plane.Sensor()=="HexaBoard-RDB2" && plane.ID()==0)
-    filling_counter += 1;
-  */
+  //if (plane.Sensor()=="HexaBoard-RDB2" && plane.ID()==0)
+  //filling_counter += 1;
+ 
 }
 
 void HexagonHistos::Reset() {
@@ -478,12 +476,12 @@ void HexagonHistos::Write() {
   _LGvsTOTslow->Write();
   _HGvsLG->Write();
   _TOAvsChId->Write();
-  /*
+
+  
   TIter next(ev_display_list);
   while (TObject *obj = next()){
     obj->Write();
   }
-  */
   
 
   //std::cout<<"Doing HexagonHistos::Write() before canvas drawing"<<std::endl;
