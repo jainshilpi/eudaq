@@ -104,18 +104,30 @@ sleep 2
 ######################################################################
 # cmshgcal or RpiProducer
 ###############
-printf '\033[22;33m\t cms hgcal *Rpi* Producer \033[0m \n'
+#printf '\033[22;33m\t cms hgcal *Rpi* Producer \033[0m \n'
 
 #xterm -sb -sl 1000 -geom 80x600-200-900 -fn fixed -T "RPI Producer RDB2" -e './RpiProducer.exe -n RPI-BRD2 -r tcp://$HOSTIP:$RCPORT' &
 #xterm -sb -sl 1000 -geom 80x600-300-900 -fn fixed -T "RPI Producer RDB3" -e './RpiProducer.exe -n RPI-BRD3 -r tcp://$HOSTIP:$RCPORT' &
 
-flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB2_$dt.log"
-nohup ./RpiProducer.exe -n RPI-BRD2 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
-printf "The logs from the RPiProducer are in $flog file. \n"
+#flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB2_$dt.log"
+#nohup ./RpiProducer.exe -n RPI-BRD2 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+#printf "The logs from the RPiProducer are in $flog file. \n"
 
-flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB3_$dt.log"
-nohup ./RpiProducer.exe -n RPI-BRD3 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
-printf "The logs from the RPiProducer are in $flog file. \n"
+#flog="../logs/Run${NEWRUNNUM}_RpiProducer_RDB3_$dt.log"
+#nohup ./RpiProducer.exe -n RPI-BRD3 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+#printf "The logs from the RPiProducer are in $flog file. \n"
+######################################################################
+
+#sleep 2
+
+
+# cmshgcal Producer
+###############
+printf '\033[22;33m\t cms hgcal Producer \033[0m \n'
+xterm -sb -sl 1000 -geom 80x600-280-900 -fn fixed -T "CMS HGCal Producer" -e './HGCalProducer.exe -r tcp://$HOSTIP:$RCPORT' &
+#flog="../logs/Run${NEWRUNNUM}_HGCalProducer_$dt.log"
+#nohup ./HGCalProducer.exe -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+#printf "The logs from the HGCalProducer are in $flog file. \n"
 
 sleep 2
 
@@ -123,8 +135,8 @@ sleep 2
 # AHCAL producer
 ####################
 printf '\033[22;33m\t  caliceProducer-scintillator  \033[0m \n'
-#xterm -sb -sl 1000000 -geom 100x10-480-900 -fn fixed -T "CALICE AHCAL" -e "./AHCALProducer.exe -n CaliceSc -r tcp://$TLUIP:$RCPORT && read || read" & 
-#xterm -sb -sl 1000000 -geom 100x10-400-900 -fn fixed -T "CALICE AHCAL Two" -e "./AHCALProducer.exe -n CaliceSc-Two -r tcp://$TLUIP:$RCPORT && read || read" & 
+#xterm -sb -sl 1000000 -geom 100x10-480-900 -fn fixed -T "CALICE AHCAL" -e "./AHCALProducer.exe -n CaliceSc -r tcp://$TLUIP:$RCPORT && read || read" &
+#xterm -sb -sl 1000000 -geom 100x10-400-900 -fn fixed -T "CALICE AHCAL Two" -e "./AHCALProducer.exe -n CaliceSc-Two -r tcp://$TLUIP:$RCPORT && read || read" &
 flog="../logs/Run${NEWRUNNUM}_AHCALProducer_$dt.log"
 nohup ./AHCALProducer.exe -n CaliceSc -r tcp://$TLUIP:$RCPORT > $flog 2>&1 &
 printf "The logs from the AHCALProducer are in $flog file. \n"
@@ -155,7 +167,7 @@ then
     #./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT
     nohup ./HgcOnlineMon.exe -u 100 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
     printf "The logs from the Online Monitor are in $flog file. \n"
-    
+
 else
     printf '\033[22;31m\t  Online monitor not found! \033[0m \n'
     echo 'Configure EUDAQ with the CMake option "-D BUILD_onlinemon=ON" and re-run "make install" to install.'
