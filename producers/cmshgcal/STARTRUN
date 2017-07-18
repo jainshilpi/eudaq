@@ -109,19 +109,19 @@ sleep 2
 
 
 #####################################################################
-#if [ -f "HgcOnlineMon.exe" ]
-#then
-#    printf '\033[22;33m\t  HGC Online Monitor  \033[0m \n'
-#    flog="../logs/Run${NEWRUNNUM}_HgcOnlineMon_$dt.log"
-#    config_file="../producers/cmshgcal/conf/OnlineMon.conf"
-#    ./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT
-#    #nohup ./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
-#    printf "The logs from the Online Monitor are in $flog file. \n"
-#    
-#else
-#    printf '\033[22;31m\t  Online monitor not found! \033[0m \n'
-#    echo 'Configure EUDAQ with the CMake option "-D BUILD_onlinemon=ON" and re-run "make install" to install.'
-#fi
+if [ -f "HgcOnlineMon.exe" ]
+then
+    printf '\033[22;33m\t  HGC Online Monitor  \033[0m \n'
+    flog="../logs/Run${NEWRUNNUM}_HgcOnlineMon_$dt.log"
+    config_file="../producers/cmshgcal/conf/OnlineMon.conf"
+    #./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT
+    nohup ./HgcOnlineMon.exe -u 100 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+    printf "The logs from the Online Monitor are in $flog file. \n"
+   
+else
+    printf '\033[22;31m\t  Online monitor not found! \033[0m \n'
+    echo 'Configure EUDAQ with the CMake option "-D BUILD_onlinemon=ON" and re-run "make install" to install.'
+fi
 #####################################################################
 
 
