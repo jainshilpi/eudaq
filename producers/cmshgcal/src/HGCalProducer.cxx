@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <vector>
 #include <unistd.h>
 #include <sys/time.h>
@@ -51,6 +52,7 @@ public:
  private:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
+  std::vector< std::ofstream > m_timingOutput;
   TriggerController *m_triggerController;
   TFile *m_outrootfile;
   TH1D *m_hreadouttime;
@@ -283,7 +285,10 @@ private:
     
     
     //m_triggerController.startrunning( m_run, m_acqmode );
+    std::ostringstream os( std::ostringstream::ate );
     for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+      os.str("");
+      os << 
       (*it)->ResetTheData();
       while(1){
 	if( (*it)->ReadRegister("DATE_STAMP") )
