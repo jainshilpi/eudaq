@@ -12,6 +12,8 @@ elif [[ $1 == "rpi" ]]; then
     script=./producers/cmshgcal/STARTRUN_RPI
 elif [[ $1 == "cmshgcal" ]]; then
     script=./producers/cmshgcal/STARTRUN
+elif [[ $1 == "cmshgcal_with_dwc" ]]; then
+    script=./producers/cmshgcal/STARTRUN_WITH_DWC
 elif [[ $1 == "dwc" ]]; then
     script=./producers/cmshgcal_dwc/STARTRUN
 elif [[ $1 == "ahcal" ]]; then
