@@ -34,6 +34,8 @@ void TriggerController::startrunning( uint32_t runNumber, const ACQ_MODE mode )
 
 void TriggerController::run()
 {
+  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+    (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
   while(1){
     if( m_state==END_RUN ) break;
     bool rdout_ready=true;
@@ -65,6 +67,8 @@ void TriggerController::run()
 
 void TriggerController::runDebug()
 {
+  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+    (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
   while(1){
     if( m_state==END_RUN ) break;
     bool rdout_ready=true;

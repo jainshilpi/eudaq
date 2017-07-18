@@ -114,7 +114,8 @@ public:
       }    
 
       if (m_state == STATE_RUNNING) {
-	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) || m_ev==m_triggerController->eventNumber() ) continue;
+	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) ) continue;
+	if( m_ev==m_triggerController->eventNumber() ) continue;
 	//boost::timer::cpu_timer timer;
 	//boost::timer::cpu_times times;
 	eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
@@ -127,7 +128,10 @@ public:
 	  threadVec[i].join();
 	  //  checkCRC( "RDOUT.CRC",m_rdout_orms[i]);
 	  uint32_t trailer=i;//8 bits for orm id
+	  std::cout << "board id = " << trailer;
 	  trailer|=m_triggerController->eventNumber()<<8;//24 bits for trigger number
+	  std::cout << "\t event number id = " << m_triggerController->eventNumber();
+	  std::cout << "\t trailer = " << trailer << std::endl;
 	  m_rdout_orms[i]->addTrailerToData(trailer);
 	  const std::vector<uint32_t> the_data = m_rdout_orms[i]->getData() ;
 
@@ -145,8 +149,15 @@ public:
 	//m_htime->Fill(times.wall/1e9);
 	m_ev=m_triggerController->eventNumber();
 	SendEvent(ev);
-	for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+	for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
 	  (*it)->ResetTheData();
+	  while(1){
+	    if( (*it)->ReadRegister("DATE_STAMP") )
+	      break;
+            else
+              boost::this_thread::sleep( boost::posix_time::microseconds(1) );     
+	  }
+	}
 	std::cout << "receive and save a new event" << std::endl;
 	m_triggerController->readoutCompleted();
       }
@@ -254,6 +265,15 @@ private:
     
     
     //m_triggerController.startrunning( m_run, m_acqmode );
+    for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+      (*it)->ResetTheData();
+      while(1){
+	if( (*it)->ReadRegister("DATE_STAMP") )
+	  break;
+	else
+	  boost::this_thread::sleep( boost::posix_time::microseconds(1) );     
+      }
+    }
     m_triggerThread=boost::thread(startTriggerThread,m_triggerController,&m_run,&m_acqmode);
 
     m_state = STATE_RUNNING;
