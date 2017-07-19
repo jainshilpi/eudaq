@@ -10,6 +10,7 @@
 #include <ostream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -52,8 +53,8 @@ public:
  private:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
-  std::vector< std::ofstream > m_timingOutput;
   TriggerController *m_triggerController;
+  // std::vector< std::fstream* > m_timingOutputs;
   TFile *m_outrootfile;
   TH1D *m_hreadouttime;
   TH1D *m_hwritertime;
@@ -96,6 +97,10 @@ public:
   void MainLoop() 
   {
     std::ostringstream os( std::ostringstream::ate );
+    // uint64_t prevTimeStamp[m_rdout_orms.size()];
+    // for( int i=0; i<(int)m_rdout_orms.size(); i++)
+    //   prevTimeStamp[i]=0;
+    
     while (m_state != STATE_GOTOTERM){
       if( m_state != STATE_RUNNING ) {
 	os.str("");
@@ -160,7 +165,16 @@ public:
 
 	  // Write it into raw file:
           m_rawFile.write(reinterpret_cast<const char*>(&the_data[0]), the_data.size()*sizeof(uint32_t));
-	  
+
+	  // // Get and write timing informations:
+	  // uint64_t timeStamp0 = m_rdout_orms[i]->ReadRegister("CLK_COUNT0");
+	  // uint64_t timeStamp1 = m_rdout_orms[i]->ReadRegister("CLK_COUNT1");;
+	  // uint64_t timeStamp = timeStamp0;
+	  // timeStamp |= (timeStamp1<<0x20);
+	  // (*m_timingOutputs[i]) << m_triggerController->eventNumber() << "\t" << m_triggerController->eventNumber() << "\t"
+	  // 			<< std::setw(12) << std::setfill('0') << std::hex << timeStamp << "\t"
+	  // 			<< std::dec << timeStamp-prevTimeStamp[i] << std::endl;
+	  // prevTimeStamp[i]=timeStamp;
 	  
 	}
 	times=timerWriter.elapsed();
@@ -287,8 +301,12 @@ private:
     //m_triggerController.startrunning( m_run, m_acqmode );
     std::ostringstream os( std::ostringstream::ate );
     for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-      os.str("");
-      os << 
+      // os.str("");
+      // os << std::setw(4) << std::setfill('0') << "/disk2_2TB/July2017_TB_data/HexaData_Run" << m_run << "_TIMING_" << (*it)->getInterface()->id() << ".txt";
+      // std::fstream* out=new std::fstream();
+      // out->open(os.str().c_str(),std::ios::out);
+      // (*out) << "TrigNumber TrigCount TimeStamp TimeDiff" << std::endl;
+      // m_timingOutputs.push_back(out);
       (*it)->ResetTheData();
       while(1){
 	if( (*it)->ReadRegister("DATE_STAMP") )
@@ -321,6 +339,10 @@ private:
       uint32_t trailer=time(0);
       m_rawFile.write(reinterpret_cast<const char*>(&trailer), sizeof(trailer));
       m_rawFile.close();
+      // for( int iorm=0; iorm<(int)m_rdout_orms.size(); iorm++ ){
+      // 	m_timingOutputs[iorm]->close();
+      // 	delete m_timingOutputs[iorm];
+      // }
 
       SetStatus(eudaq::Status::LVL_OK, "Stopped");
       
