@@ -8,7 +8,9 @@
 
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <vector>
+#include <iomanip>
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -52,8 +54,10 @@ public:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
   TriggerController *m_triggerController;
-  //  TFile *m_outrootfile;
-  //TH1D *m_htime;
+  // std::vector< std::fstream* > m_timingOutputs;
+  TFile *m_outrootfile;
+  TH1D *m_hreadouttime;
+  TH1D *m_hwritertime;
   ACQ_MODE m_acqmode;
   boost::thread m_triggerThread;
   enum DAQState {
@@ -93,6 +97,10 @@ public:
   void MainLoop() 
   {
     std::ostringstream os( std::ostringstream::ate );
+    // uint64_t prevTimeStamp[m_rdout_orms.size()];
+    // for( int i=0; i<(int)m_rdout_orms.size(); i++)
+    //   prevTimeStamp[i]=0;
+    
     while (m_state != STATE_GOTOTERM){
       if( m_state != STATE_RUNNING ) {
 	os.str("");
@@ -116,8 +124,8 @@ public:
       if (m_state == STATE_RUNNING) {
 	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) ) continue;
 	if( m_ev==m_triggerController->eventNumber() ) continue;
-	//boost::timer::cpu_timer timer;
-	//boost::timer::cpu_times times;
+	boost::timer::cpu_timer timerReadout;
+	boost::timer::cpu_times times;
 	eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
 	boost::thread threadVec[m_rdout_orms.size()];
 	
@@ -125,28 +133,53 @@ public:
 	  threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i],&m_blockSize);
 	
 	for( int i=0; i<(int)m_rdout_orms.size(); i++){
-	  threadVec[i].join();
+	  threadVec[i].join();}
+
+	times=timerReadout.elapsed();
+	m_hreadouttime->Fill(times.wall/1e9);
+
+	int head[1];
+	boost::timer::cpu_timer timerWriter;
+	for( int i=0; i<(int)m_rdout_orms.size(); i++){
+	  std::vector<uint32_t> the_data = m_rdout_orms[i]->getData() ;
+	  // Send it to euDAQ converter plugins:
+
+	  // Adding trailer
 	  //  checkCRC( "RDOUT.CRC",m_rdout_orms[i]);
 	  uint32_t trailer=i;//8 bits for orm id
 	  std::cout << "board id = " << trailer;
 	  trailer|=m_triggerController->eventNumber()<<8;//24 bits for trigger number
 	  std::cout << "\t event number id = " << m_triggerController->eventNumber();
-	  std::cout << "\t trailer = " << trailer << std::endl;
-	  m_rdout_orms[i]->addTrailerToData(trailer);
-	  const std::vector<uint32_t> the_data = m_rdout_orms[i]->getData() ;
+	  std::cout << "\t trailer = " << trailer << std::endl;	  //m_rdout_orms[i]->addTrailerToData(trailer);
+	  
+	  the_data.push_back(trailer);
 
-	  for (int b=0; b<20; b++)
-	    std::cout<< boost::format("Thread: %d;  Word number: %d, data Hex: 0x%08x ") % i % b % the_data[b]<<std::endl;
+          head[0] = i+1;
+          ev.AddBlock(   2*i, head, sizeof(head));
+	  ev.AddBlock( 2*i+1, the_data);
+
+	  std::cout<<i<<"  head[0]="<<head[0]<<"  Size of the data (bytes): "<<std::dec<<the_data.size()*4<<std::endl;
+
+	  //for (int b=0; b<20; b++)
+	  //std::cout<< boost::format("Thread: %d;  Word number: %d, data Hex: 0x%08x ") % i % b % the_data[b]<<std::endl;
 
 	  // Write it into raw file:
           m_rawFile.write(reinterpret_cast<const char*>(&the_data[0]), the_data.size()*sizeof(uint32_t));
-	  
-	  // Send it to euDAQ converter plugins:
-	  ev.AddBlock( i, the_data);
+
+	  // // Get and write timing informations:
+	  // uint64_t timeStamp0 = m_rdout_orms[i]->ReadRegister("CLK_COUNT0");
+	  // uint64_t timeStamp1 = m_rdout_orms[i]->ReadRegister("CLK_COUNT1");;
+	  // uint64_t timeStamp = timeStamp0;
+	  // timeStamp |= (timeStamp1<<0x20);
+	  // (*m_timingOutputs[i]) << m_triggerController->eventNumber() << "\t" << m_triggerController->eventNumber() << "\t"
+	  // 			<< std::setw(12) << std::setfill('0') << std::hex << timeStamp << "\t"
+	  // 			<< std::dec << timeStamp-prevTimeStamp[i] << std::endl;
+	  // prevTimeStamp[i]=timeStamp;
 	  
 	}
-	//times=timer.elapsed();
-	//m_htime->Fill(times.wall/1e9);
+	times=timerWriter.elapsed();
+	m_hwritertime->Fill(times.wall/1e9);
+
 	m_ev=m_triggerController->eventNumber();
 	SendEvent(ev);
 	for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
@@ -249,8 +282,9 @@ private:
     std::cout << "ca a du marcher" << std::endl;
 
     //create root objects
-    //m_outrootfile = new TFile("../data/time.root","RECREATE");
-    //m_htime = new TH1D("rdoutTime","",10000,0,1);    
+    m_outrootfile = new TFile("../data/time.root","RECREATE");
+    m_hreadouttime = new TH1D("rdoutTime","",10000,0,1);    
+    m_hwritertime = new TH1D("writingTime","",10000,0,1);    
     
     // Let's open a file for raw data:
     char rawFilename[256];
@@ -265,7 +299,14 @@ private:
     
     
     //m_triggerController.startrunning( m_run, m_acqmode );
+    std::ostringstream os( std::ostringstream::ate );
     for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+      // os.str("");
+      // os << std::setw(4) << std::setfill('0') << "/disk2_2TB/July2017_TB_data/HexaData_Run" << m_run << "_TIMING_" << (*it)->getInterface()->id() << ".txt";
+      // std::fstream* out=new std::fstream();
+      // out->open(os.str().c_str(),std::ios::out);
+      // (*out) << "TrigNumber TrigCount TimeStamp TimeDiff" << std::endl;
+      // m_timingOutputs.push_back(out);
       (*it)->ResetTheData();
       while(1){
 	if( (*it)->ReadRegister("DATE_STAMP") )
@@ -289,8 +330,8 @@ private:
       //      m_triggerThread.join();
       eudaq::mSleep(1000);
       m_state = STATE_GOTOSTOP;
-      //m_outrootfile->Write();
-      //m_outrootfile->Close();
+      m_outrootfile->Write();
+      m_outrootfile->Close();
       while (m_state == STATE_GOTOSTOP) {
 	eudaq::mSleep(1000); //waiting for EORE being send
       }
@@ -298,6 +339,10 @@ private:
       uint32_t trailer=time(0);
       m_rawFile.write(reinterpret_cast<const char*>(&trailer), sizeof(trailer));
       m_rawFile.close();
+      // for( int iorm=0; iorm<(int)m_rdout_orms.size(); iorm++ ){
+      // 	m_timingOutputs[iorm]->close();
+      // 	delete m_timingOutputs[iorm];
+      // }
 
       SetStatus(eudaq::Status::LVL_OK, "Stopped");
       

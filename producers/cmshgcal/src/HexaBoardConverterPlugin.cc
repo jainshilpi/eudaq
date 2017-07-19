@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard[3] = {0, 16,24};
-const uint32_t skiMask[3] = {0x00000000, 0x0000FFFF, 0x00FFFFFF};
+const size_t nSkiPerBoard[3] = {8, 16,16};
+const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0xF0F0F0F0};
 //const uint32_t skiMask = 0;
 
 const int nSCA=13;
@@ -122,6 +122,9 @@ namespace eudaq {
 
 	  else {
 	    // This block contains the data
+
+	    std::cout<<" We are in a data blaock. blo="<<blo<<std::endl;
+	    
 	    std::vector<uint32_t> rawData32;
 	    rawData32.resize(bl.size() / sizeof(uint32_t));
 	    std::memcpy(&rawData32[0], &bl[0], bl.size());
@@ -161,7 +164,7 @@ namespace eudaq {
 		const unsigned skiID_2 = 3 - (skiID_1)%4;
 		
 		if (skiID_2 > 3){
-		  std::cout<<" EROOR in ski. It is "<<skiID_2<<std::endl;
+		  std::cout<<" ERROR in ski. It is "<<skiID_2<<std::endl;
 		  EUDAQ_WARN("There is another error with encoding. ski="+eudaq::to_string(skiID_2));
 		}
 		else {
@@ -218,11 +221,12 @@ namespace eudaq {
 	    }
 	  }
 	  
-	  std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
-	  
-	  // Indicate that data was successfully converted
-	  return true;
 	}
+
+	std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
+	
+	// Indicate that data was successfully converted
+	return true;
       }
       
       unsigned int gray_to_brady(unsigned int gray) const{

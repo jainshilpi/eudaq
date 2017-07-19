@@ -483,6 +483,7 @@ void HexagonHistos::Write() {
     obj->Write();
   }
   
+  ev_display_list->Clear();
 
   //std::cout<<"Doing HexagonHistos::Write() before canvas drawing"<<std::endl;
 
