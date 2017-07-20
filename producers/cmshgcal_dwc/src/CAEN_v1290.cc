@@ -572,7 +572,7 @@ void CAEN_V1290::generatePseudoData(std::vector<WORD> &data) {
     if (rand()%100 < 10) continue;  //ten percent change of no hit detection 
 
     unsigned int readout;
-    readout=(unsigned int)(rand()%250) + 75;
+    readout=(unsigned int)(rand()%2500) + 75;
 
     for (int N=0; N<20; N++) {
       bitStream = 0;
