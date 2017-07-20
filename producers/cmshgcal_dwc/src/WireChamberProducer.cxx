@@ -140,10 +140,12 @@ class WireChamberProducer : public eudaq::Producer {
     }
 
     dwc_timestamps.clear();
+    dwc_hits.clear();
     channels.clear();
     for (size_t channel=0; channel<N_channels; channel++) {
       channels.push_back(-1);
       dwc_timestamps.push_back(defaultTimestamp);
+      dwc_hits.push_back(std::vector<int>(0));
     }
 
     if (tdc_unpacker != NULL) delete tdc_unpacker;
@@ -154,6 +156,10 @@ class WireChamberProducer : public eudaq::Producer {
     outTree->Branch("run", &m_run);
     outTree->Branch("event", &m_ev);
     outTree->Branch("channels", &channels);
+
+    for (int ch=0; ch<N_channels; ch++)
+      outTree->Branch(("dwc_hits_ch"+std::to_string(ch)).c_str(), &dwc_hits[ch]);
+    
     outTree->Branch("dwc_timestamps", &dwc_timestamps);
     outTree->Branch("timeSinceStart", &timeSinceStart);
 
@@ -213,7 +219,7 @@ class WireChamberProducer : public eudaq::Producer {
       if (_mode==DWC_RUN && initialized) {
         tdc->Read(dataStream);
       } else if (_mode==DWC_DEBUG) {
-        eudaq::mSleep(541);
+        eudaq::mSleep(40);
         tdc->generatePseudoData(dataStream);
       }
 
@@ -226,8 +232,11 @@ class WireChamberProducer : public eudaq::Producer {
       tdcData unpacked = tdc_unpacker->ConvertTDCData(dataStream);
 
       for (int channel=0; channel<N_channels; channel++) {
-        channels[channel] = channel;
+        channels[channel] = channel;  
         dwc_timestamps[channel] = channels_enabled[channel] ? unpacked.timeOfArrivals[channel] : defaultTimestamp;
+      
+        dwc_hits[channel].clear();
+        for (size_t i=0; i<unpacked.hits[channel].size(); i++) dwc_hits[channel].push_back(unpacked.hits[channel][i]);
       }
 
       //get the timestamp since start:
@@ -304,6 +313,7 @@ class WireChamberProducer : public eudaq::Producer {
     TTree* outTree;
 
     std::vector<int> dwc_timestamps;
+    std::vector<std::vector<int> > dwc_hits;
     std::vector<int> channels;
     std::chrono::steady_clock::time_point startTime;
     int timeSinceStart;

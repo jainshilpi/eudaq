@@ -140,10 +140,10 @@ int CAEN_V1290::SetupModule() {
     eudaq::mSleep(20);
   }
   
-  //eudaq::mSleep(100);
-  //std::cout << "[CAEN_V1290]::[INFO]::Setting max hits per trigger " << configuration_.maxHitsPerEvent << std::endl;
-  //status |= OpWriteTDC(CAEN_V1290_MAXHITS_OPCODE); 
-  //status |= OpWriteTDC(configuration_.maxHitsPerEvent); 
+  eudaq::mSleep(100);
+  std::cout << "[CAEN_V1290]::[INFO]::Setting max hits per trigger " << configuration_.maxHitsPerEvent << std::endl;
+  status |= OpWriteTDC(CAEN_V1290_MAXHITS_OPCODE); 
+  status |= OpWriteTDC(configuration_.maxHitsPerEvent); 
   
   
   eudaq::mSleep(100);
@@ -574,7 +574,8 @@ void CAEN_V1290::generatePseudoData(std::vector<WORD> &data) {
     unsigned int readout;
     readout=(unsigned int)(rand()%2500) + 75;
 
-    for (int N=0; N<20; N++) {
+    int N_hits = rand()%20;
+    for (int N=0; N<N_hits; N++) {
       bitStream = 0;
       bitStream = bitStream | 0<<28;
       bitStream = bitStream | channel<<21;

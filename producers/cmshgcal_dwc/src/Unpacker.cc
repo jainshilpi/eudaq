@@ -74,6 +74,7 @@ tdcData Unpacker::ConvertTDCData(std::vector<WORD> Words) {
   
   for (int ch=0; ch<N_channels; ch++) {
     currentData.timeOfArrivals[ch] = -1;  //fill all 16 channels with a value indicating that no hit has been registered
+    currentData.hits[ch].clear();
   } 
 
   for(std::map<unsigned int, std::vector<unsigned int> >::iterator channelTimeStamps = timeStamps.begin(); channelTimeStamps != timeStamps.end(); ++channelTimeStamps) {
@@ -81,6 +82,10 @@ tdcData Unpacker::ConvertTDCData(std::vector<WORD> Words) {
     
     unsigned int this_channel = channelTimeStamps->first; 
     currentData.timeOfArrivals[this_channel] = *min_element(channelTimeStamps->second.begin(), channelTimeStamps->second.end());
+    currentData.hits[this_channel] = channelTimeStamps->second;
+    #ifdef DEBUG_UNPACKER
+      std::cout<<"Number of hits in channel: "<<this_channel<<" :  "<<currentData.hits[this_channel].size()<<std::endl;
+    #endif
   }
 
   return currentData;
