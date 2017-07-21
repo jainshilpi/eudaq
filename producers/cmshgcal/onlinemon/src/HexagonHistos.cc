@@ -244,25 +244,26 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       if (pixel_x==3 && (pixel_y==32 || pixel_y==48))
 	continue;
 
-      // These are bad on some boards:
-      if ( ( _sensor=="HexaBoard-RDB2" && _id==1 ||
-	     _sensor=="HexaBoard-RDB2" && _id==3 ||
-	     _sensor=="HexaBoard-RDB3" && _id==1 ) &&
-	   ( pixel_x==0 && pixel_y==58 ) )
-	continue;
-
-      if ( (_sensor=="HexaBoard-RDB2" && _id==0 ) &&
+      if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
 	   ( (pixel_x==0 && pixel_y==0 )  || (pixel_x==0 && pixel_y==2 ) ) )
 	continue;
-      
-      if ( _sensor=="HexaBoard-RDB3" && _id==0 &&
+
+      if ( _sensor=="HexaBoard-RDB2" && _id==2 &&
 	   pixel_x==1 && pixel_y==4 )
 	continue;
 
-      if ( _sensor=="HexaBoard-RDB3" && _id==2 &&
+      if ( _sensor=="HexaBoard-RDB3" && _id==0 &&
 	   pixel_x==0 && pixel_y==22 )
 	continue;
 
+
+      // These are bad on some boards:
+      if ( ( _sensor=="HexaBoard-RDB1" && _id==1 ||
+	     _sensor=="HexaBoard-RDB2" && _id==1 ||
+	     _sensor=="HexaBoard-RDB0" && _id==0 ) &&
+	   ( pixel_x==0 && pixel_y==58 ) )
+	continue;
+      
       // -------- end masking -------------
 
       //std::cout<<" We are getting a pixel with pix="<<pix
@@ -389,8 +390,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
   // This is not working as expected
 
-  if (_hexagons_charge!=NULL && evNumber%20==0)
-    ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%03i",
+  if (_hexagons_charge!=NULL && evNumber%50==0)
+    ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%05i",
 						      _sensor.c_str(), _id,
 						      evNumber)));
   // We need to increase the counter once per event.

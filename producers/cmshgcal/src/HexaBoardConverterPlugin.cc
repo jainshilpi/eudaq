@@ -123,7 +123,7 @@ namespace eudaq {
 	  else {
 	    // This block contains the data
 
-	    std::cout<<" We are in a data blaock. blo="<<blo<<std::endl;
+	    std::cout<<" We are in the data block. blo="<<blo<<std::endl;
 	    
 	    std::vector<uint32_t> rawData32;
 	    rawData32.resize(bl.size() / sizeof(uint32_t));
@@ -300,7 +300,7 @@ namespace eudaq {
       }
 
       char GetRollMaskEnd(const unsigned int r) const {
-	printf("Roll mask = %d \n", r);
+	//printf("Roll mask = %d \n", r);
 	int k1 = -1, k2 = -1;
 	for (int p=0; p<nSCA; p++){
 	  //printf("pos = %d, %d \n", p, r & (1<<12-p));
@@ -314,7 +314,7 @@ namespace eudaq {
 	  }
 	}
 
-	printf("ROLL MASK:  k1 = %d, k2 = %d \n", k1, k2);
+	//printf("ROLL MASK:  k1 = %d, k2 = %d \n", k1, k2);
 
 	// Check that k1 and k2 are consecutive
 	char last = -1;
@@ -325,7 +325,7 @@ namespace eudaq {
 	else
 	  last = k1;
 
-	printf("last = %d\n", last);
+	//printf("last = %d\n", last);
 
 	return last;
       }

@@ -69,7 +69,7 @@ namespace eudaq {
   }
 
   void Monitor::OnIdle() {
-    // std::cout << "..." << std::endl;
+    std::cout << "...  monitor is IDLE" << std::endl;
     if (m_callstart) {
       m_callstart = false;
       OnStartRun(m_run);
