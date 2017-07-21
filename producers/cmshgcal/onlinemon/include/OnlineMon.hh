@@ -163,7 +163,7 @@ private:
   double previous_event_clustering_time;
   double previous_event_correlation_time;
   unsigned int tracksPerEvent;
-  double m_tmp_time1, m_tmp_time2, m_prevOnEventTime;
+  double m_tmp_time1, m_tmp_time2, m_tot_time, m_prevOnEventTime;
   TStopwatch myStopWatch;
 };
 
