@@ -18,7 +18,9 @@
 struct tdcData {
   int event;
   int ID;
-  std::map<unsigned int, unsigned int> timeOfArrivals;
+  std::map<unsigned int, unsigned int> timeOfArrivals;  //like in September 2016 test-beam: minimum of all read timestamps 
+  std::map<unsigned int, std::vector<unsigned int> >hits;
+
 } ;
 
 #define DEBUG_BOARD 0
@@ -30,7 +32,7 @@ class Unpacker {
     
   private:
     int Unpack (std::vector<WORD>) ;
-    std::map<unsigned int, std::vector<unsigned int> > timeStamps;   //like in September 2016 test-beam: minimum of all read timestamps
+    std::map<unsigned int, std::vector<unsigned int> > timeStamps;   
     tdcData currentData;
     int N_channels;
 };
