@@ -11,7 +11,7 @@ bool WireChamberCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 }
 
 void WireChamberCollection::fillHistograms(const eudaq::StandardPlane &pl) {
-  std::cout<<"In WireChamberCollection::fillHistograms(StandardPlane)"<<std::endl;
+  //std::cout<<"In WireChamberCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (pl.Sensor()!="WireChamber")
     return;
@@ -28,7 +28,7 @@ void WireChamberCollection::fillHistograms(const eudaq::StandardPlane &pl) {
 }
 
 void WireChamberCollection::bookHistograms(const eudaq::StandardEvent &ev) {
-  std::cout<<"In WireChamberCollection::bookHistograms(StandardEvent)"<<std::endl;
+  //std::cout<<"In WireChamberCollection::bookHistograms(StandardEvent)"<<std::endl;
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
@@ -87,7 +87,7 @@ void WireChamberCollection::Reset() {
 
 
 void WireChamberCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
-  std::cout<<"In WireChamberCollection::Fill(StandardEvent)"<<std::endl;
+  //std::cout<<"In WireChamberCollection::Fill(StandardEvent)"<<std::endl;
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
@@ -108,7 +108,7 @@ WireChamberHistos *WireChamberCollection::getWireChamberHistos(std::string senso
 }
 
 void WireChamberCollection::registerPlane(const eudaq::StandardPlane &p) {
-  std::cout<<"In WireChamberCollection::registerPlane(StandardPlane)"<<std::endl;
+  //std::cout<<"In WireChamberCollection::registerPlane(StandardPlane)"<<std::endl;
 
   WireChamberHistos *tmphisto = new WireChamberHistos(p, _mon);
   _map[p] = tmphisto;

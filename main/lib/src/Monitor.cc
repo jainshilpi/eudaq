@@ -69,7 +69,7 @@ namespace eudaq {
   }
 
   void Monitor::OnIdle() {
-    std::cout << "...  monitor is IDLE" << std::endl;
+    //std::cout << "...  monitor is IDLE" << std::endl;
     if (m_callstart) {
       m_callstart = false;
       OnStartRun(m_run);
@@ -88,7 +88,7 @@ namespace eudaq {
   }
 
   void Monitor::OnStartRun(unsigned param) {
-    std::cout << "run " << param << std::endl;
+    std::cout << " Monitor OnStartRun " << param << std::endl;
     m_run = param;
     m_reader = std::shared_ptr<FileReader>(new FileReader(to_string(m_run)));
     PluginManager::Initialize(m_reader->GetDetectorEvent()); // process BORE

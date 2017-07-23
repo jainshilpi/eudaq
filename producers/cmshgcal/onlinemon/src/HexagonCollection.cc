@@ -11,7 +11,7 @@ bool HexagonCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 }
 
 void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl, int evNumber) {
-  std::cout<<"In HexagonCollection::fillHistograms(StandardPlane)"<<std::endl;
+  //std::cout<<"In HexagonCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (pl.Sensor().find("HexaBoard")==std::string::npos)
     return;
@@ -28,8 +28,8 @@ void HexagonCollection::fillHistograms(const eudaq::StandardPlane &pl, int evNum
 }
 
 void HexagonCollection::bookHistograms(const eudaq::StandardEvent &ev) {
-  std::cout<<"In HexagonCollection::bookHistograms(StandardEvent)"<<std::endl;
-
+  //std::cout<<"In HexagonCollection::bookHistograms(StandardEvent)"<<std::endl;
+  
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
@@ -87,11 +87,11 @@ void HexagonCollection::Reset() {
 
 
 void HexagonCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
-  std::cout<<"In HexagonCollection::Fill(StandardEvent)"<<std::endl;
+  //std::cout<<"In HexagonCollection::Fill(StandardEvent)"<<std::endl;
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-    std::cout<<"Trying to Fill a plane: "<<plane<<" sensor="<<Plane.Sensor()<<"  ID="<<Plane.ID()<<std::endl;
+    //std::cout<<"Trying to Fill a plane: "<<plane<<" sensor="<<Plane.Sensor()<<"  ID="<<Plane.ID()<<std::endl;
 
     if (Plane.Sensor().find("HexaBoard")!=std::string::npos)
       fillHistograms(Plane, evNumber);
@@ -110,7 +110,7 @@ HexagonHistos *HexagonCollection::getHexagonHistos(std::string sensor, int id) {
 }
 
 void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
-  std::cout<<"In HexagonCollection::registerPlane(StandardPlane)"<<std::endl;
+  //std::cout<<"In HexagonCollection::registerPlane(StandardPlane)"<<std::endl;
 
   HexagonHistos *tmphisto = new HexagonHistos(p, _mon);
   _map[p] = tmphisto;
@@ -251,6 +251,6 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     
   }
 
-   std::cout << "Registered Plane: " << p.Sensor() << " " << p.ID() << std::endl;
+  //std::cout << "Registered Plane: " << p.Sensor() << " " << p.ID() << std::endl;
 
 }
