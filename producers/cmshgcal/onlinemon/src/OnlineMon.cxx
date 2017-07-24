@@ -104,7 +104,6 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
       // reset defaults, as Config file is bad
       cerr <<" As Config file can't be found, re-applying hardcoded defaults"<<endl;
       mon_configdata.SetDefaults();
-
     }
   }
 

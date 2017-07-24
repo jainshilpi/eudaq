@@ -155,10 +155,6 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getNHitsHisto());
 
-    //sprintf(tree, "%s/Module %i/HotPixelMap", p.Sensor().c_str(), p.ID());
-    //_mon->getOnlineMon()->registerTreeItem(tree);
-    //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHotPixelMapHisto(), "COLZ2", 0);
-
     
     sprintf(tree, "%s/Module %i/SignalADC_LG", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
