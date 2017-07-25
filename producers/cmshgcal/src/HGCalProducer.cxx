@@ -28,6 +28,8 @@
 #include "IpbusHwController.h"
 #include "TriggerController.h"
 
+#define FORMAT_VERSION 1
+
 // A name to identify the raw data format of the events generated
 // Modify this to something appropriate for your producer.
 static const std::string EVENT_TYPE = "HexaBoard";
@@ -55,10 +57,9 @@ public:
   unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
   TriggerController *m_triggerController;
-  std::vector<std::shared_ptr<std::ofstream>> m_timingOutputs;
-  // TFile *m_outrootfile;
-  // TH1D *m_hreadouttime;
-  // TH1D *m_hwritertime;
+  TFile *m_outrootfile;
+  TH1D *m_hreadouttime;
+  TH1D *m_hwritertime;
   ACQ_MODE m_acqmode;
   boost::thread m_triggerThread;
   enum DAQState {
@@ -98,10 +99,6 @@ public:
   void MainLoop() 
   {
     std::ostringstream os( std::ostringstream::ate );
-    uint64_t prevTimeStamp[m_rdout_orms.size()];
-    for( int i=0; i<(int)m_rdout_orms.size(); i++)
-      prevTimeStamp[i]=0;
-    
     while (m_state != STATE_GOTOTERM){
       if( m_state != STATE_RUNNING ) {
 	os.str("");
@@ -137,14 +134,12 @@ public:
 	  threadVec[i].join();}
 
 	times=timerReadout.elapsed();
-	//m_hreadouttime->Fill(times.wall/1e9);
+	m_hreadouttime->Fill(times.wall/1e9);
 
 	int head[1];
 	boost::timer::cpu_timer timerWriter;
 	for( int i=0; i<(int)m_rdout_orms.size(); i++){
 	  std::vector<uint32_t> the_data = m_rdout_orms[i]->getData() ;
-	  // Send it to euDAQ converter plugins:
-
 	  // Adding trailer
 	  //  checkCRC( "RDOUT.CRC",m_rdout_orms[i]);
 	  uint32_t trailer=i;//8 bits for orm id
@@ -155,31 +150,24 @@ public:
 	  
 	  the_data.push_back(trailer);
 
+	  // Send it to euDAQ converter plugins:
           head[0] = i+1;
           ev.AddBlock(   2*i, head, sizeof(head));
 	  ev.AddBlock( 2*i+1, the_data);
 
 	  std::cout<<i<<"  head[0]="<<head[0]<<"  Size of the data (bytes): "<<std::dec<<the_data.size()*4<<std::endl;
 
-	  //for (int b=0; b<20; b++)
-	  //std::cout<< boost::format("Thread: %d;  Word number: %d, data Hex: 0x%08x ") % i % b % the_data[b]<<std::endl;
-
+	  //Add trigger timestamp to raw data :
+	  the_data.push_back( m_rdout_orms[i]->ReadRegister("CLK_COUNT0") );
+	  the_data.push_back( m_rdout_orms[i]->ReadRegister("CLK_COUNT1") );
+	  std::cout << std::setw(8) << std::setfill('0') << std::hex << m_rdout_orms[i]->ReadRegister("CLK_COUNT0") << "\t" << m_rdout_orms[i]->ReadRegister("CLK_COUNT1") << std::endl;
+	  
 	  // Write it into raw file:
           m_rawFile.write(reinterpret_cast<const char*>(&the_data[0]), the_data.size()*sizeof(uint32_t));
-
-	  // Get and write timing informations:
-	  uint64_t timeStamp0 = m_rdout_orms[i]->ReadRegister("CLK_COUNT0");
-	  uint64_t timeStamp1 = m_rdout_orms[i]->ReadRegister("CLK_COUNT1");;
-	  uint64_t timeStamp = timeStamp0;
-	  timeStamp |= (timeStamp1<<0x20);
-	  (*m_timingOutputs[i]) << m_triggerController->eventNumber() << "\t" << m_triggerController->eventNumber() << "\t"
-	  			<< std::setw(12) << std::setfill('0') << std::hex << timeStamp << "\t"
-	  			<< std::dec << timeStamp-prevTimeStamp[i] << std::endl;
-	  prevTimeStamp[i]=timeStamp;
 	  
 	}
 	times=timerWriter.elapsed();
-	//m_hwritertime->Fill(times.wall/1e9);
+	m_hwritertime->Fill(times.wall/1e9);
 
 	m_ev=m_triggerController->eventNumber();
 	SendEvent(ev);
@@ -283,29 +271,25 @@ private:
     std::cout << "ca a du marcher" << std::endl;
 
     //create root objects
-    // m_outrootfile = new TFile("../data/time.root","RECREATE");
-    // m_hreadouttime = new TH1D("rdoutTime","",10000,0,1);    
-    // m_hwritertime = new TH1D("writingTime","",10000,0,1);    
+    m_outrootfile = new TFile("../data/time.root","RECREATE");
+    m_hreadouttime = new TH1D("rdoutTime","",10000,0,1);    
+    m_hwritertime = new TH1D("writingTime","",10000,0,1);
     
     // Let's open a file for raw data:
     char rawFilename[256];
     sprintf(rawFilename, "/disk2_2TB/July2017_TB_data_orm/HexaData_Run%04d.raw", m_run); // The path is relative to eudaq/bin
     m_rawFile.open(rawFilename, std::ios::binary);
 
-    uint32_t header[2];
+    uint32_t header[3];
     header[0]=time(0);
     header[1]=m_rdout_orms.size();
     header[1]|=m_run<<8;
+    header[2]=FORMAT_VERSION;
     m_rawFile.write(reinterpret_cast<const char*>(&header[0]), sizeof(header));
     
     
     //m_triggerController.startrunning( m_run, m_acqmode );
-    std::ostringstream os( std::ostringstream::ate );
     for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-      os.str("");
-      os << std::setw(4) << std::setfill('0') << "/disk2_2TB/July2017_TB_data_orm/HexaData_Run" << m_run << "_TIMING_" << (*it)->getInterface()->id() << ".txt";
-      m_timingOutputs.push_back( std::make_shared<std::ofstream>( os.str().c_str() ) );
-      (*m_timingOutputs.back()) << "TrigNumber TrigCount TimeStamp TimeDiff" << std::endl;
       (*it)->ResetTheData();
       while(1){
 	if( (*it)->ReadRegister("DATE_STAMP") )
@@ -329,23 +313,16 @@ private:
       //      m_triggerThread.join();
       eudaq::mSleep(1000);
       m_state = STATE_GOTOSTOP;
-      // m_outrootfile->Write();
-      // m_outrootfile->Close();
+      m_outrootfile->Write();
+      m_outrootfile->Close();
 
       while (m_state == STATE_GOTOSTOP) {
 	eudaq::mSleep(1000); //waiting for EORE being send
       }
 
-      // std::cout << "J'essaye de fermer mes fichiers txt proprement : \t";
-      // for( int iorm=0; iorm<(int)m_rdout_orms.size(); iorm++ )
-      // 	m_timingOutputs[iorm]->close();
-      // std::cout << "j'ai reussi" << std::endl;
-
       uint32_t trailer=time(0); 
       m_rawFile.write(reinterpret_cast<const char*>(&trailer), sizeof(trailer));
-      std::cout << "J'essaye de fermer mon raq data proprement apres y avoir coller un trailer : \t";
       m_rawFile.close();
-      std::cout << "j'ai reussi" << std::endl;
 
       SetStatus(eudaq::Status::LVL_OK, "Stopped");
       
