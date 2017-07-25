@@ -104,7 +104,6 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
       // reset defaults, as Config file is bad
       cerr <<" As Config file can't be found, re-applying hardcoded defaults"<<endl;
       mon_configdata.SetDefaults();
-
     }
   }
 
@@ -357,12 +356,13 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
 
   m_tmp_time1 += my_event_processing_time.RealTime();
 
-  m_tot_time += m_tmp_time1;
   
   myStopWatch.Stop();
   double tmp_ev_time = myStopWatch.RealTime();
   m_tmp_time2 += tmp_ev_time;
   std::cout<<"\t another per-event time: "<<tmp_ev_time<<std::endl;
+
+  m_tot_time += m_tmp_time2;
 
   std::cout<<"\t Total time: "<<m_tot_time<<std::endl;
 

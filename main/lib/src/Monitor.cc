@@ -88,7 +88,7 @@ namespace eudaq {
   }
 
   void Monitor::OnStartRun(unsigned param) {
-    std::cout << "run " << param << std::endl;
+    std::cout << " Monitor OnStartRun " << param << std::endl;
     m_run = param;
     m_reader = std::shared_ptr<FileReader>(new FileReader(to_string(m_run)));
     PluginManager::Initialize(m_reader->GetDetectorEvent()); // process BORE

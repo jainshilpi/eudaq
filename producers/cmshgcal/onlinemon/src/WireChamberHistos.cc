@@ -107,17 +107,17 @@ void WireChamberHistos::Fill(const eudaq::StandardPlane &plane) {
   _goodAll->Fill(good_all);
 
   if (good_x) {
-    std::cout<<"In Filling of 1D-Hists: x="<<x<<std::endl;
+    //std::cout<<"In Filling of 1D-Hists: x="<<x<<std::endl;
     _recoX->Fill(x);
   }
 
   if (good_y) {
-    std::cout<<"In Filling of 1D-Hists: y="<<y<<std::endl;
+    //std::cout<<"In Filling of 1D-Hists: y="<<y<<std::endl;
     _recoY->Fill(y);
   }
 
   if (good_all) {
-    std::cout<<"In Filling of 2D-Hists: x="<<x<<" y="<<y<<std::endl;
+    //std::cout<<"In Filling of 2D-Hists: x="<<x<<" y="<<y<<std::endl;
     _XYmap->Fill(x,y);
   }
 

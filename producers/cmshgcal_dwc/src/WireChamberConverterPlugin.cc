@@ -106,7 +106,7 @@ namespace eudaq {
 
         for (size_t i = 0; i<wcs.size(); i++) sev.AddPlane(wcs[i]);
 
-      	eudaq::mSleep(10);
+      	//eudaq::mSleep(10);
 	
       }
       

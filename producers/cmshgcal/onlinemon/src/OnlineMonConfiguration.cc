@@ -201,15 +201,15 @@ OnlineMonConfiguration::OnlineMonConfiguration(string confname) {
 void OnlineMonConfiguration::SetDefaults() {
   // general settings
   SnapShotDir = "../snapshots/";
-  SnapShotFormat = ".pdf";
-  DqmColorMap = 56;
+  SnapShotFormat = ".png";
+  DqmColorMap = 54;
   // mimosa26 settings
   mimosa26_max_sections = 4;
   mimosa26_section_boundary = 288;
 
-  mainFrameTS = 6;
-  thresh_LG = 50;
-  thresh_HG = 50;
+  mainFrameTS = 3;
+  thresh_LG = 100;
+  thresh_HG = 200;
   
   // hotpixel settings
   hotpixelcut = 0.01;

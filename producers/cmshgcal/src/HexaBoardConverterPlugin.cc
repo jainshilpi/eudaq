@@ -17,8 +17,9 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard[3] = {8, 16, 8};
-const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
+const size_t nSkiPerBoard[3] = {8, 16, 16};
+const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0xF0F0F0F0};
+//const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
 //const uint32_t skiMask = 0;
 
 const int nSCA=13;
@@ -183,7 +184,7 @@ namespace eudaq {
 	      plane.SetTLUEvent(ev.GetEventNumber());
 	      // Add the plane to the StandardEvent
 	      sev.AddPlane(plane);
-	      eudaq::mSleep(10);
+	      //eudaq::mSleep(10);
 	      
 	      
 	      /* APZ DBG

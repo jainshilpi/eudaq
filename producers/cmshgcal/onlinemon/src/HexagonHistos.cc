@@ -14,7 +14,7 @@ const int nSCA = 13;
 HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), filling_counter(0), _wait(false),
   _hexagons_occ_HA_bit(NULL), _hexagons_occ_adc(NULL), _hexagons_occ_tot(NULL), _hexagons_occ_toa(NULL), _hexagons_charge(NULL),
-  _hit2Dmap(NULL), _hit1Docc(NULL), _TOAvsChId(NULL),
+  _hit2Dmap(NULL), _BadPixelMap(NULL), _hit1Docc(NULL), _TOAvsChId(NULL),
   _nHits(NULL), _nbadHits(NULL), _nHotPixels(NULL),
   _waveformLG(NULL), _waveformHG(NULL), _waveformNormLG(NULL), _waveformNormHG(NULL),
   _posOfMaxADCinLG(NULL), _posOfMaxADCinHG(NULL),
@@ -84,10 +84,10 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     _pedHG = new TH1I(out2, out, 100, 0, 400);
     SetHistoAxisLabelx(_pedHG, "HG ADC counts");
 
-    sprintf(out, "%s-%i, hot Pixel Map", _sensor.c_str(), _id);
-    sprintf(out2, "h_hotpixelmap_%s_%i", _sensor.c_str(), _id);
-    _HotPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
-    SetHistoAxisLabels(_HotPixelMap, "X", "Y");
+    sprintf(out, "%s-%i, Suspicious Pixels", _sensor.c_str(), _id);
+    sprintf(out2, "h_badpixelmap_%s_%i", _sensor.c_str(), _id);
+    _BadPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
+    SetHistoAxisLabels(_BadPixelMap, "SkiRoc ID", "Channel ID");
 
 
     sprintf(out, "%s-%i, Number of Hits", _sensor.c_str(), _id);
@@ -133,12 +133,12 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     SetHistoAxisLabels(_waveformNormHG, "Time Sample of 25 ns", "Normalized");
 
 
-    sprintf(out, "%s-%i, TS of Maximim at LG", _sensor.c_str(), _id);
+    sprintf(out, "%s-%i, TS of Maximum at LG", _sensor.c_str(), _id);
     sprintf(out2, "h_posOfMaxADC_LG_%s_%i", _sensor.c_str(), _id);
     _posOfMaxADCinLG = new TH1I(out2, out, 2*nSCA, 0, nSCA);
     SetHistoAxisLabels(_posOfMaxADCinLG, "Time Sample of 25 ns","Events");
 
-    sprintf(out, "%s-%i, TS of Maximim at HG", _sensor.c_str(), _id);
+    sprintf(out, "%s-%i, TS of Maximum at HG", _sensor.c_str(), _id);
     sprintf(out2, "h_posOfMaxADC_HG_%s_%i", _sensor.c_str(), _id);
     _posOfMaxADCinHG = new TH1I(out2, out, 2*nSCA, 0, nSCA);
     SetHistoAxisLabels(_posOfMaxADCinHG, "Time Sample of 25 ns","Events");
@@ -210,14 +210,15 @@ int HexagonHistos::zero_plane_array() {
 void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
   // std::cout<< "FILL with a plane." << std::endl;
   
-  if (_nHits != NULL)
-    if (plane.HitPixels()>=20)
-      _nHits->Fill(19); // Overflow bin
-    else
-      _nHits->Fill(plane.HitPixels());
+  if (_nHits != NULL){
+    _nHits->Fill(plane.HitPixels());
+    handleOverflowBins(_nHits);
+  }
   if ((_nbadHits != NULL)) {
     _nbadHits->Fill(2);
   }
+
+  int nHot = 0;
   
   // Temporary lets just not fill events with too many channels 
   if (plane.HitPixels()>40)
@@ -278,6 +279,12 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 	sig_HG[ts] = plane.GetPixel(pix, ts+nSCA);
       }
 
+      // Suppress noizy Time Samples:
+      sig_LG[9]  /= 10;
+      sig_LG[10] /= 10;
+      sig_HG[9]  /= 10;
+      sig_HG[10] /= 10;
+      
       const auto max_LG = std::max_element(std::begin(sig_LG), std::end(sig_LG));
       const int pos_max_LG = std::distance(std::begin(sig_LG), max_LG);
       //std::cout << "Max element in LG is " << *max_LG << " at position " << pos_max_LG << std::endl;
@@ -341,9 +348,18 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       if (_hit1Docc != NULL)
 	_hit1Docc->Fill(pixel_x*64+pixel_y);
 
-      if (_HotPixelMap != NULL)
-	if ((*max_LG) > 4060 || (*max_HG) > 4060)
-	  _HotPixelMap->Fill(pixel_x, pixel_y);
+
+      if ( (*max_LG) > 4000 || (*max_HG) > 4000 ){
+	nHot+=1;
+	if (_BadPixelMap != NULL)
+	  _BadPixelMap->Fill(pixel_x, pixel_y);
+      }
+
+      
+      if ( (toa_rise==4 || toa_fall==4) && _BadPixelMap != NULL)
+	// This is bad because the hits are slected based on HA bit, which should be equivalent to TOA
+	_BadPixelMap->Fill(pixel_x, pixel_y);
+	            
 
       if (_LGvsTOTfast != NULL)
 	_LGvsTOTfast->Fill(tot_fast, peak_LG);
@@ -388,7 +404,9 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
     }
 
 
-  // This is not working as expected
+  if (_nHotPixels != NULL)
+    _nHotPixels->Fill(nHot);
+
 
   if (_hexagons_charge!=NULL && evNumber%50==0)
     ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%05i",
@@ -413,7 +431,7 @@ void HexagonHistos::Reset() {
   _nHits->Reset();
   _nbadHits->Reset();
   _nHotPixels->Reset();
-  _HotPixelMap->Reset();
+  _BadPixelMap->Reset();
 
   _waveformLG->Reset();
   _waveformHG->Reset();
@@ -453,10 +471,11 @@ void HexagonHistos::Write() {
   _hit2Dmap->Write();
   _hit1Docc->Write();
 
+  handleOverflowBins(_nHits);
   _nHits->Write();
   _nbadHits->Write();
-  _HotPixelMap->Write();
-  //_nHotPixels->Write();
+  _BadPixelMap->Write();
+  _nHotPixels->Write();
 
   _waveformLG->Write();
   _waveformHG->Write();
@@ -467,9 +486,13 @@ void HexagonHistos::Write() {
   _posOfMaxADCinLG->Write();
   _posOfMaxADCinHG->Write();
 
+  handleOverflowBins(_pedLG);
+  handleOverflowBins(_pedHG);
   _pedLG->Write();
   _pedHG->Write();
 
+  handleOverflowBins(_sigAdcLG);
+  handleOverflowBins(_sigAdcHG);
   _sigAdcLG->Write();
   _sigAdcHG->Write();
 

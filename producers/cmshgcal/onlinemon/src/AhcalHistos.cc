@@ -7,6 +7,7 @@
 #include "TGraph.h"
 #include <cstdlib>
 #include <sstream>
+#include "overFlowBins.hh"
 
 AhcalHistos::AhcalHistos(eudaq::StandardPlane p, RootMonitor *mon)
   :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false),
@@ -100,14 +101,9 @@ void AhcalHistos::Fill(const eudaq::StandardPlane &plane) {
   // std::cout<< "FILL with a plane." << std::endl;
 
   if (_nHits != NULL) {
-    if (plane.HitPixels() >= 70)
-      _nHits->Fill(69); // overflow
-    else
-      _nHits->Fill(plane.HitPixels());
+    _nHits->Fill(plane.HitPixels());   
+    handleOverflowBins(_nHits);
   }
-  //if ((_nbadHits != NULL)) {
-  //_nbadHits->Fill(0);
-  //}
 
 
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++)
@@ -162,7 +158,7 @@ void AhcalHistos::Write() {
 
   _nHits->Write();
 
-  std::cout<<"Doing AhcalHistos::Write() before canvas drawing"<<std::endl;
+  //std::cout<<"Doing AhcalHistos::Write() before canvas drawing"<<std::endl;
 
   /*
   gSystem->Sleep(100);
@@ -175,8 +171,8 @@ void AhcalHistos::Write() {
 
 
   */
-
-  std::cout<<"Doing AhcalHistos::Write() after canvas drawing"<<std::endl;
+  
+  //std::cout<<"Doing AhcalHistos::Write() after canvas drawing"<<std::endl;
 
 }
 

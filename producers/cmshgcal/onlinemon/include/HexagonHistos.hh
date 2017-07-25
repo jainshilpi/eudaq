@@ -11,6 +11,8 @@
 
 #include "eudaq/StandardEvent.hh"
 
+#include "overFlowBins.hh"
+
 using namespace std;
 
 class RootMonitor;
@@ -34,7 +36,7 @@ protected:
   //std::vector<*TH2Poly> _EventDisplays;
   TList *ev_display_list = new TList;
 
-  TH2D *_HotPixelMap;
+  TH2D *_BadPixelMap;
   //TH1F *_hitOcc;
   TH1I *_nHits;
   TH1I *_nbadHits;
@@ -65,7 +67,7 @@ public:
   TH2Poly *getHexagonsChargeHisto() { return _hexagons_charge; }
   TH2I *getHitmapHisto() { return _hit2Dmap; }
   TH1I *getHit1DoccHisto() { return _hit1Docc; }
-  TH2D *getHotPixelMapHisto() { return _HotPixelMap; }
+  TH2D *getBadPixelMapHisto() { return _BadPixelMap; }
 
   //TH1F *getHitOccHisto() {
   //if (_wait)
