@@ -163,7 +163,7 @@ then
     flog="../logs/Run${NEWRUNNUM}_HgcOnlineMon_$dt.log"
     config_file="../producers/cmshgcal/conf/OnlineMon.conf"
     #./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT
-    nohup ./HgcOnlineMon.exe -u 100 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+    nohup ./HgcOnlineMon.exe -u 500 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
     printf "The logs from the Online Monitor are in $flog file. \n"
 
 else

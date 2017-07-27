@@ -54,18 +54,32 @@ def drawIt(key, obj):
     drawOpt = ""
     if obj.InheritsFrom("TH2"):
         drawOpt="COLZ2"
-        c1.SetRightMargin(0.15)
+        
     if obj.InheritsFrom("TH2Poly"):
         drawOpt="COLZ2 TEXT"
-        c1.SetRightMargin(0.15)
         
     histName = obj.GetName()
                 
     if 'WireChamber' in key and 'h_reco' in histName:
-        obj.SetStats('er')
+        obj.SetStats(1)
         gStyle.SetOptStat(1111)
 
     obj.Draw(drawOpt)
+    
+    if obj.InheritsFrom("TH2Poly") or obj.InheritsFrom("TH2"):
+        c1.SetRightMargin(0.15)
+        gPad.Update();
+        palette = obj.GetListOfFunctions().FindObject("palette")
+        if palette != None:
+                        
+            palette.SetX1NDC(0.85)
+            palette.SetX2NDC(0.90)
+            palette.SetY1NDC(0.1)
+            palette.SetY2NDC(0.9)
+            gPad.Modified()
+            gPad.Update()  
+                
+
 
     if 'Hexagon' in key and 'Display_Event_' in histName:
         evNum = histName.split('_')[5]

@@ -408,7 +408,7 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
     _nHotPixels->Fill(nHot);
 
 
-  if (_hexagons_charge!=NULL && evNumber%50==0)
+  if (_hexagons_charge!=NULL && evNumber%100==0)
     ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%05i",
 						      _sensor.c_str(), _id,
 						      evNumber)));
