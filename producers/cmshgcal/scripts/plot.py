@@ -9,6 +9,8 @@ parser.add_argument("-f",  dest="fname", type=str, default='../run001192.raw.roo
                     help="File with histograms")
 parser.add_argument("-o",  dest="outdir", type=str, default='./RUN_1192_OnlineMon',
                     help="Output directory")
+parser.add_argument("-e", "--events",  dest="events", action="store_true", default=False,
+                    help="Make event display plots")
 parser.add_argument("-v", "--verbosity",  dest="verb", action="store_true", default=False,
                     help="Print out more stuff")
 
@@ -48,26 +50,44 @@ def getall(d, basepath="/"):
 
 def drawIt(key, obj):
 
+    if not opt.events and  'Display_Event_' in key:
+        # Don't make event display plots for now 
+        return
+
     gStyle.SetOptStat(0)
     c1.SetRightMargin(0.06)
     
     drawOpt = ""
     if obj.InheritsFrom("TH2"):
         drawOpt="COLZ2"
-        c1.SetRightMargin(0.15)
+        
     if obj.InheritsFrom("TH2Poly"):
         drawOpt="COLZ2 TEXT"
-        c1.SetRightMargin(0.15)
         
     histName = obj.GetName()
                 
     if 'WireChamber' in key and 'h_reco' in histName:
-        obj.SetStats('er')
+        obj.SetStats(1)
         gStyle.SetOptStat(1111)
 
     obj.Draw(drawOpt)
+    
+    if obj.InheritsFrom("TH2Poly") or obj.InheritsFrom("TH2"):
+        c1.SetRightMargin(0.15)
+        gPad.Update();
+        palette = obj.GetListOfFunctions().FindObject("palette")
+        if palette != None:
+                        
+            palette.SetX1NDC(0.85)
+            palette.SetX2NDC(0.90)
+            palette.SetY1NDC(0.1)
+            palette.SetY2NDC(0.9)
+            gPad.Modified()
+            gPad.Update()  
+
 
     if 'Hexagon' in key and 'Display_Event_' in histName:
+        # Here are the event display plots (opt.events must be true)
         evNum = histName.split('_')[5]
         #print histName
         #print 'Ev number=', evNum
