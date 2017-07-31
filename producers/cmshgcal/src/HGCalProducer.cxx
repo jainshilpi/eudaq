@@ -199,6 +199,63 @@ private:
   virtual void OnConfigure(const eudaq::Configuration & config) 
   {
     std::cout << "Configuring: " << config.Name() << std::endl;
+
+
+    // Let's start the scripts needed to be run on RPIs
+
+    
+    EUDAQ_INFO("Starting sync_debug.exe on piS");
+    
+    int executionStatus = -99; 
+    
+    executionStatus = system("ssh -T piS \" sudo killall sync_debug.exe \"");
+
+    if (executionStatus != 0) {
+      EUDAQ_WARN("Error: unable to kill on piS. It's may be already dead...");
+    }
+    else {
+      EUDAQ_INFO("Successfully killed on piS!");
+    }
+
+    executionStatus = system("ssh -T piS \" nohup sudo /home/pi/SYNCH_BOARD/bin/sync_debug.exe 0 > log.log 2>&1& \" ");
+    
+    if (executionStatus != 0) {
+      EUDAQ_ERROR("Error: unable to run sync on piS");
+    }
+    else {
+      EUDAQ_INFO("Successfully run sync on piS!");
+    }
+
+
+    for (int pi=0; pi<3; pi++){
+      std::string rpiName = "none";
+      if (pi==0) rpiName = "piRBDev";
+      if (pi==1) rpiName = "pi2";
+      if (pi==2) rpiName = "pi3";
+      
+      EUDAQ_INFO("Starting new_rdout.exe on "+rpiName);
+
+      executionStatus = system(("ssh -T "+rpiName+" \" sudo killall new_rdout.exe \"").data());
+      
+      if (executionStatus != 0) {
+	EUDAQ_WARN("Error: unable to kill on "+rpiName+". It's probably already dead...");
+      }
+      else {
+	EUDAQ_INFO("Successfully killed on "+ rpiName);
+      }
+      
+      executionStatus = system(("ssh -T "+rpiName+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 100000 0 > log.log 2>&1& \" ").data());
+      
+      if (executionStatus != 0) {
+	EUDAQ_ERROR("Error: unable to run exe on "+rpiName);
+      }
+      else {
+	EUDAQ_INFO("Successfully run exe on "+rpiName);
+      }
+    }
+
+    
+    // End of scripts on RPIs
     
     // Do any configuration of the hardware here
     // Configuration file values are accessible as config.Get(name, default)
@@ -338,6 +395,13 @@ private:
   virtual void OnTerminate() {
     SetStatus(eudaq::Status::LVL_OK, "Terminating...");
     m_state = STATE_GOTOTERM;
+
+    int executionStatus = 0;
+    executionStatus = system("ssh -T piS \" sudo killall sync_debug.exe \"");
+    executionStatus = system("ssh -T piRBDev \" sudo killall new_rdout.exe \"");
+    executionStatus = system("ssh -T pi2 \" sudo killall new_rdout.exe \"");
+    executionStatus = system("ssh -T pi3 \" sudo killall new_rdout.exe \"");
+
     m_triggerController->stopRun();
     eudaq::mSleep(1000);
   }
