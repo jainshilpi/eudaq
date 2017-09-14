@@ -26,3 +26,10 @@ logs/*
 *.pyc
 
 Thumbs.db
+
+*.cmake
+*/CMakeFiles/
+CMakeFiles/
+*/Makefile
+Makefile
+CMakeCache.txt
