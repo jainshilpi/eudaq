@@ -136,7 +136,7 @@ printf '\033[22;33m\t  caliceProducer-scintillator  \033[0m \n'
 #xterm -sb -sl 1000000 -geom 100x10-480-900 -fn fixed -T "CALICE AHCAL" -e "./AHCALProducer.exe -n CaliceSc -r tcp://$TLUIP:$RCPORT && read || read" &
 #xterm -sb -sl 1000000 -geom 100x10-400-900 -fn fixed -T "CALICE AHCAL Two" -e "./AHCALProducer.exe -n CaliceSc-Two -r tcp://$TLUIP:$RCPORT && read || read" &
 flog="../logs/Run${NEWRUNNUM}_AHCALProducer_$dt.log"
-#nohup ./AHCALProducer.exe -n CaliceSc -r tcp://$TLUIP:$RCPORT > $flog 2>&1 &
+nohup ./AHCALProducer.exe -n CaliceSc -r tcp://$TLUIP:$RCPORT > $flog 2>&1 &
 printf "The logs from the AHCALProducer are in $flog file. \n"
 
 sleep 2

@@ -143,10 +143,10 @@ public:
 	  // Adding trailer
 	  //  checkCRC( "RDOUT.CRC",m_rdout_orms[i]);
 	  uint32_t trailer=i;//8 bits for orm id
-	  std::cout << "board id = " << trailer;
+	  //std::cout << "board id = " << trailer;
 	  trailer|=m_triggerController->eventNumber()<<8;//24 bits for trigger number
-	  std::cout << "\t event number id = " << m_triggerController->eventNumber();
-	  std::cout << "\t trailer = " << trailer << std::endl;	  //m_rdout_orms[i]->addTrailerToData(trailer);
+	  //std::cout << "\t event number id = " << m_triggerController->eventNumber();
+	  //std::cout << "\t trailer = " << trailer << std::endl;	  //m_rdout_orms[i]->addTrailerToData(trailer);
 	  
 	  the_data.push_back(trailer);
 
@@ -155,12 +155,12 @@ public:
           ev.AddBlock(   2*i, head, sizeof(head));
 	  ev.AddBlock( 2*i+1, the_data);
 
-	  std::cout<<i<<"  head[0]="<<head[0]<<"  Size of the data (bytes): "<<std::dec<<the_data.size()*4<<std::endl;
+	  std::cout<<"rdout board "<<i<<"  skiroc mask="<<std::setw(8)<<std::setfill('0')<<std::hex<<the_data[0]<<"  Size of the data (bytes): "<<std::dec<<the_data.size()*4<<std::endl;
 
 	  //Add trigger timestamp to raw data :
 	  the_data.push_back( m_rdout_orms[i]->ReadRegister("CLK_COUNT0") );
 	  the_data.push_back( m_rdout_orms[i]->ReadRegister("CLK_COUNT1") );
-	  std::cout << std::setw(8) << std::setfill('0') << std::hex << m_rdout_orms[i]->ReadRegister("CLK_COUNT0") << "\t" << m_rdout_orms[i]->ReadRegister("CLK_COUNT1") << std::endl;
+	  //std::cout << std::setw(8) << std::setfill('0') << std::hex << m_rdout_orms[i]->ReadRegister("CLK_COUNT0") << "\t" << m_rdout_orms[i]->ReadRegister("CLK_COUNT1") << std::endl;
 	  
 	  // Write it into raw file:
           m_rawFile.write(reinterpret_cast<const char*>(&the_data[0]), the_data.size()*sizeof(uint32_t));
@@ -232,25 +232,25 @@ private:
       if (pi==0) rpiName = "piRBDev";
       if (pi==1) rpiName = "pi2";
       if (pi==2) rpiName = "pi3";
-      
+    
       EUDAQ_INFO("Starting new_rdout.exe on "+rpiName);
 
       executionStatus = system(("ssh -T "+rpiName+" \" sudo killall new_rdout.exe \"").data());
-      
+    
       if (executionStatus != 0) {
-	EUDAQ_WARN("Error: unable to kill on "+rpiName+". It's probably already dead...");
+    	EUDAQ_WARN("Error: unable to kill on "+rpiName+". It's probably already dead...");
       }
       else {
-	EUDAQ_INFO("Successfully killed on "+ rpiName);
+    	EUDAQ_INFO("Successfully killed on "+ rpiName);
       }
-      
+    
       executionStatus = system(("ssh -T "+rpiName+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 100000 0 > log.log 2>&1& \" ").data());
-      
+    
       if (executionStatus != 0) {
-	EUDAQ_ERROR("Error: unable to run exe on "+rpiName);
+    	EUDAQ_ERROR("Error: unable to run exe on "+rpiName);
       }
       else {
-	EUDAQ_INFO("Successfully run exe on "+rpiName);
+    	EUDAQ_INFO("Successfully run exe on "+rpiName);
       }
     }
 
@@ -299,7 +299,7 @@ private:
 		<< "Check36 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check36") << std::endl;
 
       uint32_t mask=m_rdout_orms[iorm]->ReadRegister("SKIROC_MASK");
-      std::cout << "ORM " << iorm << "\t SKIROC_MASK = " << mask << std::endl;
+      std::cout << "ORM " << iorm << "\t SKIROC_MASK = " << std::hex<<mask << std::endl;
       uint32_t cst0=m_rdout_orms[iorm]->ReadRegister("CONSTANT0");
       std::cout << "ORM " << iorm << "\t CONST0 = " << std::hex << cst0 << std::endl;
       uint32_t cst1=m_rdout_orms[iorm]->ReadRegister("CONSTANT1");
@@ -334,7 +334,7 @@ private:
     
     // Let's open a file for raw data:
     char rawFilename[256];
-    sprintf(rawFilename, "/disk2_2TB/July2017_TB_data_orm/HexaData_Run%04d.raw", m_run); // The path is relative to eudaq/bin
+    sprintf(rawFilename, "../raw_data/HexaData_Run%04d.raw", m_run); // The path is relative to eudaq/bin; raw_data is a symbolic link
     m_rawFile.open(rawFilename, std::ios::binary);
 
     uint32_t header[3];
