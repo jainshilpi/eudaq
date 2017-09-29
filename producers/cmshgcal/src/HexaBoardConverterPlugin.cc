@@ -18,7 +18,7 @@
 const size_t RAW_EV_SIZE_32 = 123152;
 
 const size_t nSkiPerBoard[3] = {24, 20, 24};
-const uint32_t skiMask[3] = {0xFFFF00FF, 0xFFF000FF, 0xFFFFFF00};
+const uint32_t skiMask[3] = {0xFFFFFF00, 0xFF000FFF, 0x00FFFFFF};
 //const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
 //const uint32_t skiMask = 0;
 
@@ -28,7 +28,7 @@ const int nSCA=13;
 //( these are not used anymore, because ZS is done with HA bit )
 //const int ped = 250;  // pedestal. It is now calculated as median from all channels in hexaboard
 //const int noi = 10;   // noise
-//const int thresh = 250; // ZS threshold (above pedestal)
+//const int thresh = 300; // ZS threshold (above pedestal)
 
 // Size of ZS data ()per channel
 const char hitSizeZS = 31;
@@ -484,7 +484,7 @@ namespace eudaq {
 	      */
 
 	    unsigned short adc = 0;
-
+	    
 	    /*
 	    const int TS2 = (TS0+2)%13;
 	    const int TS3 = (TS0+3)%13;
@@ -500,7 +500,9 @@ namespace eudaq {
 	    chargeHG_avg_in3TS += adc;
 
 	    chargeHG_avg_in3TS = chargeHG_avg_in3TS/3;
+	    
 	    */
+	    
 	    //adc = gray_to_brady(decoded[ski][mainFrame*128 + chArrPos] & 0x0FFF);
 	    //if (adc==0) adc=4096;
 
