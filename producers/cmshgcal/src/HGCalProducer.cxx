@@ -244,7 +244,7 @@ private:
     	EUDAQ_INFO("Successfully killed on "+ rpiName);
       }
     
-      executionStatus = system(("ssh -T "+rpiName+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 100000 0 > log.log 2>&1& \" ").data());
+      executionStatus = system(("ssh -T "+rpiName+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 1000000 0 > log.log 2>&1& \" ").data());
     
       if (executionStatus != 0) {
     	EUDAQ_ERROR("Error: unable to run exe on "+rpiName);
