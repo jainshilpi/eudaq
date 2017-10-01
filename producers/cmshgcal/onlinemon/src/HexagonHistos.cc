@@ -76,7 +76,7 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     
     sprintf(out, "%s-%i, Pedestal LG", _sensor.c_str(), _id);
     sprintf(out2, "h_pedLG_%s_%i", _sensor.c_str(), _id);
-    _pedLG = new TH1I(out2, out, 100, 0, 300);
+    _pedLG = new TH1I(out2, out, 100, 0, 350);
     SetHistoAxisLabelx(_pedLG, "LG ADC counts");
 
     sprintf(out, "%s-%i, Pedestal HG", _sensor.c_str(), _id);
@@ -241,8 +241,10 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
 
       // ----- Maskig noisy channels ----
-      // These are noisy pixels in every hexaboard. Let's just mask them from DQM:
-      if (pixel_x==3 && (pixel_y==32 || pixel_y==48))
+      // These are noisy pixels in every hexaboard. Let's just mask them from DQM.
+      // Upd Sept. 2017: after disabling LED, those are not noisy anymore in all module, except "May"
+      if ( (_sensor=="HexaBoard-RDB1" && _id==4 ) &&
+	   pixel_x==3 && (pixel_y==32 || pixel_y==48))
 	continue;
 
       // Module #63
@@ -257,7 +259,7 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 	continue;
 
 
-      // Module #62
+      // Modules #53,55,63,62
       if ( (_sensor=="HexaBoard-RDB1" && (_id==0 || _id==1 || _id==3 || _id==5) ) &&
 	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
@@ -324,9 +326,12 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
 
       // Get pedestal estimates from the first time samples:
-      const int ped_LG = std::accumulate(sig_LG.begin(), sig_LG.begin()+1, 0)/2; // average of the first two TS
-      const int ped_HG = std::accumulate(sig_HG.begin(), sig_HG.begin()+1, 0)/2; // average of the first two TS
-
+      //const int ped_LG = std::accumulate(sig_LG.begin(), sig_LG.begin()+2, 0)/2; // average of the first two TS
+      //const int ped_HG = std::accumulate(sig_HG.begin(), sig_HG.begin()+2, 0)/2; // average of the first two TS
+      // Pedestals from the first (0th) TS:
+      const int ped_LG = sig_LG[0]; 
+      const int ped_HG = sig_HG[0]; 
+      
       if (_pedLG!=NULL)
 	_pedLG->Fill(ped_LG);
       if (_pedHG!=NULL)
@@ -338,8 +343,9 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 	_posOfMaxADCinHG->Fill(pos_max_HG);
 
       // Average of three TS around main frame:
-      const int avg_LG = std::accumulate(sig_LG.begin()+mainFrameTS-1, sig_LG.begin()+mainFrameTS+1, 0)/3; 
-      const int avg_HG = std::accumulate(sig_HG.begin()+mainFrameTS-1, sig_HG.begin()+mainFrameTS+1, 0)/3;
+      //const int avg_LG = std::accumulate(sig_LG.begin()+mainFrameTS-1, sig_LG.begin()+mainFrameTS+2, 0)/3; 
+      const int avg_HG = std::accumulate(sig_HG.begin()+mainFrameTS-1, sig_HG.begin()+mainFrameTS+2, 0)/3;
+
       const int peak_LG = sig_LG[mainFrameTS];
       const int peak_HG = sig_HG[mainFrameTS];
       
