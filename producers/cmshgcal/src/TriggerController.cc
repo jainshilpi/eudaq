@@ -25,7 +25,7 @@ void TriggerController::startrunning( uint32_t runNumber, const ACQ_MODE mode )
   m_state=WAIT;
   m_acqmode=mode;
   m_gotostop=false;
-  
+
   switch( m_acqmode ){
   case BEAMTEST : run(); break;
   case DEBUG : runDebug(); break;

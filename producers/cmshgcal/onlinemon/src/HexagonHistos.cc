@@ -245,25 +245,54 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       if (pixel_x==3 && (pixel_y==32 || pixel_y==48))
 	continue;
 
-      if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
-	   ( (pixel_x==0 && pixel_y==0 )  || (pixel_x==0 && pixel_y==2 ) ) )
-	continue;
-
-      if ( _sensor=="HexaBoard-RDB2" && _id==2 &&
-	   pixel_x==1 && pixel_y==4 )
-	continue;
-
-      if ( _sensor=="HexaBoard-RDB3" && _id==0 &&
+      // Module #63
+      if ( (_sensor=="HexaBoard-RDB1" && _id==3 ) &&
 	   pixel_x==0 && pixel_y==22 )
 	continue;
 
 
-      // These are bad on some boards:
-      if ( ( _sensor=="HexaBoard-RDB1" && _id==1 ||
-	     _sensor=="HexaBoard-RDB2" && _id==1 ||
-	     _sensor=="HexaBoard-RDB0" && _id==0 ) &&
+      // Module of May
+      if ( (_sensor=="HexaBoard-RDB1" && _id==4 ) &&
+	   ( (pixel_x==0 && pixel_y==0 )  || (pixel_x==0 && pixel_y==2 ) || (pixel_x==1 && pixel_y==0 ) ))
+	continue;
+
+
+      // Module #62
+      if ( (_sensor=="HexaBoard-RDB1" && (_id==0 || _id==1 || _id==3 || _id==5) ) &&
 	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
+
+      // Module #38
+      if ( _sensor=="HexaBoard-RDB2" && _id==2 &&
+	   ( pixel_x==0 && pixel_y==58 ) || ( pixel_x==0 && pixel_y==22 ) )
+	continue;
+
+      // Module #42
+      if ( _sensor=="HexaBoard-RDB2" && _id==3 &&
+	   ( pixel_x==1 && pixel_y==4 ) )
+	continue;
+
+      // Module #39
+      if ( _sensor=="HexaBoard-RDB3" && _id==0 &&
+	   ( pixel_x==0 && pixel_y==22 ) )
+	continue;
+
+      // All Modules on readout board 3
+      if ( _sensor=="HexaBoard-RDB3" &&
+	   ( pixel_x==0 && pixel_y==58 ) )
+	continue;
+
+      // Module #64
+      if ( _sensor=="HexaBoard-RDB3" && _id==4 &&
+	   ( pixel_x==0 && pixel_y==58 ) || ( pixel_x==0 && pixel_y==22 ) )
+	continue;
+
+
+      // These are bad on some boards:
+      //if ( ( _sensor=="HexaBoard-RDB1" && _id==1 ||
+      //     _sensor=="HexaBoard-RDB2" && _id==1 ||
+      //     _sensor=="HexaBoard-RDB0" && _id==0 ) &&
+	   //continue;
       
       // -------- end masking -------------
 

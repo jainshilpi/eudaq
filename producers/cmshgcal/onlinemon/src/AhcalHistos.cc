@@ -41,10 +41,10 @@ AhcalHistos::AhcalHistos(eudaq::StandardPlane p, RootMonitor *mon)
     SetHistoAxisLabelx(_hitYmap, "Y");
 
 
-    sprintf(out, "%s %i hot Pixel Map", _sensor.c_str(), _id);
-    sprintf(out2, "h_hotpixelmap_%s_%02d", _sensor.c_str(), _id);
-    _HotPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
-    SetHistoAxisLabels(_HotPixelMap, "X", "Y");
+    //sprintf(out, "%s %i hot Pixel Map", _sensor.c_str(), _id);
+    //sprintf(out2, "h_hotpixelmap_%s_%02d", _sensor.c_str(), _id);
+    //_HotPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
+    //SetHistoAxisLabels(_HotPixelMap, "X", "Y");
 
 
     sprintf(out, "%s %i Number of Hits", _sensor.c_str(), _id);
@@ -135,9 +135,9 @@ void AhcalHistos::Reset() {
   _hitYmap->Reset();
 
   _nHits->Reset();
-  _nbadHits->Reset();
-  _nHotPixels->Reset();
-  _HotPixelMap->Reset();
+  //_nbadHits->Reset();
+  //_nHotPixels->Reset();
+  //_HotPixelMap->Reset();
 
 
   // we have to reset the aux array as well
