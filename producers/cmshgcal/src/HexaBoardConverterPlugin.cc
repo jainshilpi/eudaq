@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard[3] = {24, 20, 24};
-const uint32_t skiMask[3] = {0xFFFFFF00, 0xFF000FFF, 0x00FFFFFF};
+const size_t nSkiPerBoard[3] = {20, 28, 32};
+const uint32_t skiMask[3] = {0xFFFFF000, 0x0FFFFFFF, 0xFFFFFFFF};
 //const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
 //const uint32_t skiMask = 0;
 
@@ -320,8 +320,9 @@ namespace eudaq {
 	// Check that k1 and k2 are consecutive
 	char last = -1;
 	if (k1==12 && k2==0) { last = 0;}
-	else if (abs(k1-k2)>1)
-	  EUDAQ_WARN("The k1 and k2 are not consecutive! abs(k1-k2) = "+ eudaq::to_string(abs(k1-k2)));
+
+	//else if (abs(k1-k2)>1)
+	//EUDAQ_WARN("The k1 and k2 are not consecutive! abs(k1-k2) = "+ eudaq::to_string(abs(k1-k2)) +" rollMask="+eudaq::to_hex(r,8)+ " k1="+eudaq::to_string(k1)+"  k2="+eudaq::to_string(k2));
 	//printf("The k1 and k2 are not consecutive! abs(k1-k2) = %d\n", abs(k1-k2));
 	else
 	  last = k1;

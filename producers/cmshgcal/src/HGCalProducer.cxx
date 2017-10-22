@@ -122,6 +122,7 @@ public:
       if (m_state == STATE_RUNNING) {
 	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) ) continue;
 	if( m_ev==m_triggerController->eventNumber() ) continue;
+
 	boost::timer::cpu_timer timerReadout;
 	boost::timer::cpu_times times;
 	eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
@@ -203,9 +204,10 @@ private:
 
     // Let's start the scripts needed to be run on RPIs
 
+
     
     EUDAQ_INFO("Starting sync_debug.exe on piS");
-    
+
     int executionStatus = -99; 
     
     executionStatus = system("ssh -T piS \" sudo killall sync_debug.exe \"");
@@ -229,9 +231,11 @@ private:
 
     for (int pi=0; pi<3; pi++){
       std::string rpiName = "none";
+      //if (pi==0) rpiName = "pi2";
       if (pi==0) rpiName = "piRBDev";
       if (pi==1) rpiName = "pi2";
       if (pi==2) rpiName = "pi3";
+      //if (pi==3) rpiName = "pi4";
     
       EUDAQ_INFO("Starting new_rdout.exe on "+rpiName);
 
@@ -244,7 +248,7 @@ private:
     	EUDAQ_INFO("Successfully killed on "+ rpiName);
       }
     
-      executionStatus = system(("ssh -T "+rpiName+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 1000000 0 > log.log 2>&1& \" ").data());
+      executionStatus = system(("ssh -T "+rpiName+" \" nohup sudo /home/pi/RDOUT_BOARD_IPBus/rdout_software/bin/new_rdout.exe 200 200000 0 > log.log 2>&1& \" ").data());
     
       if (executionStatus != 0) {
     	EUDAQ_ERROR("Error: unable to run exe on "+rpiName);
@@ -255,19 +259,20 @@ private:
     }
 
     
+    
     // End of scripts on RPIs
     
     // Do any configuration of the hardware here
     // Configuration file values are accessible as config.Get(name, default)
     m_uhalLogLevel = config.Get("UhalLogLevel", 5);
     m_blockSize = config.Get("DataBlockSize",962);
-    int mode=config.Get("AcquisitionMode",0);
+    const int mode=config.Get("AcquisitionMode",0);
     switch( mode ){
     case 0 : m_acqmode = DEBUG; break;
     case 1 : m_acqmode = BEAMTEST; break;
     default : m_acqmode = DEBUG; break;
     }
-    int n_orms = config.Get("NumberOfORMs",1);
+    const int n_orms = config.Get("NumberOfORMs",1);
     std::ostringstream deviceName( std::ostringstream::ate );
     for( int iorm=0; iorm<n_orms; iorm++ ){
       deviceName.str(""); deviceName << config.Get("RDOUT_ORM_PrefixName","RDOUT_ORM") << iorm;
@@ -297,12 +302,12 @@ private:
 		<< "Check34 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check34") << "\t"
 		<< "Check35 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check35") << "\t"
 		<< "Check36 = " << std::dec << m_rdout_orms[iorm]->ReadRegister("check36") << std::endl;
-
-      uint32_t mask=m_rdout_orms[iorm]->ReadRegister("SKIROC_MASK");
-      std::cout << "ORM " << iorm << "\t SKIROC_MASK = " << std::hex<<mask << std::endl;
-      uint32_t cst0=m_rdout_orms[iorm]->ReadRegister("CONSTANT0");
+      
+      const uint32_t mask=m_rdout_orms[iorm]->ReadRegister("SKIROC_MASK");
+      std::cout << "ORM " << iorm << "\t SKIROC_MASK = " <<std::setw(8)<< std::hex<<mask << std::endl;
+      const uint32_t cst0=m_rdout_orms[iorm]->ReadRegister("CONSTANT0");
       std::cout << "ORM " << iorm << "\t CONST0 = " << std::hex << cst0 << std::endl;
-      uint32_t cst1=m_rdout_orms[iorm]->ReadRegister("CONSTANT1");
+      const uint32_t cst1=m_rdout_orms[iorm]->ReadRegister("CONSTANT1");
       std::cout << "ORM " << iorm << "\t CONST1 = " << std::hex << cst1 << std::endl;
       
       
@@ -394,15 +399,19 @@ private:
   // // we should also exit.
   virtual void OnTerminate() {
     SetStatus(eudaq::Status::LVL_OK, "Terminating...");
-    m_state = STATE_GOTOTERM;
-
+    
     int executionStatus = 0;
     executionStatus = system("ssh -T piS \" sudo killall sync_debug.exe \"");
     executionStatus = system("ssh -T piRBDev \" sudo killall new_rdout.exe \"");
     executionStatus = system("ssh -T pi2 \" sudo killall new_rdout.exe \"");
     executionStatus = system("ssh -T pi3 \" sudo killall new_rdout.exe \"");
-
+    //executionStatus = system("ssh -T pi4 \" sudo killall new_rdout.exe \"");
+    
+    
     m_triggerController->stopRun();
+
+    m_state = STATE_GOTOTERM;
+    
     eudaq::mSleep(1000);
   }
 };

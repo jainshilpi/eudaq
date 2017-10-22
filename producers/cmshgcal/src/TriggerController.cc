@@ -67,13 +67,20 @@ void TriggerController::run()
 
 void TriggerController::runDebug()
 {
-  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+
+    std::cout << "   Before setting RDOUT_DONE register"<<(*it)->getInterface()->id() << "\t BLOCK_READY = " << (*it)->ReadRegister("BLOCK_READY")
+	      <<"  RDOUT_DONE: "<< (*it)->ReadRegister("RDOUT_DONE")<<std::endl;
+    
     (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
+  }
   while(1){
     if( m_state==END_RUN ) break;
     bool rdout_ready=true;
+    int iter=0;
     for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-      std::cout << (*it)->getInterface()->id() << "\t BLOCK_READY = " << (*it)->ReadRegister("BLOCK_READY") << std::endl;
+      std::cout << (*it)->getInterface()->id() << "\t BLOCK_READY = " << (*it)->ReadRegister("BLOCK_READY")
+		<<"  RDOUT_DONE: "<< (*it)->ReadRegister("RDOUT_DONE")<< "   iter="<<iter<<std::endl;
       if( (*it)->ReadRegister("BLOCK_READY")!=1 ) 
 	rdout_ready=false;
     }

@@ -84,7 +84,7 @@ namespace eudaq {
 
 
         std::vector<StandardPlane> wcs;
-        for (int wc_index=0; wc_index<4; wc_index++) {
+        for (int wc_index=0; wc_index<1; wc_index++) {
           float xl, xr, yu, yd;
           memcpy(&xl, &bl[4*wc_index*4+0], sizeof(xl));
           memcpy(&xr, &bl[4*wc_index*4+4], sizeof(xr));

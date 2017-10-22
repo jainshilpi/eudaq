@@ -138,8 +138,7 @@ printf '\033[22;33m\t  caliceProducer-scintillator  \033[0m \n'
 flog="../logs/Run${NEWRUNNUM}_AHCALProducer_$dt.log"
 nohup ./AHCALProducer.exe -n CaliceSc -r tcp://$TLUIP:$RCPORT > $flog 2>&1 &
 printf "The logs from the AHCALProducer are in $flog file. \n"
-
-sleep 2
+#sleep 2
 
 ######################################################################
 # wire chamber Producer
