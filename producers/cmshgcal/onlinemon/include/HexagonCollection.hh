@@ -28,7 +28,8 @@ protected:
   std::map<eudaq::StandardPlane, HexagonHistos *> _map;
   bool isPlaneRegistered(eudaq::StandardPlane p);
   void fillHistograms(const eudaq::StandardPlane &plane, int evNumber=-1);
-    
+  bool _isPedestalRun;
+  
 public:
   void registerPlane(const eudaq::StandardPlane &p);
   void bookHistograms(const eudaq::StandardEvent &ev);
@@ -38,6 +39,7 @@ public:
     isOnePlaneRegistered = false;
     CollectionType = HEXAGON_COLLECTION_TYPE;
   }
+  void SetPedestalRun(bool ped) { _isPedestalRun = ped; }
   void Fill(const SimpleStandardEvent &simpev) { ; };
   void Fill(const eudaq::StandardEvent &ev, int evNumber=-1);
   HexagonHistos *getHexagonHistos(std::string sensor, int id);

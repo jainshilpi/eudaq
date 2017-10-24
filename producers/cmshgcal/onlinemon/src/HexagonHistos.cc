@@ -26,6 +26,7 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   _mon = mon;
 
+  _isPedestalRun = (bool)_mon->mon_configdata.DoPedestal();
   // std::cout << "HexagonHistos::Sensorname: " << _sensor << " "<< _id<<
   // std::endl;
 
@@ -210,18 +211,10 @@ int HexagonHistos::zero_plane_array() {
 void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
   // std::cout<< "FILL with a plane." << std::endl;
   
-  if (_nHits != NULL){
-    _nHits->Fill(plane.HitPixels());
-    handleOverflowBins(_nHits);
-  }
-  if ((_nbadHits != NULL)) {
-    _nbadHits->Fill(2);
-  }
-
-  int nHot = 0;
+  int nHit=0, nHot=0, nBad=0;
   
   // Temporary lets just not fill events with too many channels 
-  if (plane.HitPixels()>40)
+  if (plane.HitPixels()>40 && !_isPedestalRun)
     return;
 
 
@@ -235,11 +228,10 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++)
     {
-
       const int pixel_x = plane.GetX(pix);
       const int pixel_y = plane.GetY(pix);
       const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
-
+      
       // ----- Maskig noisy channels ----
       // These are noisy pixels in every hexaboard. Let's just mask them from DQM.
       // Upd Sept. 2017: after disabling LED, those are not noisy anymore in all module, except "May"
@@ -391,6 +383,7 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 	}
       }
 
+
       if (_hit2Dmap != NULL)
 	_hit2Dmap->Fill(pixel_x, pixel_y);
       if (_hit1Docc != NULL)
@@ -449,9 +442,19 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
 	}
       }
+      nHit++;
+
     }
-
-
+  
+  if (_nHits != NULL){
+    _nHits->Fill(nHit);
+    handleOverflowBins(_nHits);
+  }
+  
+  //if ((_nbadHits != NULL)) {
+  //_nbadHits->Fill(2);
+  //}
+  
   if (_nHotPixels != NULL)
     _nHotPixels->Fill(nHot);
 

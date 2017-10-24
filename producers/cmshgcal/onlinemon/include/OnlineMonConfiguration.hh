@@ -35,6 +35,7 @@ public:
   void setSnapShotFormat(std::string SnapShotFormat);
 
   int getDqmColorMap() const;
+  int DoPedestal() const;
   void setDqmColorMap(int colorID);
 
   int getMainFrameTS() const;
@@ -62,6 +63,7 @@ private:
   std::string SnapShotDir;
   std::string SnapShotFormat;
   int DqmColorMap;
+  int doPedestal;
   int mainFrameTS, thresh_LG, thresh_HG;
 
   // MIMOSA26 Settings
