@@ -11,7 +11,7 @@ elif [[ $1 == "testrpi" ]]; then
 elif [[ $1 == "rpi" ]]; then
     script=./producers/cmshgcal/STARTRUN_RPI
 elif [[ $1 == "cmshgcal" ]]; then
-    script=./producers/cmshgcal/STARTRUN
+    script=./producers/cmshgcal/STARTRUN_tmp
 elif [[ $1 == "cmshgcal_with_dwc" ]]; then
     script=./producers/cmshgcal/STARTRUN_WITH_DWC
 elif [[ $1 == "dwc" ]]; then
@@ -21,7 +21,7 @@ elif [[ $1 == "ahcal" ]]; then
 elif [[ $1 == "all" ]]; then
     script=./producers/cmshgcal/STARTRUN_ALL
 elif [[ $1 == "ped" ]]; then
-    script=./producers/cmshgcal/STARTRUN_PED
+    script=./producers/cmshgcal/STARTRUN_tmp
 else
     # default
     echo "This producer is not known to me: ${1}. Sorry."

@@ -243,40 +243,50 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       // ----- Maskig noisy channels ----
       // These are noisy pixels in every hexaboard. Let's just mask them from DQM.
       // Upd Sept. 2017: after disabling LED, those are not noisy anymore in all module, except "May"
-      if ( (_sensor=="HexaBoard-RDB1" && _id==4 ) &&
+      if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
 	   pixel_x==3 && (pixel_y==32 || pixel_y==48))
+	continue;
+
+      // May module:
+      if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
+	   ( (pixel_x==0 && pixel_y==0 )  || (pixel_x==0 && pixel_y==2 ) ||
+	     (pixel_x==0 && pixel_y==4 )  || (pixel_x==0 && pixel_y==6 ) ||
+	     (pixel_x==1 && pixel_y==0 ) ))
 	continue;
 
       // Module #63
       if ( (_sensor=="HexaBoard-RDB1" && _id==3 ) &&
-	   pixel_x==0 && pixel_y==22 )
+	   ( pixel_x==0 && pixel_y==58 ) || ( pixel_x==0 && pixel_y==22 ) )
 	continue;
 
-
-      // Module of May
+      // Module #75
       if ( (_sensor=="HexaBoard-RDB1" && _id==4 ) &&
-	   ( (pixel_x==0 && pixel_y==0 )  || (pixel_x==0 && pixel_y==2 ) || (pixel_x==1 && pixel_y==0 ) ))
-	continue;
-
-
-      // Modules #53,55,63,62
-      if ( (_sensor=="HexaBoard-RDB1" && (_id==0 || _id==1 || _id==3 || _id==5) ) &&
 	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
 
       // Module #38
-      if ( _sensor=="HexaBoard-RDB2" && _id==2 &&
+      if ( _sensor=="HexaBoard-RDB2" && _id==0 &&
 	   ( pixel_x==0 && pixel_y==58 ) || ( pixel_x==0 && pixel_y==22 ) )
 	continue;
 
-      // Module #42
-      if ( _sensor=="HexaBoard-RDB2" && _id==3 &&
-	   ( pixel_x==1 && pixel_y==4 ) )
+      // Module #46
+      if ( _sensor=="HexaBoard-RDB2" && _id==2 &&
+	   ( pixel_x==0 && pixel_y==58 ) )
+	continue;
+      
+      // Module #62
+      if ( _sensor=="HexaBoard-RDB2" && _id==5 &&
+	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
 
-      // Module #39
-      if ( _sensor=="HexaBoard-RDB3" && _id==0 &&
-	   ( pixel_x==0 && pixel_y==22 ) )
+      // Module #53:
+      if ( _sensor=="HexaBoard-RDB2" && _id==1 &&
+	   ( pixel_x==0 && pixel_y==58 ) )
+	continue;
+
+      // Module #55:
+      if ( _sensor=="HexaBoard-RDB2" && _id==6 &&
+	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
 
       // All Modules on readout board 3
@@ -284,18 +294,21 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 	   ( pixel_x==0 && pixel_y==58 ) )
 	continue;
 
-      // Module #64
-      if ( _sensor=="HexaBoard-RDB3" && _id==4 &&
-	   ( pixel_x==0 && pixel_y==58 ) || ( pixel_x==0 && pixel_y==22 ) )
+      // Module #42
+      if ( _sensor=="HexaBoard-RDB3" && _id==3 &&
+	   ( pixel_x==1 && pixel_y==4 ) )
 	continue;
 
+      // Module #39
+      if ( _sensor=="HexaBoard-RDB3" && _id==4 &&
+	   ( pixel_x==0 && pixel_y==22 ) )
+	continue;
 
-      // These are bad on some boards:
-      //if ( ( _sensor=="HexaBoard-RDB1" && _id==1 ||
-      //     _sensor=="HexaBoard-RDB2" && _id==1 ||
-      //     _sensor=="HexaBoard-RDB0" && _id==0 ) &&
-	   //continue;
-      
+      // Module #64
+      if ( _sensor=="HexaBoard-RDB3" && _id==6 &&
+	   ( pixel_x==0 && pixel_y==22 ) )
+	continue;
+
       // -------- end masking -------------
 
       //std::cout<<" We are getting a pixel with pix="<<pix
