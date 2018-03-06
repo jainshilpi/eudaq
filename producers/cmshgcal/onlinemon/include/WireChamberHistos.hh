@@ -25,8 +25,6 @@ protected:
   int _maxY;
   bool _wait;
 
-  TH2I *_goodX;
-  TH2I *_goodY;
   TH1F *_recoX;
   TH1F *_recoY;
   TH1I *_goodAll;
@@ -41,8 +39,6 @@ public:
   void Calculate(const int currentEventNum);
   void Write();
 
-  TH2I *getGoodXHisto() { return _goodX; }
-  TH2I *getGoodYHisto() { return _goodY; }
   TH1I *getGoodAllHisto() { return _goodAll; }
   TH1F *getRecoXHisto() { return _recoX; }
   TH1F *getRecoYHisto() { return _recoY; }

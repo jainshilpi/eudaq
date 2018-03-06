@@ -9,7 +9,7 @@
 
 WireChamberHistos::WireChamberHistos(eudaq::StandardPlane p, RootMonitor *mon)
   :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false),
-  _XYmap(NULL), _goodX(NULL), _goodY(NULL), _goodAll(NULL), _recoX(NULL), _recoY(NULL){
+  _XYmap(NULL), _goodAll(NULL), _recoX(NULL), _recoY(NULL){
     
   char out[1024], out2[1024];
 
@@ -19,16 +19,6 @@ WireChamberHistos::WireChamberHistos(eudaq::StandardPlane p, RootMonitor *mon)
   // std::endl;
 
   if (_maxX != -1 && _maxY != -1) {
-
-    sprintf(out, "%s %i good X", _sensor.c_str(), _id);
-    sprintf(out2, "h_goodX_%s_%i", _sensor.c_str(), _id);
-    _goodX = new TH2I(out2, out, 2, 0, 2, 2, 0, 2);
-    SetHistoAxisLabels(_goodX, "measured x_{left} ?", "measured x_{right} ?");
-
-    sprintf(out, "%s %i good Y", _sensor.c_str(), _id);
-    sprintf(out2, "h_goodY_%s_%i", _sensor.c_str(), _id);
-    _goodY = new TH2I(out2, out, 2, 0, 2, 2, 0, 2);
-    SetHistoAxisLabels(_goodY, "measured y_{up} ?", "measured y_{down} ?");
 
     sprintf(out, "%s %i good All", _sensor.c_str(), _id);
     sprintf(out2, "h_goodAll_%s_%i", _sensor.c_str(), _id);
@@ -52,7 +42,6 @@ WireChamberHistos::WireChamberHistos(eudaq::StandardPlane p, RootMonitor *mon)
     
 
     // make a plane array for calculating e..g hotpixels and occupancy
-
     plane_map_array = new int *[_maxX];
 
     if (plane_map_array != NULL) {
@@ -102,8 +91,6 @@ void WireChamberHistos::Fill(const eudaq::StandardPlane &plane) {
   float x = (xr-xl)/40*0.2; //one time unit of the tdc corresponds to 25ps, 1. conversion into nm, 
   float y = (yd-yu)/40*0.2; //2. conversion from nm to mm via the default calibration factor from the DWC manual
   
-  _goodX->Fill(good_xl, good_xr);
-  _goodY->Fill(good_yu, good_yd);
   _goodAll->Fill(good_all);
 
   if (good_x) {
@@ -129,8 +116,6 @@ void WireChamberHistos::Reset() {
   _recoX->Reset();
   _recoY->Reset();
   _goodAll->Reset();
-  _goodX->Reset();
-  _goodY->Reset();
     
   // we have to reset the aux array as well
   zero_plane_array();
@@ -149,8 +134,6 @@ void WireChamberHistos::Write() {
   _recoX->Write();
   _recoY->Write();
   _goodAll->Write();
-  _goodX->Write();
-  _goodY->Write();
     
   //std::cout<<"Doing WireChamberHistos::Write() before canvas drawing"<<std::endl;
 

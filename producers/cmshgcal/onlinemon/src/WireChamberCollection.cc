@@ -96,11 +96,6 @@ void WireChamberCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   }
 }
 
-//void WireChamberCollection::Fill(const SimpleStandardEvent &ev) {
-//  std::cout<<"In WireChamberCollection::Fill(SimpleStandardEvent)"<<std::endl;
-  // It's needed here because the mother class - BasicCollection - expects it
-//}
-
 
 WireChamberHistos *WireChamberCollection::getWireChamberHistos(std::string sensor, int id) {
   const eudaq::StandardPlane p(id, "WireChamber", sensor);
@@ -125,17 +120,6 @@ void WireChamberCollection::registerPlane(const eudaq::StandardPlane &p) {
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
     
-    sprintf(tree, "%s/Chamber %i/good X", p.Sensor().c_str(), p.ID());      //Todo: Register here when more is added
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getWireChamberHistos(p.Sensor(), p.ID())->getGoodXHisto(), "COLZ2", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
-
-
-    sprintf(tree, "%s/Chamber %i/good Y", p.Sensor().c_str(), p.ID());      //Todo: Register here when more is added
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getWireChamberHistos(p.Sensor(), p.ID())->getGoodYHisto(), "COLZ2", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
-
 
     sprintf(tree, "%s/Chamber %i/Valid Measurement", p.Sensor().c_str(), p.ID());      //Todo: Register here when more is added
     _mon->getOnlineMon()->registerTreeItem(tree);
