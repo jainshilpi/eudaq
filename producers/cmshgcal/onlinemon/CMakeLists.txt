@@ -13,16 +13,10 @@ SET (HgcOnlineMon_SOURCES
   src/WireChamberCollection.cc
   src/WireChamberHistos.cc
   src/CheckEOF.cc
-  src/CorrelationCollection.cc
-  src/CorrelationHistos.cc
   src/EUDAQMonitorCollection.cc
   src/EUDAQMonitorHistos.cc
   src/EventSanityChecker.cc
   src/GraphWindow.cc
-  src/HitmapCollection.cc
-  src/HitmapHistos.cc
-  src/MonitorPerformanceCollection.cc
-  src/MonitorPerformanceHistos.cc
   src/OnlineHistograms.cc
   src/OnlineMonConfiguration.cc
   src/SimpleStandardEvent.cc

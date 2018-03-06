@@ -10,12 +10,7 @@
 #include <TH2I.h>
 #include <TFile.h>
 
-#include "HitmapHistos.hh"
-#include "CorrelationHistos.hh"
 #include "BaseCollection.hh"
-#include "HitmapCollection.hh"
-#include "CorrelationCollection.hh"
-#include "MonitorPerformanceCollection.hh"
 
 #include "SimpleStandardEvent.hh"
 

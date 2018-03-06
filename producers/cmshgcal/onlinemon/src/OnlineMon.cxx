@@ -66,29 +66,18 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   ahcalCollection = new AhcalCollection();
   wcCollection = new WireChamberCollection();
 
-
-  //corrCollection = new CorrelationCollection();
-
-  //MonitorPerformanceCollection *monCollection =new MonitorPerformanceCollection();
-  //eudaqCollection = new EUDAQMonitorCollection();
-
   cout << "--- Done ---"<<endl<<endl;
 
   // put collections into the vector
   _colls.push_back(hexaCollection);
   _colls.push_back(ahcalCollection);
   _colls.push_back(wcCollection);
-  //_colls.push_back(corrCollection);
-  //_colls.push_back(monCollection);
-  //_colls.push_back(eudaqCollection);
+  
   // set the root Monitor
   if (_offline <= 0) {
     hexaCollection->setRootMonitor(this);
     ahcalCollection->setRootMonitor(this);
     wcCollection->setRootMonitor(this);
-    //corrCollection->setRootMonitor(this);
-    //monCollection->setRootMonitor(this);
-    //eudaqCollection->setRootMonitor(this);
     onlinemon->setCollections(_colls);
   }
 
@@ -113,7 +102,6 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
       gStyle->SetPalette(mon_configdata.getDqmColorMap());
       gStyle->SetNumberContours(50);
       gStyle->SetOptStat(0);
-      //gStyle->SetStatX(0.2);
       gStyle->SetStatH(static_cast<Float_t>(0.15));
     }
   else
@@ -268,12 +256,6 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
       return; //don't process any further
 
     
-    /***************
-// There was Simple Standard Event and Plane codes here
-// It's removed for HGC monitoring.
-// The plots are made directly from StandardEven and StandardPlanes
-
-    ***********/
 
     my_event_inner_operations_time.Start(true);
     // Don't do clustering for hexaboard. This would not make any sense
@@ -307,33 +289,6 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
 
       _colls.at(i)->Fill(ev, ev.GetEventNumber());
 
-      //if (_colls.at(i) == corrCollection)
-      //{
-      //my_event_inner_operations_time.Start(true);
-
-      //std::cout<<" correlation collection disabled"<<std::endl;
-	//_colls.at(i)->Fill(simpEv);
-	
-        //my_event_inner_operations_time.Stop();
-        //previous_event_correlation_time = my_event_inner_operations_time.RealTime();
-      //}
-
-      //else if (_colls.at(i) == hexaCollection && sensorname==std::string("HexaBoard"))
-      //else if (_colls.at(i)->getCollectionType()==HEXAGON_COLLECTION_TYPE)
-      //_colls.at(i)->Fill(ev);
-
-      //else if (_colls.at(i)->getCollectionType()==AHCAL_COLLECTION_TYPE)
-      //_colls.at(i)->Fill(ev);
-
-      //else if (_colls.at(i)->getCollectionType()==WIRECHAMBER_COLLECTION_TYPE)
-      //_colls.at(i)->Fill(ev);
-      
-      //else {
-	//std::cout<<" No Fill method is implemented for this situation:\n"
-	//	 <<"collection type: "<<_colls.at(i)->getCollectionType()<<std::endl;
-      // }
-      
-      //_colls.at(i)->Calculate(ev.GetEventNumber());
     }
 
     if (_offline <= 0)

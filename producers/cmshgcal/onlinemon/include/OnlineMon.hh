@@ -25,22 +25,14 @@
 #endif
 
 // Project Includes
-
+#include "EUDAQMonitorHistos.hh"
 #include "BaseCollection.hh"
-//#include "HitmapHistos.hh"
-//#include "CorrelationHistos.hh"
-//#include "EUDAQMonitorHistos.hh"
 
 #include "HexagonCollection.hh"
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
 
-//#include "CorrelationCollection.hh"
-#include "MonitorPerformanceCollection.hh"
-#include "EUDAQMonitorCollection.hh"
-
 #include "OnlineMonWindow.hh"
-//#include "OnlineHistograms.hh"
 #include "SimpleStandardEvent.hh"
 #include "EventSanityChecker.hh"
 #include "OnlineMonConfiguration.hh"
@@ -94,9 +86,6 @@ public:
   HexagonCollection *hexaCollection;
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
-
-  //CorrelationCollection *corrCollection;
-  EUDAQMonitorCollection *eudaqCollection;
 
   virtual void StartIdleing() {}
   OnlineMonWindow *getOnlineMon() { return onlinemon; }
