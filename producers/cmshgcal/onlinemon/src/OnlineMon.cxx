@@ -65,6 +65,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   hexaCollection = new HexagonCollection();
   ahcalCollection = new AhcalCollection();
   wcCollection = new WireChamberCollection();
+  beamTelescopeHitCollection = new HitmapCollection();
 
   cout << "--- Done ---"<<endl<<endl;
 
@@ -72,12 +73,21 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   _colls.push_back(hexaCollection);
   _colls.push_back(ahcalCollection);
   _colls.push_back(wcCollection);
+  _colls.push_back(beamTelescopeHitCollection);
   
   // set the root Monitor
   if (_offline <= 0) {
     hexaCollection->setRootMonitor(this);
     ahcalCollection->setRootMonitor(this);
     wcCollection->setRootMonitor(this);
+    beamTelescopeHitCollection->setRootMonitor(this);
+
+    hexaCollection->setMonitorConfiguration(&mon_configdata);
+    ahcalCollection->setMonitorConfiguration(&mon_configdata);
+    wcCollection->setMonitorConfiguration(&mon_configdata);
+    beamTelescopeHitCollection->setMonitorConfiguration(&mon_configdata);
+    
+
     onlinemon->setCollections(_colls);
   }
 
@@ -259,7 +269,6 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
 
     my_event_inner_operations_time.Start(true);
     // Don't do clustering for hexaboard. This would not make any sense
-    //simpEv.doClustering();
     my_event_inner_operations_time.Stop();
     previous_event_clustering_time = my_event_inner_operations_time.RealTime();
 

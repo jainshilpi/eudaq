@@ -27,10 +27,12 @@
 // Project Includes
 #include "EUDAQMonitorHistos.hh"
 #include "BaseCollection.hh"
+#include "HitmapHistos.hh"
 
 #include "HexagonCollection.hh"
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
+#include "HitmapCollection.hh"
 
 #include "OnlineMonWindow.hh"
 #include "SimpleStandardEvent.hh"
@@ -86,6 +88,7 @@ public:
   HexagonCollection *hexaCollection;
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
+  HitmapCollection *beamTelescopeHitCollection;
 
   virtual void StartIdleing() {}
   OnlineMonWindow *getOnlineMon() { return onlinemon; }
