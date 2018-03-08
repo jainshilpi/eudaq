@@ -159,7 +159,8 @@ public:
 			    hexgrid.setStepY(m_stepsize2);
 			    // Create hexagonal grid
 			    hexgrid.BuildGrid();
-			    EUDAQ_INFO("Number of positions " + std::to_string(hexgrid.getNpos()) + ". Starting at " + std::to_string(m_start_position_id));
+			    m_npositions = hexgrid.getNpos();
+			    EUDAQ_INFO("Number of positions " + std::to_string(m_npositions) + ". Starting at " + std::to_string(m_start_position_id));
 
 			}
 
@@ -304,7 +305,7 @@ public:
 			if (m_currstep == m_start_position_id){
 			    EUDAQ_INFO("Initial step, staying at first position.");
 			}
-			else {
+			else if (m_currstep < m_npositions){
 			    // get position coordinates
 			    m_position1 = hexgrid.getPosX(m_currstep);
 			    m_position2 = hexgrid.getPosY(m_currstep);
@@ -312,14 +313,42 @@ public:
 			    if (m_position1 <= m_axis1max && m_position1 >= 0. && m_position2 <= m_axis2max && m_position2 >= 0.){
 				wrapper->moveTo(m_axis1, m_position1);
 				wrapper->moveTo(m_axis2, m_position2);
+
+				// check position
+				double pos_curr1;
+				double pos_curr2;
+				wrapper->getPosition2(m_axis1, &pos_curr1);
+				wrapper->getPosition2(m_axis2, &pos_curr2);
+
+				EUDAQ_INFO("Moved to position " + std::to_string(m_currstep)+ " x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
 			    }
 			    else {
 				EUDAQ_ERROR("Position target out of range: x= " + std::to_string(m_position1) + " y= " + std::to_string(m_position2));
 			    }
 
+			    m_currstep += 1;
 			}
+			else {
+			    // Current step greater than number of positions to be scanned
+			    // Normally should stop running, but for now move to home position (if not already there)
+			    if (m_position1 != m_home_position1 && m_position2 != m_home_position2){
+				m_position1 = m_home_position1;
+				m_position2 = m_home_position2;
 
+				if (m_position1 <= m_axis1max && m_position1 >= 0. && m_position2 <= m_axis2max && m_position2 >= 0.){
+				    wrapper->moveTo(m_axis1, m_position1);
+				    wrapper->moveTo(m_axis2, m_position2);
 
+				    // check position
+				    double pos_curr1;
+				    double pos_curr2;
+				    wrapper->getPosition2(m_axis1, &pos_curr1);
+				    wrapper->getPosition2(m_axis2, &pos_curr2);
+
+				    EUDAQ_INFO("Moved to x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
+				}
+			    }
+			}
 		    }
 
 
@@ -444,9 +473,10 @@ private:
 	unsigned int m_start_position_id = 0;
 	double m_home_position1 = 0;
 	double m_home_position2 = 0;
+        unsigned int m_npositions = 0;
 
 	HexGrid hexgrid;
-	
+
 	unsigned m_run;
 };
 
