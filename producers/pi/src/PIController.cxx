@@ -326,6 +326,7 @@ public:
 				EUDAQ_ERROR("Position target out of range: x= " + std::to_string(m_position1) + " y= " + std::to_string(m_position2));
 			    }
 
+			    // Increment step
 			    m_currstep += 1;
 			}
 			else {
@@ -366,7 +367,13 @@ public:
 		    wrapper->printPosition(m_axis2);
 		    wrapper->printPosition(m_axis3);
 		    wrapper->printPosition(m_axis4);
-		    
+
+		    EUDAQ_INFO("PI stage in position 1=" + std::to_string(pos_curr1) +
+			       ", 2=" + std::to_string(pos_curr2) +
+			       ", 3=" + std::to_string(pos_curr3) +
+			       ", 4=" + std::to_string(pos_curr4));
+
+
 		    // It must send a BORE to the Data Collector
 		    eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
                    // You can set tags on the BORE that will be saved in the data file
@@ -376,7 +383,6 @@ public:
                    bore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
                    bore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
 
-    
                    // Send the event to the Data Collector
                    SendEvent(bore);
 
