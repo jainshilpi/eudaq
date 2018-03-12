@@ -253,7 +253,7 @@ void HitmapHistos::Fill(const SimpleStandardHit &hit) {
   //&& _hitOcc->GetEntries()>0) // only fill histogram when occupancies and
   //hotpixels have been determined
   {
-    char sectionid[3];
+    char sectionid[100];
     sprintf(sectionid, "%i%c", _id,
             (pixel_x / _mon->mon_configdata.getMimosa26_section_boundary()) +
                 65); // determine section label
