@@ -82,14 +82,11 @@ if (PROTOBUF_FOUND AND GEN_proto)
 
 endif()
 
-if (BUILD_cmshgcal)
+if (BUILD_cmshgcal_onlinemon)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
 endif()
 
-if (BUILD_cmshgcal_dwc)
-   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
-endif()
 
 if (BUILD_calice)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/calice/src/CaliceGenericConverterPlugin.cc)
