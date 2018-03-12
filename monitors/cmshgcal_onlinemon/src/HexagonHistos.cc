@@ -243,71 +243,9 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       // ----- Maskig noisy channels ----
       // These are noisy pixels in every hexaboard. Let's just mask them from DQM.
       // Upd Sept. 2017: after disabling LED, those are not noisy anymore in all module, except "May"
-      if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
-	   pixel_x==3 && (pixel_y==32 || pixel_y==48))
-	continue;
-
-      // May module:
-      if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
-	   ( (pixel_x==0 && pixel_y==0 )  || (pixel_x==0 && pixel_y==2 ) ||
-	     (pixel_x==0 && pixel_y==4 )  || (pixel_x==0 && pixel_y==6 ) ||
-	     (pixel_x==1 && pixel_y==0 ) ))
-	continue;
-
-      // Module #63
-      if ( (_sensor=="HexaBoard-RDB1" && _id==3 ) &&
-	   ( pixel_x==0 && pixel_y==58 ) || ( pixel_x==0 && pixel_y==22 ) )
-	continue;
-
-      // Module #75
-      if ( (_sensor=="HexaBoard-RDB1" && _id==4 ) &&
-	   ( pixel_x==0 && pixel_y==58 ) )
-	continue;
-
-      // Module #38
-      if ( _sensor=="HexaBoard-RDB2" && _id==0 &&
-	   ( pixel_x==0 && pixel_y==58 ) || ( pixel_x==0 && pixel_y==22 ) )
-	continue;
-
-      // Module #46
-      if ( _sensor=="HexaBoard-RDB2" && _id==2 &&
-	   ( pixel_x==0 && pixel_y==58 ) )
-	continue;
-      
-      // Module #62
-      if ( _sensor=="HexaBoard-RDB2" && _id==5 &&
-	   ( pixel_x==0 && pixel_y==58 ) )
-	continue;
-
-      // Module #53:
-      if ( _sensor=="HexaBoard-RDB2" && _id==1 &&
-	   ( pixel_x==0 && pixel_y==58 ) )
-	continue;
-
-      // Module #55:
-      if ( _sensor=="HexaBoard-RDB2" && _id==6 &&
-	   ( pixel_x==0 && pixel_y==58 ) )
-	continue;
-
-      // All Modules on readout board 3
-      if ( _sensor=="HexaBoard-RDB3" &&
-	   ( pixel_x==0 && pixel_y==58 ) )
-	continue;
-
-      // Module #42
-      if ( _sensor=="HexaBoard-RDB3" && _id==3 &&
-	   ( pixel_x==1 && pixel_y==4 ) )
-	continue;
-
-      // Module #39
-      if ( _sensor=="HexaBoard-RDB3" && _id==4 &&
-	   ( pixel_x==0 && pixel_y==22 ) )
-	continue;
-
-      // Module #64
-      if ( _sensor=="HexaBoard-RDB3" && _id==6 &&
-	   ( pixel_x==0 && pixel_y==22 ) )
-	continue;
+      //if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
+	   //pixel_x==3 && (pixel_y==32 || pixel_y==48))
+	   //continue;
 
       // -------- end masking -------------
 
@@ -319,8 +257,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       std::array<int, nSCA> sig_HG;
 
       for (int ts=0; ts<nSCA; ts++){
-	sig_LG[ts] = plane.GetPixel(pix, ts);
-	sig_HG[ts] = plane.GetPixel(pix, ts+nSCA);
+	     sig_LG[ts] = plane.GetPixel(pix, ts);
+	     sig_HG[ts] = plane.GetPixel(pix, ts+nSCA);
       }
 
       // Suppress noizy Time Samples:
