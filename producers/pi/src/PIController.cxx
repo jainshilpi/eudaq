@@ -428,14 +428,40 @@ public:
 
 	void Loop() {
 
+    	        m_ev = 0;
+
 		// Loop until Run Control tells us to terminate
 		while (!m_terminated) {
-			// Move this thread to the end of the scheduler queue:
-			//sched_yield();
-			eudaq::mSleep(50);
-			continue;
-		}
 
+		    if (m_ev % 100 == 0){
+			// get position
+			double pos_curr1;
+			double pos_curr2;
+			double pos_curr3;
+			double pos_curr4;
+			wrapper->getPosition2(m_axis1, &pos_curr1);
+			wrapper->getPosition2(m_axis2, &pos_curr2);
+			wrapper->getPosition2(m_axis3, &pos_curr3);
+			wrapper->getPosition2(m_axis4, &pos_curr4);
+
+			// It must send a BORE to the Data Collector
+			eudaq::RawDataEvent ev(eudaq::RawDataEvent(EVENT_TYPE, m_run, m_ev));
+			ev.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+			ev.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+			ev.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+			ev.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+
+			// Send the event to the Data Collector
+			SendEvent(ev);
+		    }
+
+		    m_ev++;
+
+		    // Move this thread to the end of the scheduler queue:
+		    //sched_yield();
+		    eudaq::mSleep(50);
+		    continue;
+		}
 	}
 
 private:
@@ -484,6 +510,7 @@ private:
 	HexGrid hexgrid;
 
 	unsigned m_run;
+    	unsigned m_ev;
 };
 
 // The main function that will create a Producer instance and run it
