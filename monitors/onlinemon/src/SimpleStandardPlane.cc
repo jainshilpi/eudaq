@@ -200,11 +200,10 @@ void SimpleStandardPlane::doClustering() {
   }*/
   nClusters = clusterSet.size();
 
-  std::set<int>::iterator it;
-  for (it = clusterSet.begin(); it != clusterSet.end(); ++it) {
+  for (auto& it : clusterSet) {
     SimpleStandardCluster cluster;
     for (unsigned int i = 0; i < npixels_hit; i++) {
-      if (clusterNumber.at(i) == *it) { // Put only these pixels in that
+      if (clusterNumber.at(i) == it) { // Put only these pixels in that
                                         // ClusterCollection that belong to that
                                         // cluster
         cluster.addPixel(_hits.at(i));
@@ -251,7 +250,14 @@ void SimpleStandardPlane::setPixelType(std::string name) {
     is_USBPIXI4 = true;
     is_UNKNOWN = false;
     AnalogPixelType = true;
-  } else if (name == "Explorer20x20" || name == "Explorer30x30") {
+  }
+
+ else if (name.find("USBPIX_GEN") != std::string::npos ) {
+    is_USBPIXI4 = true;
+    is_UNKNOWN = false;
+    AnalogPixelType = true;
+  }
+ else if (name == "Explorer20x20" || name == "Explorer30x30") {
     is_EXPLORER = true;
     is_UNKNOWN = false;
     AnalogPixelType = true;

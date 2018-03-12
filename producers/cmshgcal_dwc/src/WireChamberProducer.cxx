@@ -42,6 +42,7 @@ class WireChamberProducer : public eudaq::Producer {
     }
 
   virtual void OnConfigure(const eudaq::Configuration & config) {
+    SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Configuring (" + config.Name() + ")");
     std::cout << "Configuring: " << config.Name() << std::endl;
 
     //Read the data output file prefix
@@ -117,7 +118,7 @@ class WireChamberProducer : public eudaq::Producer {
     }
 
     defaultTimestamp = config.Get("defaultTimestamp", -999);
-    SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
 
   }
 
@@ -135,8 +136,10 @@ class WireChamberProducer : public eudaq::Producer {
     if (_mode==DWC_RUN) {
       if (initialized)
         tdc->BufferClear();
-      else 
+      else {
         EUDAQ_INFO("ATTENTION !!! Communication to the TDC has not been established");
+        SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Communication to the TDC has not been established");
+      }
     }
 
     dwc_timestamps.clear();
@@ -164,14 +167,14 @@ class WireChamberProducer : public eudaq::Producer {
     outTree->Branch("timeSinceStart", &timeSinceStart);
 
 
-    SetStatus(eudaq::Status::LVL_OK, "Running");
+    SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
     startTime = std::chrono::steady_clock::now();
     started=true;
   }
 
   // This gets called whenever a run is stopped
   virtual void OnStopRun() {
-    SetStatus(eudaq::Status::LVL_OK, "Stopping");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping");
     EUDAQ_INFO("Stopping Run");
     started=false;
     // Set a flag tao signal to the polling loop that the run is over
@@ -190,7 +193,7 @@ class WireChamberProducer : public eudaq::Producer {
     outfile->Close();
 
     stopping = false;
-    SetStatus(eudaq::Status::LVL_OK, "Stopped");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopped");
   }
 
   // This gets called when the Run Control is terminating,

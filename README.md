@@ -1,11 +1,12 @@
 
-Intoroduction 
-=============
+
+Introduction 
+
 
 In order to start with HGCDAQ part of this code one has to follow the main compilation/installation procedures for eudaq (see below).
 
-At the time of writing, stable version of eudaq is 1.6.0, hence we took this tag as a starting point for our fork. A branch called **tb2107** is created from **1.6.0 tag** and it is made the default branch here (instead of *master*).
-
+At the time of writing, stable version of eudaq is 1.6.0, hence we took this tag as a starting point for our fork. 
+Currently, we are upgrading to 1.7.0.
 An installation of eudaq is available on daq PC in the lab at b27. One can also install it relatevey easily on Ubuntu and probably other systems.
 
 Quick commands (for details follow eudaq instructions below):
@@ -22,8 +23,9 @@ Contributing:
 
 For more details on HGC part of the code, checkout [our wiki pages](https://github.com/HGCDAQ/eudaq/wiki).
 
-eudaq
-=====
+
+[![Build Status](https://travis-ci.org/eudaq/eudaq.svg?branch=v1.7-dev)](https://travis-ci.org/eudaq/eudaq) 
+[![Build status](https://ci.appveyor.com/api/projects/status/n3tq45kkupyvjihg/branch/v1.6-dev?svg=true)](https://ci.appveyor.com/project/eudaq/eudaq/branch/v1.7-dev)
 
 A Generic Multi-platform Data Acquisition Framework
 

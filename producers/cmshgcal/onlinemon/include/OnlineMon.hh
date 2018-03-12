@@ -95,7 +95,7 @@ public:
 
   virtual void OnConfigure(const eudaq::Configuration &param) {
     std::cout << "Configure OnlineMon with file: " << param.Name() << std::endl;
-    SetStatus(eudaq::Status::LVL_OK, "Configured (" + param.Name() + ")");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + param.Name() + ")");
     
     if (mon_configdata.ReadConfigurationFile()!=0) {
       // reset defaults, as Config file is bad
@@ -113,7 +113,7 @@ public:
   }
   virtual void OnReset() {
     std::cout << "Reset" << std::endl;
-    SetStatus(eudaq::Status::LVL_OK);
+    SetConnectionState(eudaq::ConnectionState::STATE_UNCONF);
   }
   virtual void OnStartRun(unsigned param);
   virtual void OnEvent(const eudaq::StandardEvent &ev);

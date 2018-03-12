@@ -171,21 +171,19 @@ namespace eudaq {
             setupDescription.push_back( new eutelescope::EUTelSetupDescription( currentDetector )) ;
           }
 
-          std::list<eutelescope::EUTelGenericSparsePixel*> tmphits;
-
           zsDataEncoder["sensorID"] = ev_raw.GetID(chip) + chip_id_offset; // 30
           zsDataEncoder["sparsePixelType"] = eutelescope::kEUTelGenericSparsePixel;
 
           // prepare a new TrackerData object for the ZS data
           // it contains all the hits for a particular sensor in one event
-          std::auto_ptr<lcio::TrackerDataImpl > zsFrame( new lcio::TrackerDataImpl );
+          std::unique_ptr<lcio::TrackerDataImpl > zsFrame( new lcio::TrackerDataImpl );
           // set some values of "Cells" for this object
           zsDataEncoder.setCellID( zsFrame.get() );
 
           // this is the structure that will host the sparse pixel
           // it helps to decode (and later to decode) parameters of all hits (x, y, charge, ...) to
           // a single TrackerData object (zsFrame) that will correspond to a single sensor in one event
-          std::auto_ptr< eutelescope::EUTelTrackerDataInterfacerImpl< eutelescope::EUTelGenericSparsePixel > >
+          std::unique_ptr< eutelescope::EUTelTrackerDataInterfacerImpl< eutelescope::EUTelGenericSparsePixel > >
             sparseFrame( new eutelescope::EUTelTrackerDataInterfacerImpl< eutelescope::EUTelGenericSparsePixel > ( zsFrame.get() ) );
 
           unsigned int cnt,trigger_number;
@@ -213,16 +211,9 @@ namespace eudaq {
                std::cout<< "GetStandardSubEvent() broken data"<<std::endl;
                return false;
           }
-          eutelescope::EUTelGenericSparsePixel *thisHit = new eutelescope::EUTelGenericSparsePixel(53, 19, cnt_max-cnt_base, trigger_number);
-          sparseFrame->addSparsePixel( thisHit );
-          tmphits.push_back( thisHit );
+          sparseFrame->emplace_back( 53, 19, cnt_max-cnt_base, trigger_number );
           // write TrackerData object that contains info from one sensor to LCIO collection
           zsDataCollection->push_back( zsFrame.release() );
-
-          // clean up
-          for( std::list<eutelescope::EUTelGenericSparsePixel*>::iterator it = tmphits.begin(); it != tmphits.end(); it++ ){
-            delete (*it);
-          }
         }
 
         // add this collection to lcio event

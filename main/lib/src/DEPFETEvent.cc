@@ -32,7 +32,8 @@ namespace eudaq {
   }
 
   void DEPFETEvent::Debug() {
-    for (unsigned i = 0; i < NumBoards(); ++i) {
+    #pragma warning (suppress: 4018)	  
+    for (auto i = 0; i < NumBoards(); ++i) {
       std::cout << GetBoard(i) << std::endl;
     }
   }

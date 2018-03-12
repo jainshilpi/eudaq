@@ -93,7 +93,7 @@ namespace eudaq {
     // std::flush;
     std::string result(4, '\0');
     for (int i = 0; i < 4; ++i) {
-      result[i] = (char)(id & 0xff);
+      result[i] = static_cast<char>(id & 0xff);
       id >>= 8;
     }
     for (int i = 3; i >= 0; --i) {
@@ -119,6 +119,22 @@ namespace eudaq {
     return i->second;
   }
 
+  bool Event::HasTag(const std::string &name) const{
+    if (m_tags.find(name) == m_tags.end())
+      return false;
+    else
+      return true;
+  }
+
+  std::vector<std::string> Event::GetTagList(const std::string &prefix) const{
+    std::vector<std::string> list;
+    for(auto &e:m_tags){
+      if(!e.first.compare(0, prefix.size(), prefix))
+	list.push_back(e.first);
+    }
+    return list;
+  }
+  
   void Event::SetTimeStampToNow() {
     m_timestamp = static_cast<uint64_t>(clock());
   }

@@ -15,12 +15,7 @@
 #include <sys/types.h>
 #include "eudaq/Platform.hh"
 
-#if ((defined WIN32) && (defined __CINT__))
-typedef unsigned long long uint64_t typedef long long
-    int64_t typedef unsigned int uint32_t typedef int int32_t
-#else
 #include <cstdint>
-#endif
 
     namespace eudaq {
 
@@ -43,6 +38,10 @@ typedef unsigned long long uint64_t typedef long long
    * \param ms The number of milliseconds
    */
   void DLLEXPORT mSleep(unsigned ms);
+/** Sleep for a specified number of microseconds.
+   * \param ums The number of microseconds
+   */
+  void DLLEXPORT umSleep(unsigned ums);	    
 
   /** Converts any type to a string.
    * There must be a compatible streamer defined, which this function will make

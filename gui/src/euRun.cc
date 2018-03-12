@@ -6,7 +6,7 @@
 #include "eudaq/OptionParser.hh"
 #include "eudaq/Utils.hh"
 #include "Colours.hh"
-#include "eudaq/Status.hh"
+#include "eudaq/ConnectionState.hh"
 #include <exception>
 #include "config.h" // for version symbols
 //#include <QWindow>
@@ -82,12 +82,15 @@ namespace {
 RunConnectionDelegate::RunConnectionDelegate(RunControlModel *model)
     : m_model(model) {}
 
+void RunConnectionDelegate::GetModelData(){
+   std::cout<<"DEBUG: Function works: \n";
+}
 void RunConnectionDelegate::paint(QPainter *painter,
                                   const QStyleOptionViewItem &option,
                                   const QModelIndex &index) const {
   // std::cout << __FUNCTION__ << std::endl;
   // painter->save();
-  int level = m_model->GetLevel(index);
+  int level = m_model->GetState(index);
   painter->fillRect(option.rect, QBrush(level_colours[level]));
   QItemDelegate::paint(painter, option, index);
   // painter->restore();
@@ -103,6 +106,7 @@ RunControlGUI::RunControlGUI(const std::string &listenaddress, QRect geom,
   setupUi(this);
   if (!grpStatus->layout())
     grpStatus->setLayout(new QGridLayout(grpStatus));
+  lblCurrent->setText(QString("<font size=%1  color='red'><b>Current State: Uninitialised </b></font>").arg(FONT_SIZE));
   QGridLayout *layout = dynamic_cast<QGridLayout *>(grpStatus->layout());
   int row = 0, col = 0;
   for (const char **st = statuses; st[0] && st[1]; st += 2) {
@@ -145,6 +149,8 @@ RunControlGUI::RunControlGUI(const std::string &listenaddress, QRect geom,
     move(settings.value("pos", geom.topLeft()).toPoint());
     lastUsedDirectory = settings.value("lastConfigFileDirectory","../conf").toString();
     txtConfigFileName->setText(settings.value("lastConfigFile","config file not set").toString());
+    lastUsedDirectoryInit = settings.value("lastInitFileDirectory","../conf").toString();
+    txtInitFileName->setText(settings.value("lastInitFile","config file not set").toString());
     settings.endGroup();
   
   connect(this, SIGNAL(StatusChanged(const QString &, const QString &)), this,
@@ -161,28 +167,34 @@ RunControlGUI::RunControlGUI(const std::string &listenaddress, QRect geom,
 }
 
 void RunControlGUI::OnReceive(const eudaq::ConnectionInfo &id,
-                              std::shared_ptr<eudaq::Status> status) {
+                              std::shared_ptr<eudaq::ConnectionState> connectionstate) 
+{
+
   static bool registered = false;
   if (!registered) {
     qRegisterMetaType<QModelIndex>("QModelIndex");
     registered = true;
   }
   if (id.GetType() == "DataCollector") {
-    m_filebytes = from_string(status->GetTag("FILEBYTES"), 0LL);
-    m_events = from_string(status->GetTag("EVENT"), 0LL);
-    EmitStatus("EVENT", status->GetTag("EVENT"));
-    EmitStatus("FILEBYTES", to_bytes(status->GetTag("FILEBYTES")));
+    m_filebytes = from_string(connectionstate->GetTag("FILEBYTES"), 0LL);
+    m_events = from_string(connectionstate->GetTag("EVENT"), 0LL);
+    EmitStatus("EVENT", connectionstate->GetTag("EVENT"));
+    EmitStatus("FILEBYTES", to_bytes(connectionstate->GetTag("FILEBYTES")));
   } else if (id.GetType() == "Producer") {
-    if (id.GetName() == "TLU" || id.GetName() == "miniTLU") {
-      EmitStatus("TRIG", status->GetTag("TRIG"));
-      EmitStatus("PARTICLES", status->GetTag("PARTICLES"));
-      EmitStatus("TIMESTAMP", status->GetTag("TIMESTAMP"));
-      EmitStatus("LASTTIME", status->GetTag("LASTTIME"));
-      EmitStatus("TLUSTAT", status->GetTag("STATUS"));
+    if (id.GetName() == "caliceahcalbif") {
+      EmitStatus("TRIG", connectionstate->GetTag("TRIG"));
+      EmitStatus("PARTICLES", connectionstate->GetTag("PARTICLES"));
+    } else  if (id.GetName() == "TLU" || id.GetName() == "miniTLU") {
+      EmitStatus("TRIG", connectionstate->GetTag("TRIG"));
+      EmitStatus("PARTICLES", connectionstate->GetTag("PARTICLES"));
+      EmitStatus("TIMESTAMP", connectionstate->GetTag("TIMESTAMP"));
+      EmitStatus("LASTTIME", connectionstate->GetTag("LASTTIME"));
+      EmitStatus("TLUSTAT", connectionstate->GetTag("STATUS"));
+
       bool ok = true;
       std::string scalers;
       for (int i = 0; i < 4; ++i) {
-        std::string s = status->GetTag("SCALER" + to_string(i));
+        std::string s = connectionstate->GetTag("SCALER" + to_string(i));
         if (s == "") {
           ok = false;
           break;
@@ -193,8 +205,8 @@ void RunControlGUI::OnReceive(const eudaq::ConnectionInfo &id,
       }
       if (ok)
         EmitStatus("SCALERS", scalers);
-      int trigs = from_string(status->GetTag("TRIG"), -1);
-      double time = from_string(status->GetTag("TIMESTAMP"), 0.0);
+      int trigs = from_string(connectionstate->GetTag("TRIG"), -1);
+      double time = from_string(connectionstate->GetTag("TIMESTAMP"), 0.0);
       if (trigs >= 0) {
         bool dorate = true;
         if (m_runstarttime == 0.0) {
@@ -221,13 +233,12 @@ void RunControlGUI::OnReceive(const eudaq::ConnectionInfo &id,
         }
       }
     } else if (id.GetName() == "pALPIDEfs") {
-      m_producer_pALPIDEfs_not_ok = (status->GetLevel() != 1);
+      m_producer_pALPIDEfs_not_ok = (connectionstate->GetState() == 0);
     } else if (id.GetName() == "pALPIDEss") {
-      m_producer_pALPIDEss_not_ok = (status->GetLevel() != 1);
+      m_producer_pALPIDEss_not_ok = (connectionstate->GetState() == 0);
     }
   }
-
-  m_run.SetStatus(id, *status);
+  m_run.SetConnectionState(id, *connectionstate);
 }
 
 void RunControlGUI::OnConnect(const eudaq::ConnectionInfo &id) {
@@ -241,11 +252,11 @@ void RunControlGUI::OnConnect(const eudaq::ConnectionInfo &id) {
   m_run.newconnection(id);
   if (id.GetType() == "DataCollector") {
     EmitStatus("RUN", "(" + to_string(m_runnumber) + ")");
-    SetState(ST_NONE);
   }
-  if (id.GetType() == "LogCollector") {
+  else if (id.GetType() == "LogCollector") {
     btnLogSetStatus(true);
   }
+  
 }
 
 bool RunControlGUI::eventFilter(QObject *object, QEvent *event) {
@@ -261,6 +272,7 @@ bool RunControlGUI::eventFilter(QObject *object, QEvent *event) {
     return true;
   }
   return false;
+
 }
 
 RunControlGUI::~RunControlGUI(){
@@ -272,5 +284,7 @@ RunControlGUI::~RunControlGUI(){
     //settings.setValue("screen", windowHandle()->screen()->screenNumber());
     settings.setValue("lastConfigFileDirectory",lastUsedDirectory);
     settings.setValue("lastConfigFile",txtConfigFileName->text());
+    settings.setValue("lastInitFileDirectory",lastUsedDirectoryInit);
+    settings.setValue("lastInitFile",txtInitFileName->text());
     settings.endGroup();
 }

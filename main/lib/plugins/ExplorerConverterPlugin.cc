@@ -1,4 +1,3 @@
-#if FOUND_ROOT
 #include "eudaq/DataConverterPlugin.hh"
 #include "eudaq/StandardEvent.hh"
 #include "eudaq/Utils.hh"
@@ -211,7 +210,7 @@ namespace eudaq {
                 noise.reserve(m_nPixels);
 
                 // average all the runs
-                double div = 1./(double)m_noe;
+                double div = 1./static_cast<double>(m_noe);
 
                 // calculate pedestals
                 for(unsigned int i=0; i<m_Ped.size(); ++i){
@@ -224,14 +223,14 @@ namespace eudaq {
                     for(unsigned int ipix=0; ipix<m_Ped.size(); ++ipix){
                         if(ievt==0) {
 //                            cout << cds[ievt][ipix] << endl;
-                            noise.push_back( ((double)cds[ievt][ipix]-peds[ipix])*((double)cds[ievt][ipix]-peds[ipix]) );
+                            noise.push_back( (static_cast<double>(cds[ievt][ipix]-peds[ipix]))*(static_cast<double>(cds[ievt][ipix]-peds[ipix])) );
                         }
                         else
-                            noise[ipix] += ((double)cds[ievt][ipix]-peds[ipix])*((double)cds[ievt][ipix]-peds[ipix]);
+                            noise[ipix] += (static_cast<double>(cds[ievt][ipix]-peds[ipix]))*(static_cast<double>(cds[ievt][ipix]-peds[ipix]));
                     }
                 }
                 for(unsigned int i=0; i<noise.size(); ++i){
-                    noise[i] = sqrt( noise[i]/((double)m_noe-1.) );
+                    noise[i] = sqrt( noise[i]/(static_cast<double>(m_noe)-1.) );
 //                    if(noise[i] > 10.) cout << noise[i] << endl;
                     avnoise[2*(i/11700)+((i%11700)/8100)]+=noise[i];
                 }
@@ -465,7 +464,7 @@ namespace eudaq {
 
                             // CMC part 1 - grouping pixels by sector
                             if (matrix_size == 90) {
-                                short sec = 3*floor(i/30)+floor(j/30);
+                                short sec = static_cast<short> (3*floor(i/30)+floor(j/30));
                                 if (k==0) {
                                     cds_array[l][0][sec][(j%30)*30+(i%30)] = adccInt; // set to MEM1
                                 }
@@ -474,7 +473,7 @@ namespace eudaq {
                                 }
                             }
                             else { // matrix size is 60
-                                short sec = 3*floor(i/20)+floor(j/20);
+                                short sec = static_cast<short> (3*floor(i/20)+floor(j/20));
                                 if (k==0) {
                                     cds_array[l][1][sec][(j%20)*20+(i%20)] = adccInt; // set to MEM1
                                 }
@@ -507,7 +506,7 @@ namespace eudaq {
                     for (int isec=0; isec<9; ++isec) { // sectors
                         sec_wm[ich][ips][isec] = 0.;
                         short nwm = (30-ips*10)*(30-ips*10);
-                        short trunc = 0.05*nwm; // truncate 5% each tail
+                        short trunc = static_cast<short> (0.05*nwm); // truncate 5% each tail
                         std::sort(cds_array[ich][ips][isec], cds_array[ich][ips][isec]+nwm);
 	    
                         short i = 0;
@@ -542,11 +541,11 @@ namespace eudaq {
                             // CMC part 3 - Apply CMC
                             if(k==0) {
                                 if(matrix_size == 90) {
-                                    short sec = 3*floor(i/30)+floor(j/30);
+                                    short sec = static_cast<short> (3*floor(i/30)+floor(j/30));
                                     adcc -= sec_wm[l][0][sec];
                                 }
                                 else {
-                                    short sec = 3*floor(i/20)+floor(j/20);
+                                    short sec = static_cast<short> (3*floor(i/20)+floor(j/20));
                                     adcc -= sec_wm[l][1][sec];
                                 }
                             }
@@ -580,12 +579,12 @@ namespace eudaq {
             if(m_PedMeas){  //sum up pedestals in a vector and sum up square of pedestals
                 if(m_noe==1){ //create pedestal and noise vectors
                     for(unsigned int i=0;i<pedestalCalc.size();i++){
-                        m_Ped.push_back((double)pedestalCalc[i]);
+                        m_Ped.push_back(static_cast<double>(pedestalCalc[i]));
                     }
                 }
                 else {
                     for(unsigned int i=0;i<m_Ped.size();i++){  //summing up
-                        m_Ped[i] += (double)pedestalCalc[i];
+                        m_Ped[i] += static_cast<double>(pedestalCalc[i]);
                     }
                 }
                 cds.push_back(pedestalCalc);
@@ -644,7 +643,7 @@ namespace eudaq {
         ////////////////////////////////////////////////////////////
         //LCIO Converter
         ///////////////////////////////////////////////////////////
-#if USE_LCIO
+#if USE_LCIO && USE_EUTELESCOPE
         virtual bool GetLCIOSubEvent(lcio::LCEvent & lev, eudaq::Event const & ev) const{
 
 //            cerr << "GetLCIOSubEvent " << endl;
@@ -775,4 +774,3 @@ namespace eudaq {
     ExplorerConverterPlugin ExplorerConverterPlugin::m_instance;
 
 } // namespace eudaq
-#endif

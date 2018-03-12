@@ -69,6 +69,7 @@ class RpiProducer : public eudaq::Producer {
     // This gets called whenever the DAQ is configured
     virtual void OnConfigure(const eudaq::Configuration & config) {
       std::cout << "Configuring: " << config.Name() << std::endl;
+      SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Configuring (" + config.Name() + ")");
 
       bool configurationSuccessful = true;
 
@@ -143,10 +144,10 @@ class RpiProducer : public eudaq::Producer {
       std::cout<<"Readout board: "<<m_RDBOARD<<std::endl;
 
       if (configurationSuccessful) {
-        SetStatus(eudaq::Status::LVL_OK, "Configuration reset!");
+        SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configuration reset!");
       }
       else {
-        SetStatus(eudaq::Status::LVL_ERROR, "Unable to reset configuration!");
+        SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Unable to reset configuration!");
       }
 
       // Copied over from onStartRun temporarily
@@ -162,7 +163,7 @@ class RpiProducer : public eudaq::Producer {
       }
 
       // At the end, set the status that will be displayed in the Run Control.
-      // SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
+      SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
 
       // m_configured=true;
       m_configured = configurationSuccessful;
@@ -196,7 +197,7 @@ class RpiProducer : public eudaq::Producer {
       bool con = OpenConnection();
       if (!con) {
 	EUDAQ_WARN("Socket conection failed: no server. Can't start the run.");
-	SetStatus(eudaq::Status::LVL_ERROR, "No Socket.");
+	SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "No Socket.");
 	return;
       }
 
@@ -224,7 +225,7 @@ class RpiProducer : public eudaq::Producer {
       int n = recv(m_sockfd1, answer, 20, 0);
       if (n <= 0) {
 	std::cout<<n<<" Something is wrong with socket, we can't start the run..."<<std::endl;
-	SetStatus(eudaq::Status::LVL_ERROR, "Can't Start Run on Hardware side.");
+	SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Can't Start Run on Hardware side.");
 	return;
       }
       
@@ -232,7 +233,7 @@ class RpiProducer : public eudaq::Producer {
 	std::cout<<"Answer to START_RUN: "<<answer<<std::endl;
 	if (strncmp(answer,"GOOD_START",10)!=0) {
 	  std::cout<<n<<" Not expected answer from server, we can't start the run..."<<std::endl;
-	  SetStatus(eudaq::Status::LVL_ERROR, "Can't Start Run on Hardware side.");
+	  SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Can't Start Run on Hardware side.");
 	  return;
 	}
       }
@@ -264,7 +265,7 @@ class RpiProducer : public eudaq::Producer {
       m_gotPart2 = false;
       
       // At the end, set the status that will be displayed in the Run Control.
-      SetStatus(eudaq::Status::LVL_OK, "Running");
+      SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
       std::cout<<"Started it!"<<std::endl;
     }
 
@@ -277,7 +278,7 @@ class RpiProducer : public eudaq::Producer {
 
 
       // Set a flag to signal to the polling loop that the run is over
-      SetStatus(eudaq::Status::LVL_OK, "Stopping...");
+      SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping...");
 
       eudaq::mSleep(1000);
 
@@ -288,14 +289,14 @@ class RpiProducer : public eudaq::Producer {
 	bzero(answer, 20);
 	int n = recv(m_sockfd1, answer, 20, 0);
 	if (n <= 0) {
-	  SetStatus(eudaq::Status::LVL_ERROR, "Can't Stop Run on Hardware side.");
+	  SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Can't Stop Run on Hardware side.");
 	  return;
 	}
 	else {
 	  std::cout<<"Answer to STOP_RUN: "<<answer<<std::endl;
 	  if (strncmp(answer,"STOPPED_OK",10)!=0) {
 	    std::cout<<"Something is wrong, we can't stop the run..."<<std::endl;
-	    SetStatus(eudaq::Status::LVL_ERROR, "Can't Start Run on Hardware side.");
+	    SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Can't Start Run on Hardware side.");
 	    return;
 	  }
 
@@ -323,7 +324,7 @@ class RpiProducer : public eudaq::Producer {
       // You can also set tags on it (as with the BORE) if necessary
       SendEvent(eudaq::RawDataEvent::EORE("Test", m_run, ++m_ev));
 
-      SetStatus(eudaq::Status::LVL_OK, "Stopped.");
+      SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopped.");
       std::cout << "Stopped it!" << std::endl;
 
     }
@@ -331,7 +332,7 @@ class RpiProducer : public eudaq::Producer {
     // This gets called when the Run Control is terminating,
     // we should also exit.
     virtual void OnTerminate() {
-      SetStatus(eudaq::Status::LVL_OK, "Terminating...");
+      SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Terminating...");
       std::cout << "Terminating..." << std::endl;
       m_done = true;
     }
@@ -345,14 +346,14 @@ class RpiProducer : public eudaq::Producer {
 	  {
 	    eudaq::mSleep(2000);
 	    //EUDAQ_DEBUG("Not Running; but sleeping");
-	    SetStatus(eudaq::Status::LVL_USER, "Sleeping");
+	    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Sleeping");
 	    continue;
 	  }
 
 
 	if (m_sockfd1 <= 0 || m_sockfd2 <= 0) {
 	  EUDAQ_DEBUG("No sockets. Not Running; but sleeping");
-	  SetStatus(eudaq::Status::LVL_USER, "No Sockets yet in Readout Loop.  sfd1="+
+	  SetConnectionState(eudaq::ConnectionState::STATE_CONF, "No Sockets yet in Readout Loop.  sfd1="+
 		    eudaq::to_string(m_sockfd1)+" sfd2="+eudaq::to_string(m_sockfd2));
 	  eudaq::mSleep(100);
 	  continue;
@@ -362,7 +363,7 @@ class RpiProducer : public eudaq::Producer {
 	// If we are below this point, we listen for data
 	// ***********
 
-	//SetStatus(eudaq::Status::LVL_DEBUG, "Running");
+	//SetConnectionState(eudaq::ConnectionState::LVL_DEBUG, "Running");
 	//EUDAQ_DEBUG("Running again");
 
 	const int bufsize = split1;
@@ -384,7 +385,7 @@ class RpiProducer : public eudaq::Producer {
 	      continue; // No need to stop the run, just wait
 	    else {
 	      // It's been too long without data, we shall give a warning
-	      SetStatus(eudaq::Status::LVL_WARN, "No Data");
+	      SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "No Data");
 	      EUDAQ_WARN("Sockets: No data for too long..");
 	    }
 
@@ -393,7 +394,7 @@ class RpiProducer : public eudaq::Producer {
 	  }
 	  else {
 	    std::cout<<" n="<<n<<" errno="<<errno<<std::endl;
-	    SetStatus(eudaq::Status::LVL_WARN, "Nothing to read from socket...");
+	    SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Nothing to read from socket...");
 	    EUDAQ_WARN("Sockets: ERROR reading from socket (it's probably disconnected)");
 	    continue;
 	  }
@@ -429,11 +430,11 @@ class RpiProducer : public eudaq::Producer {
 	else {
 	  EUDAQ_WARN("The event size is not right! n="+eudaq::to_string(n));
 	  if (n!=-1)
-	    SetStatus(eudaq::Status::LVL_WARN, "Wrong event size.");
+	    SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Wrong event size.");
 	  continue;
 	}
 	
-	SetStatus(eudaq::Status::LVL_OK, "Running");
+	SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Running");
 
 	std::cout<<"First few bytes of the RAW event:"<<std::endl;
 	for (int b=0; b<3; b++)
@@ -470,11 +471,11 @@ class RpiProducer : public eudaq::Producer {
 	else {
 	  if ((unsigned char)m_raw32bitData[0]!=0xff){
 	    EUDAQ_WARN("First byte is not 0xff. It is: "+eudaq::to_hex(m_raw32bitData[0]));
-	    SetStatus(eudaq::Status::LVL_WARN, "Corrupted Data");
+	    SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Corrupted Data");
 	  }
 	  else if ( !m_gotPart1 || !m_gotPart2){
 	    EUDAQ_WARN("Did not receive all parts of data... p1:"+eudaq::to_hex(m_gotPart1)+"  p2:"+eudaq::to_hex(m_gotPart2));
-	    SetStatus(eudaq::Status::LVL_WARN, "Corrupted Data");
+	    SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Corrupted Data");
 	  }
 	}
 
@@ -512,7 +513,7 @@ class RpiProducer : public eudaq::Producer {
  
       int ret = connect(m_sockfd1, (struct sockaddr *) &tcp_addr, sizeof(tcp_addr));
       if (ret != 0) {
-	SetStatus(eudaq::Status::LVL_WARN, "No Socket.");
+	SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "No Socket.");
 	EUDAQ_WARN("Can't connect() to socket: ret="+eudaq::to_string(ret)+"  sockfd="+eudaq::to_string(m_sockfd1));
 	return 0;
       }

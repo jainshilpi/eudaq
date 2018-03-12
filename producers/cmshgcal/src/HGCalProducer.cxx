@@ -200,11 +200,9 @@ private:
   virtual void OnConfigure(const eudaq::Configuration & config) 
   {
     std::cout << "Configuring: " << config.Name() << std::endl;
-
+    SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Configuring (" + config.Name() + ")");
 
     // Let's start the scripts needed to be run on RPIs
-
-
     
     EUDAQ_INFO("Starting sync_debug.exe on piS");
 
@@ -285,7 +283,7 @@ private:
     
     m_state=STATE_CONFED;
     // At the end, set the status that will be displayed in the Run Control.
-    SetStatus(eudaq::Status::LVL_OK, "Configured (" + config.Name() + ")");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
 
     for( int iorm=0; iorm<n_orms; iorm++ ){
       std::cout << "ORM " << iorm << "\n"
@@ -321,7 +319,7 @@ private:
   virtual void OnStartRun(unsigned param) 
   {
     m_state = STATE_GOTORUN;
-    SetStatus(eudaq::Status::LVL_OK, "Starting");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Starting");
     
     m_run = param;
     m_ev = 0;
@@ -364,13 +362,13 @@ private:
 
     m_state = STATE_RUNNING;
     // At the end, set the status that will be displayed in the Run Control.
-    SetStatus(eudaq::Status::LVL_OK, "Running");
+    SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
   }
 
   // // This gets called whenever a run is stopped
   virtual void OnStopRun() {
     try {
-      SetStatus(eudaq::Status::LVL_OK, "Stopping");
+      SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping");
       m_triggerController->stopRun();
       //      m_triggerThread.join();
       eudaq::mSleep(1000);
@@ -386,19 +384,19 @@ private:
       m_rawFile.write(reinterpret_cast<const char*>(&trailer), sizeof(trailer));
       m_rawFile.close();
 
-      SetStatus(eudaq::Status::LVL_OK, "Stopped");
+      SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopped");
       
     } catch (const std::exception & e) {
-      SetStatus(eudaq::Status::LVL_ERROR, "Stop Error: " + eudaq::to_string(e.what()));
+      SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Stop Error: " + eudaq::to_string(e.what()));
     } catch (...) {
-      SetStatus(eudaq::Status::LVL_ERROR, "Stop Error");
+      SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Stop Error");
     }
   }
 
   // // This gets called when the Run Control is terminating,
   // // we should also exit.
   virtual void OnTerminate() {
-    SetStatus(eudaq::Status::LVL_OK, "Terminating...");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Terminating...");
     
     int executionStatus = 0;
     executionStatus = system("ssh -T piS \" sudo killall sync_debug.exe \"");

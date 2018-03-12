@@ -414,7 +414,7 @@ void RootMonitor::OnStartRun(unsigned param) {
 
   myStopWatch.Start(true);
   
-  SetStatus(eudaq::Status::LVL_OK);
+  SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
 }
 
 void RootMonitor::setUpdate(const unsigned int up) {

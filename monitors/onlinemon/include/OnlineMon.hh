@@ -1,8 +1,6 @@
 #ifndef ONLINE_MON_H
 #define ONLINE_MON_H
 
-#include <cmath>
-
 // ROOT includes
 #include <TSystem.h>
 #include <TInterpreter.h>
@@ -23,17 +21,12 @@
 #include "eudaq/OptionParser.hh"
 #endif
 
-// Project Includes
-
-#include "BaseCollection.hh"
-#include "HitmapHistos.hh"
-#include "CorrelationHistos.hh"
-#include "EUDAQMonitorHistos.hh"
 
 #include "HitmapCollection.hh"
 #include "CorrelationCollection.hh"
 #include "MonitorPerformanceCollection.hh"
 #include "EUDAQMonitorCollection.hh"
+#include "ParaMonitorCollection.hh"
 
 #include "OnlineMonWindow.hh"
 //#include "OnlineHistograms.hh"
@@ -89,13 +82,14 @@ public:
   HitmapCollection *hmCollection;
   CorrelationCollection *corrCollection;
   EUDAQMonitorCollection *eudaqCollection;
+  ParaMonitorCollection *paraCollection;
 
   virtual void StartIdleing() {}
   OnlineMonWindow *getOnlineMon() { return onlinemon; }
 
   virtual void OnConfigure(const eudaq::Configuration &param) {
     std::cout << "Configure: " << param.Name() << std::endl;
-    SetStatus(eudaq::Status::LVL_OK, "Configured (" + param.Name() + ")");
+    SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + param.Name() + ")");
   }
   virtual void OnTerminate() {
     std::cout << "Terminating" << std::endl;
@@ -104,7 +98,7 @@ public:
   }
   virtual void OnReset() {
     std::cout << "Reset" << std::endl;
-    SetStatus(eudaq::Status::LVL_OK);
+    //SetConnectionState(eudaq::ConnectionState::STATE_UNCONF);
   }
   virtual void OnStartRun(unsigned param);
   virtual void OnEvent(const eudaq::StandardEvent &ev);

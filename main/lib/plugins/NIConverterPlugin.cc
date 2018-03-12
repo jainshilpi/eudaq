@@ -171,7 +171,8 @@ namespace eudaq {
         }
         StandardPlane plane(id, "NI", "MIMOSA26");
         plane.SetSizeZS(1152, 576, 0, 2, StandardPlane::FLAG_WITHPIVOT |
-                                             StandardPlane::FLAG_DIFFCOORDS);
+                                         StandardPlane::FLAG_DIFFCOORDS |
+			                 StandardPlane::FLAG_ACCUMULATE);
         plane.SetTLUEvent(tluid);
         plane.SetPivotPixel((9216 + pivot + PIVOTPIXELOFFSET) % 9216);
         DecodeFrame(plane, len0, it0 + 8, 0);
@@ -485,17 +486,17 @@ namespace eudaq {
         size_t nPixel = plane.HitPixels();
 
         // prepare a new TrackerData for the ZS data
-        std::auto_ptr<lcio::TrackerDataImpl> zsFrame(new lcio::TrackerDataImpl);
+        std::unique_ptr<lcio::TrackerDataImpl> zsFrame(new lcio::TrackerDataImpl);
         zsDataEncoder.setCellID(zsFrame.get());
 
         // this is the structure that will host the sparse pixel
-        std::auto_ptr<eutelescope::EUTelTrackerDataInterfacerImpl<
+        std::unique_ptr<eutelescope::EUTelTrackerDataInterfacerImpl<
             eutelescope::EUTelGenericSparsePixel>>
             sparseFrame(new eutelescope::EUTelTrackerDataInterfacerImpl<
                 eutelescope::EUTelGenericSparsePixel>(zsFrame.get()));
 
         // prepare a sparse pixel to be added to the sparse data
-        std::auto_ptr<eutelescope::EUTelGenericSparsePixel> sparsePixel(
+        std::unique_ptr<eutelescope::EUTelGenericSparsePixel> sparsePixel(
             new eutelescope::EUTelGenericSparsePixel);
         for (size_t iPixel = 0; iPixel < nPixel; ++iPixel) {
 
@@ -529,7 +530,7 @@ namespace eudaq {
             // streamlog_out ( DEBUG0 ) << ( *(sparsePixel.get() ) ) << endl;
 
             // now add this pixel to the sparse frame
-            sparseFrame->addSparsePixel(sparsePixel.get());
+            sparseFrame->push_back(*sparsePixel.get());
           } else {
             // the original X was on a marker column, so we don't
             // need to process this pixel any further and of course
@@ -608,7 +609,7 @@ namespace eudaq {
 
         // this is the right place to prepare the TrackerRawData
         // object
-        std::auto_ptr<lcio::TrackerRawDataImpl> cdsFrame(
+        std::unique_ptr<lcio::TrackerRawDataImpl> cdsFrame(
             new lcio::TrackerRawDataImpl);
         rawDataEncoder.setCellID(cdsFrame.get());
 

@@ -1,3 +1,4 @@
+#include "api.h"
 #include "dictionaries.h"
 #include "constants.h"
 #include "datasource_evt.h"
@@ -117,6 +118,7 @@ namespace eudaq {
       // a module with just one sensor plane:
       else
         GetSinglePlane(out, m_planeid, evt);
+      return true;
     }
 
 #if USE_LCIO && USE_EUTELESCOPE
@@ -177,17 +179,17 @@ namespace eudaq {
         size_t nPixel = plane.HitPixels();
 
         // Prepare a new TrackerData for the ZS data
-        std::auto_ptr<lcio::TrackerDataImpl> zsFrame(new lcio::TrackerDataImpl);
+        std::unique_ptr<lcio::TrackerDataImpl> zsFrame(new lcio::TrackerDataImpl);
         zsDataEncoder.setCellID(zsFrame.get());
 
         // This is the structure that will host the sparse pixels
-        std::auto_ptr<eutelescope::EUTelTrackerDataInterfacerImpl<
+        std::unique_ptr<eutelescope::EUTelTrackerDataInterfacerImpl<
             eutelescope::EUTelGenericSparsePixel>>
             sparseFrame(new eutelescope::EUTelTrackerDataInterfacerImpl<
                 eutelescope::EUTelGenericSparsePixel>(zsFrame.get()));
 
         // Prepare a sparse pixel to be added to the sparse data:
-        std::auto_ptr<eutelescope::EUTelGenericSparsePixel> sparsePixel(
+        std::unique_ptr<eutelescope::EUTelGenericSparsePixel> sparsePixel(
             new eutelescope::EUTelGenericSparsePixel);
         for (size_t iPixel = 0; iPixel < nPixel; ++iPixel) {
 
@@ -198,7 +200,7 @@ namespace eudaq {
           sparsePixel->setSignal((int32_t)plane.GetPixel(iPixel));
 
           // Add the pixel to the readout frame:
-          sparseFrame->addSparsePixel(sparsePixel.get());
+          sparseFrame->push_back(*sparsePixel.get());
         }
 
         // Now add the TrackerData to the collection

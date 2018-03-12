@@ -195,7 +195,20 @@ namespace eudaq {
       (void)sig;
     }
 #endif
+/*
+do_send_data handles the sending of data among components of the program via the socket system. 
+It takes a socket, a char of data and a size_t length as parameters. 
 
+This function maintains a record of how much data has been send via the socket. It loops through the following statements so long as the amount of data that has been sent is less than the length given as a parameter. 
+
+	The function attempts to send the data via the given socket
+	The result of this send is stored in an int labled result
+	If the result is >1 , then it is added to sent
+	If the result is <0 and the resource is only temporarily unavalible, it tries again
+	If the result is =0 the program throws an error for the connection being reset
+	If the result is <0 the program throws an error for sending data.
+
+*/
     static void do_send_data(SOCKET sock, const unsigned char *data,
                              size_t len) {
       // if (len > 500000) std::cout << "Starting send" << std::endl;
@@ -219,6 +232,16 @@ namespace eudaq {
       // if (len > 500000) std::cout << "Done send" << std::endl;
     }
 
+/*
+do_send_packet handles the sending of packets via the do_send_data function. 
+It takes a socket, a char for data, and a size_t for the length.
+
+
+If the packet is smaller than 1020, The function packs the data into a buffer with signed chars and passes it to do_send_data cast as unsigned char.
+
+Otherwise pack the data into a buffer using unsigned chars. The function passes the buffer to do_send_data and then the data to do_send_data. 
+ 
+*/
     static void do_send_packet(SOCKET sock, const unsigned char *data,
                                size_t length) {
       // if (length > 500000) std::cout << "Starting send packet" << std::endl;
@@ -342,9 +365,9 @@ namespace eudaq {
   }
 
   TCPServer::~TCPServer() {
-    for (size_t i = 0; i < m_conn.size(); ++i) {
+    for (auto & i : m_conn) {
       ConnectionInfoTCP *inf =
-          dynamic_cast<ConnectionInfoTCP *>(m_conn[i].get());
+          dynamic_cast<ConnectionInfoTCP *>(i.get());
       if (inf && inf->IsEnabled()) {
         closesocket(inf->GetFd());
       }
@@ -354,10 +377,10 @@ namespace eudaq {
 
   ConnectionInfoTCP &TCPServer::GetInfo(SOCKET fd) const {
     const ConnectionInfoTCP tofind(fd);
-    for (size_t i = 0; i < m_conn.size(); ++i) {
-      if (tofind.Matches(*m_conn[i]) && m_conn[i]->GetState() >= 0) {
+    for (auto & i : m_conn) {
+      if (tofind.Matches(*i) && i->GetState() >= 0) {
         ConnectionInfoTCP *inf =
-            dynamic_cast<ConnectionInfoTCP *>(m_conn[i].get());
+            dynamic_cast<ConnectionInfoTCP *>(i.get());
         return *inf;
       }
     }
@@ -365,10 +388,10 @@ namespace eudaq {
   }
 
   void TCPServer::Close(const ConnectionInfo &id) {
-    for (size_t i = 0; i < m_conn.size(); ++i) {
-      if (id.Matches(*m_conn[i])) {
+    for (auto & i : m_conn) {
+      if (id.Matches(*i)) {
         ConnectionInfoTCP *inf =
-            dynamic_cast<ConnectionInfoTCP *>(m_conn[i].get());
+            dynamic_cast<ConnectionInfoTCP *>(i.get());
         if (inf && inf->IsEnabled()) {
           SOCKET fd = inf->GetFd();
           inf->Disable();
@@ -382,11 +405,11 @@ namespace eudaq {
   void TCPServer::SendPacket(const unsigned char *data, size_t len,
                              const ConnectionInfo &id, bool duringconnect) {
     // std::cout << "SendPacket to " << id << std::endl;
-    for (size_t i = 0; i < m_conn.size(); ++i) {
+    for (auto & i : m_conn) {
       // std::cout << "- " << i << ": " << *m_conn[i] << std::flush;
-      if (id.Matches(*m_conn[i])) {
+      if (id.Matches(*i)) {
         ConnectionInfoTCP *inf =
-            dynamic_cast<ConnectionInfoTCP *>(m_conn[i].get());
+            dynamic_cast<ConnectionInfoTCP *>(i.get());
         if (inf && inf->IsEnabled() && (inf->GetState() > 0 || duringconnect)) {
           // std::cout << " ok" << std::endl;
           do_send_packet(inf->GetFd(), data, len);
@@ -437,9 +460,9 @@ namespace eudaq {
             std::shared_ptr<ConnectionInfo> ptr(
                 new ConnectionInfoTCP(peersock, host));
             bool inserted = false;
-            for (size_t i = 0; i < m_conn.size(); ++i) {
-              if (m_conn[i]->GetState() < 0) {
-                m_conn[i] = ptr;
+            for (auto & i : m_conn) {
+              if (i->GetState() < 0) {
+                i = ptr;
                 inserted = true;
               }
             }
