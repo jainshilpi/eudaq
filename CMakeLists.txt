@@ -166,12 +166,17 @@ IF(BUILD_gui)
   add_subdirectory(gui)
 ENDIF()
 
-# build OnlineMon executable
+# build default OnlineMon executable
 option(BUILD_onlinemon "Compile Online Monitor executable (requires ROOT)?" ON)
 IF(BUILD_onlinemon)
   add_subdirectory(monitors/onlinemon)
 ENDIF()
 
+# build OnlineMon executable
+option(BUILD_cmshgcal_onlinemon "Compile Online Monitor executable (requires ROOT)?" ON)
+IF(BUILD_cmshgcal_onlinemon)
+  add_subdirectory(monitors/cmshgcal_onlinemon)
+ENDIF()
 
 # build Offline Monitor
 option(BUILD_offlinemon "Compile Offline Monitor executable (requires ROOT)?" OFF)
