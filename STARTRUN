@@ -1,0 +1,37 @@
+#!/bin/bash
+
+
+echo $1 $2 $3
+
+script=none
+if [[ $1 == "example" ]]; then
+    script=./etc/scripts/STARTRUN.example
+elif [[ $1 == "testrpi" ]]; then
+    script=./sandbox/STARTRUN
+elif [[ $1 == "rpi" ]]; then
+    script=./producers/cmshgcal/STARTRUN_RPI
+elif [[ $1 == "cmshgcal" ]]; then
+    script=./producers/cmshgcal/STARTRUN_tmp
+elif [[ $1 == "cmshgcal_with_dwc" ]]; then
+    script=./producers/cmshgcal/STARTRUN_WITH_DWC
+elif [[ $1 == "dwc" ]]; then
+    script=./producers/cmshgcal_dwc/STARTRUN
+elif [[ $1 == "ahcal" ]]; then
+    script=./producers/calice/runscripts/STARTRUN_AHCAL
+elif [[ $1 == "all" ]]; then
+    script=./producers/cmshgcal/STARTRUN_ALL
+elif [[ $1 == "ped" ]]; then
+    script=./producers/cmshgcal/STARTRUN_PED
+else
+    # default
+    echo "This producer is not known to me: ${1}. Sorry."
+    exit 0
+fi
+
+ln -s $script tmp.start
+
+chmod u+x tmp.start
+
+./tmp.start
+
+rm ./tmp.start

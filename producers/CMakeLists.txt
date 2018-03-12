@@ -33,3 +33,6 @@ optional_add_subdirectory(tlu)
 
 # empty directory for AHCAL and BIF_AHCAL
 add_subdirectory(calice)
+
+# directory for CMS-HGCal
+add_subdirectory(cmshgcal)
