@@ -92,13 +92,12 @@ sleep 2
 # DataCollector
 ###############
 printf '\033[22;33m\t TestDataCollector \033[0m \n'
-#xterm -sb -sl 1000 -geom 80x10-480-900 -fn fixed -T "Data Collector" -e './TestDataCollector.exe -r tcp://$HOSTIP:$RCPORT' &
 flog="../logs/Run${NEWRUNNUM}_DataCollector_$dt.log"
-nohup ./TestDataCollector.exe -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+xterm -sb -sl 1000 -geom 80x10-480-900 -fn fixed -T "Data Collector" -e './TestDataCollector.exe -r tcp://$HOSTIP:$RCPORT' &
+#nohup ./TestDataCollector.exe -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
 printf "The logs from the DataCollector are in $flog file. \n"
 
 sleep 2
-
 
 # cmshgcal Producer
 ###############

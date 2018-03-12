@@ -11,8 +11,6 @@ ADD_EXECUTABLE(${hgcal_name} src/HGCalProducer.cxx ${sourcefilesHGCalProducer})
 
 TARGET_LINK_LIBRARIES(${hgcal_name} EUDAQ ${EUDAQ_THREADS_LIB} ${ROOT_LIBRARIES} boost_timer boost_thread boost_filesystem boost_regex boost_system boost_thread boost_program_options cactus_extern_pugixml cactus_uhal_log cactus_uhal_grammars cactus_uhal_uhal)
 
-#TARGET_LINK_LIBRARIES(${rpi_name} EUDAQ ${EUDAQ_THREADS_LIB})
-
 INSTALL(TARGETS  ${hgcal_name}	   
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

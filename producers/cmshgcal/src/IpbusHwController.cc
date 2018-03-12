@@ -1,4 +1,5 @@
 #include "IpbusHwController.h"
+#include <algorithm>
 
 namespace ipbus{
 
@@ -70,11 +71,14 @@ namespace ipbus{
       uhal::ValVector<uint32_t> data = m_hw->getNode(name.c_str()).readBlock(m_blockSize);
       m_hw->dispatch();
       if(data.valid()) {
-	CastTheData( data );
+      	CastTheData( data );
       } else {
-	std::cout << "Error reading " << name << std::endl;
-	return ;
+      	std::cout << "Error reading " << name << std::endl;
+      	return ;
       }
+      // m_data = m_hw->getNode(name.c_str()).readBlock(m_blockSize).value();
+      // m_hw->dispatch();
+
     } catch (...) {
       return;
     }
@@ -110,16 +114,19 @@ namespace ipbus{
   
   void IpbusHwController::CastTheData(const uhal::ValVector<uint32_t> &data)
   {
-    for( uhal::ValVector<uint32_t>::const_iterator cit=data.begin(); cit!=data.end(); ++cit )
-      m_data.push_back(*cit);
-    //std::cout << "\t data.size() = " << data.size() << std::endl;
-    //for( unsigned int i=0; i<data.size(); i++ )
-    //  m_data[i]=data[i];
+    // for( uhal::ValVector<uint32_t>::const_iterator cit=data.begin(); cit!=data.end(); ++cit )
+    //   m_data.push_back(*cit);
+    // std::cout << "\t data.size() = " << data.size() << std::endl;
+    // for( unsigned int i=0; i<data.size(); i++ )
+    //   m_data[i]=data[i];
+    std::copy(data.begin(), data.end(),m_data.begin());
   }
 
   void IpbusHwController::ResetTheData()
   {
-    m_data.clear();
+    for( unsigned int i=0; i<m_data.size(); i++ )
+      m_data[i]=0;
+    //    m_data.clear();
   }
 
 }
