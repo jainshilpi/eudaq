@@ -292,6 +292,12 @@ void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
 
       _colls.at(i)->Fill(ev, ev.GetEventNumber());
 
+      // CollType is used to check which kind of Collection we are having
+      if (_colls.at(i)->getCollectionType()==HITMAP_COLLECTION_TYPE) // Calculate is only implemented for HitMapCollections
+      {
+        _colls.at(i)->Calculate(ev.GetEventNumber());
+      }
+
     }
 
     if (_offline <= 0)

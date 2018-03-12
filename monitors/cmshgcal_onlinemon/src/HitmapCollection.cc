@@ -144,7 +144,28 @@ void HitmapCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
     
     //convert to a simpPlane
     SimpleStandardPlane simpPlane(Plane.Sensor(),Plane.ID(),Plane.XSize(),Plane.YSize(), Plane.TLUEvent(),Plane.PivotPixel(), &_mon->mon_configdata);
-    fillHistograms(simpPlane);
+    for (unsigned int lvl1 = 0; lvl1 < Plane.NumFrames(); lvl1++) {
+      for (unsigned int index = 0; index < Plane.HitPixels(lvl1);index++) {
+        SimpleStandardHit hit((int)Plane.GetX(index,lvl1),(int)Plane.GetY(index,lvl1));
+        hit.setTOT((int)Plane.GetPixel(index,lvl1)); //this stores the analog information if existent, else it stores 1
+        hit.setLVL1(lvl1);
+        if (simpPlane.getAnalogPixelType()) {//this is analog pixel, apply threshold
+          if (simpPlane.is_DEPFET) {
+            if ((hit.getTOT()< -20) || (hit.getTOT()>120)) {
+              continue;
+            }
+          }
+          if (simpPlane.is_EXPLORER) {
+            if (lvl1!=0) continue;
+            hit.setTOT((int)Plane.GetPixel(index));
+            if (hit.getTOT() < 20) continue;
+          }
+          simpPlane.addHit(hit);
+        } else simpPlane.addHit(hit);
+      }
+    }
+
+  fillHistograms(simpPlane);
   }
 }
 
