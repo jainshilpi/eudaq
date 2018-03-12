@@ -13,7 +13,3 @@ BaseCollection::BaseCollection()
 void BaseCollection::setReduce(const unsigned int red) { _reduce = red; }
 
 unsigned int BaseCollection::getCollectionType() { return CollectionType; }
-
-void BaseCollection::setMonitorConfiguration(OnlineMonConfiguration* config) {
-	mon_configdata=config;
-};

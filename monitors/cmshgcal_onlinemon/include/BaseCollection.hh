@@ -84,9 +84,7 @@ class BaseCollection {
   //!Get Collection Type
   /*!This returns the parameter CollectionType*/
   unsigned int getCollectionType();
-
-  //set the monitor configuration for the conversion to simple planes
-  void setMonitorConfiguration(OnlineMonConfiguration*);
+ 
 };
 
 #ifdef __CINT__

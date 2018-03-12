@@ -82,12 +82,6 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
     wcCollection->setRootMonitor(this);
     beamTelescopeHitCollection->setRootMonitor(this);
 
-    hexaCollection->setMonitorConfiguration(&mon_configdata);
-    ahcalCollection->setMonitorConfiguration(&mon_configdata);
-    wcCollection->setMonitorConfiguration(&mon_configdata);
-    beamTelescopeHitCollection->setMonitorConfiguration(&mon_configdata);
-    
-
     onlinemon->setCollections(_colls);
   }
 

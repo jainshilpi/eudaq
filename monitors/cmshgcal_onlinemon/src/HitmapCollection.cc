@@ -143,7 +143,7 @@ void HitmapCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
     if (Plane.Sensor().find("WireChamber")!=std::string::npos) continue;
     
     //convert to a simpPlane
-    SimpleStandardPlane simpPlane(Plane.Sensor(),Plane.ID(),Plane.XSize(),Plane.YSize(), Plane.TLUEvent(),Plane.PivotPixel(),mon_configdata);
+    SimpleStandardPlane simpPlane(Plane.Sensor(),Plane.ID(),Plane.XSize(),Plane.YSize(), Plane.TLUEvent(),Plane.PivotPixel(), &_mon->mon_configdata);
     fillHistograms(simpPlane);
   }
 }
