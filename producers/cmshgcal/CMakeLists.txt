@@ -15,3 +15,5 @@ INSTALL(TARGETS  ${hgcal_name}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
+
+add_subdirectory(onlinemon)

@@ -17,8 +17,9 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard[3] = {20, 28, 32};
-const uint32_t skiMask[3] = {0xFFFFF000, 0x0FFFFFFF, 0xFFFFFFFF};
+const size_t nSkiPerBoard[1] = {12};
+const uint32_t skiMask[1] = {0x000f0ff0};
+const bool runForPedestal = true;
 //const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
 //const uint32_t skiMask = 0;
 
@@ -516,11 +517,13 @@ namespace eudaq {
 	    //if ((decoded[ski][chArrPos] & 0x1000) != (decoded[ski][chArrPos + 64] & 0x1000))
 	    //std::cout<<"Warning: HA is not what we think it is..."<<std::endl;
 
-	    // ZeroSuppress it:
-	    //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
-	    if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
-	      continue;
-
+	    if (!runForPedestal){
+	      // ZeroSuppress it:
+	      //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
+	      if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
+		continue;
+	    }
+	    
 	    dataBlockZS[hexa].push_back((ski%4)*100+ch);
 
 	    // Low gain (save nSCA time-slices after track):

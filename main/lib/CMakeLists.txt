@@ -82,6 +82,10 @@ if (PROTOBUF_FOUND AND GEN_proto)
 
 endif()
 
+if (BUILD_cmshgcal)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc)
+endif()
+
 ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} ${plugins_sources})
 
 if (PROTOBUF_FOUND AND GEN_proto)

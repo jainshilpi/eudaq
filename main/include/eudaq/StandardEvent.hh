@@ -158,6 +158,17 @@ namespace eudaq {
     return os;
   }
 
+  inline bool operator==(StandardPlane const &a, StandardPlane const &b) {
+    return (a.Sensor() == b.Sensor() && a.ID() == b.ID());
+  }
+  
+  inline bool operator<(StandardPlane const &a, StandardPlane const &b) {
+    return (a.Sensor() < b.Sensor() ||
+	    (a.Sensor() == b.Sensor() && a.ID() < b.ID()));
+}
+
+
+
 } // namespace eudaq
 
 #endif // EUDAQ_INCLUDED_StandardEvent

@@ -158,7 +158,7 @@ IF(BUILD_gui)
 ENDIF()
 
 # build OnlineMon executable
-option(BUILD_onlinemon "Compile Online Monitor executable (requires ROOT)?" ON)
+option(BUILD_onlinemon "Compile Online Monitor executable (requires ROOT)?" OFF)
 IF(BUILD_onlinemon)
   add_subdirectory(monitors/onlinemon)
 ENDIF()
@@ -169,6 +169,13 @@ option(BUILD_offlinemon "Compile Offline Monitor executable (requires ROOT)?" OF
 IF(BUILD_offlinemon)
   add_subdirectory(monitors/offlinemon)
 ENDIF()
+
+
+# # build OnlineMon executable
+# option(BUILD_cmshgcal_onlinemon "Compile cmshgcal Online Monitor executable (requires ROOT)?" OFF)
+# IF(BUILD_cmshgcal_onlinemon)
+#   add_subdirectory(monitors/cmshgcal_onlinemon)
+# ENDIF()
 
 
 # build Runsplitter

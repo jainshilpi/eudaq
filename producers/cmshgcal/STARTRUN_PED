@@ -106,25 +106,24 @@ xterm -sb -sl 1000 -geom 80x600-280-900 -fn fixed -T "CMS HGCal Producer" -e './
 sleep 2
 
 #####################################################################
-# if [ -f "HgcOnlineMon.exe" ]
-# then
-#     printf '\033[22;33m\t  HGC Online Monitor  \033[0m \n'
-#     flog="../logs/Run${NEWRUNNUM}_HgcOnlineMon_$dt.log"
-#     config_file="../producers/cmshgcal/conf/OnlineMon.conf"
-#     #./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT
-#     nohup ./HgcOnlineMon.exe -u 500 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
-#     printf "The logs from the Online Monitor are in $flog file. \n"
+if [ -f "HgcOnlineMon.exe" ]
+then
+    printf '\033[22;33m\t  HGC Online Monitor  \033[0m \n'
+    flog="../logs/Run${NEWRUNNUM}_HgcOnlineMon_$dt.log"
+    config_file="../producers/cmshgcal/conf/OnlineMon.conf"
+    #./HgcOnlineMon.exe -u 100 -rf -rs -sc 2 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT
+    nohup ./HgcOnlineMon.exe -u 500 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
+    #xterm -sb -sl 1000 -geom 80x10-480-700 -fn fixed -T "HgcOnlineMon" -e './HgcOnlineMon.exe -r tcp://$HOSTIP:$RCPORT' &
+    printf "The logs from the Online Monitor are in $flog file. \n"
 
-# else
-#     printf '\033[22;31m\t  Online monitor not found! \033[0m \n'
-#     echo 'Configure EUDAQ with the CMake option "-D BUILD_onlinemon=ON" and re-run "make install" to install.'
-# fi
-#####################################################################
+else
+    printf '\033[22;31m\t  Online monitor not found! \033[0m \n'
+    echo 'Configure EUDAQ with the CMake option "-D BUILD_cmshgcal_onlinemon=ON" and re-run "make install" to install.'
+fi
 
-# tlu Producer
 ###############
 printf '\033[22;33m\t tlu hgcal Producer \033[0m \n'
-xterm -sb -sl 1000 -geom 80x600-280-900 -fn fixed -T "TLU Producer" -e './TLUProducer.exe -r tcp://$HOSTIP:$RCPORT' &
+xterm -sb -sl 1000 -geom 80x10-480-800 -fn fixed -T "TLU Producer" -e './TLUProducer.exe -r tcp://$HOSTIP:$RCPORT' &
 sleep 2
 
 

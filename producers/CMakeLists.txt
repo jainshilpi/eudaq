@@ -32,7 +32,7 @@ optional_add_subdirectory(timepixdummy)
 optional_add_subdirectory(tlu)
 
 # empty directory for AHCAL and BIF_AHCAL
-add_subdirectory(calice)
+optional_add_subdirectory(calice)
 
 # directory for CMS-HGCal
-add_subdirectory(cmshgcal)
+optional_add_subdirectory(cmshgcal)

@@ -321,6 +321,21 @@ namespace eudaq {
                         m_pix[2][i] * (m_pivot[0][i]);
       }
       m_result_pix = &m_temp_pix;
+      
+    } else if (m_pix.size() == 30){ // Hexaboard data
+      m_temp_pix.resize(0);
+      m_temp_x.resize(0);
+      m_temp_y.resize(0);
+
+      for (size_t p = 0; p < m_pix[2].size(); ++p) {
+	m_temp_x.push_back(GetX(p, 2));
+	m_temp_y.push_back(GetY(p, 2));
+	m_temp_pix.push_back(GetPixel(p, 2));
+      }
+
+      m_result_x = &m_temp_x;
+      m_result_y = &m_temp_y;
+      m_result_pix = &m_temp_pix;
     } else {
       EUDAQ_THROW("Unrecognised pixel format (" + to_string(m_pix.size()) +
                   " frames, CDS=" +
