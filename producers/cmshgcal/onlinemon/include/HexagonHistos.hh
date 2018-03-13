@@ -118,7 +118,7 @@ private:
   RootMonitor *_mon;
 
   int mainFrameTS, thresh_LG, thresh_HG;
-
+  bool _isPedestalRun;
 };
 
 
