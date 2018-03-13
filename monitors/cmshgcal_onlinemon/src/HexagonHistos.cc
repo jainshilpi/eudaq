@@ -26,6 +26,7 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   _mon = mon;
 
+  _isPedestalRun = (bool)_mon->mon_configdata.DoPedestal();
   // std::cout << "HexagonHistos::Sensorname: " << _sensor << " "<< _id<<
   // std::endl;
 
@@ -210,18 +211,10 @@ int HexagonHistos::zero_plane_array() {
 void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
   // std::cout<< "FILL with a plane." << std::endl;
   
-  if (_nHits != NULL){
-    _nHits->Fill(plane.HitPixels());
-    handleOverflowBins(_nHits);
-  }
-  if ((_nbadHits != NULL)) {
-    _nbadHits->Fill(2);
-  }
-
-  int nHot = 0;
+  int nHit=0, nHot=0, nBad=0;
   
   // Temporary lets just not fill events with too many channels 
-  if (plane.HitPixels()>40)
+  if (plane.HitPixels()>250 && !_isPedestalRun)
     return;
 
 
@@ -235,19 +228,23 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++)
     {
-
       const int pixel_x = plane.GetX(pix);
       const int pixel_y = plane.GetY(pix);
       const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
 
+      
       // ----- Maskig noisy channels ----
       // These are noisy pixels in every hexaboard. Let's just mask them from DQM.
       // Upd Sept. 2017: after disabling LED, those are not noisy anymore in all module, except "May"
-      //if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
-	   //pixel_x==3 && (pixel_y==32 || pixel_y==48))
-	   //continue;
 
-      // -------- end masking -------------
+      if ( pixel_x==0 && pixel_y==22 )
+  continue;
+
+      /*
+      if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
+     pixel_x==3 && (pixel_y==32 || pixel_y==48))
+  continue;
+      */
 
       //std::cout<<" We are getting a pixel with pix="<<pix
       //       <<"\t in hexagon channel:"<<ch<<",  ski="<<pixel_x<<"  Ch="<<pixel_y<<std::endl;
@@ -257,8 +254,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       std::array<int, nSCA> sig_HG;
 
       for (int ts=0; ts<nSCA; ts++){
-	     sig_LG[ts] = plane.GetPixel(pix, ts);
-	     sig_HG[ts] = plane.GetPixel(pix, ts+nSCA);
+        sig_LG[ts] = plane.GetPixel(pix, ts);
+        sig_HG[ts] = plane.GetPixel(pix, ts+nSCA);
       }
 
       // Suppress noizy Time Samples:
@@ -284,14 +281,14 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       const int ped_HG = sig_HG[0]; 
       
       if (_pedLG!=NULL)
-	_pedLG->Fill(ped_LG);
+        _pedLG->Fill(ped_LG);
       if (_pedHG!=NULL)
-	_pedHG->Fill(ped_HG);
+        _pedHG->Fill(ped_HG);
 
       if (_posOfMaxADCinLG!=NULL && (*max_LG) - ped_LG > thresh_LG)
-	_posOfMaxADCinLG->Fill(pos_max_LG);
+        _posOfMaxADCinLG->Fill(pos_max_LG);
       if (_posOfMaxADCinHG!=NULL && (*max_HG) - ped_HG > thresh_HG)
-	_posOfMaxADCinHG->Fill(pos_max_HG);
+        _posOfMaxADCinHG->Fill(pos_max_HG);
 
       // Average of three TS around main frame:
       //const int avg_LG = std::accumulate(sig_LG.begin()+mainFrameTS-1, sig_LG.begin()+mainFrameTS+2, 0)/3; 
@@ -301,10 +298,10 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
       const int peak_HG = sig_HG[mainFrameTS];
       
       if (_sigAdcLG!=NULL)
-	_sigAdcLG->Fill(peak_LG - ped_LG);
+        _sigAdcLG->Fill(peak_LG - ped_LG);
 
       if (_sigAdcHG!=NULL)
-	_sigAdcHG->Fill(peak_HG - ped_HG);
+        _sigAdcHG->Fill(peak_HG - ped_HG);
       
       const int toa_fall = plane.GetPixel(pix, 26);
       const int toa_rise = plane.GetPixel(pix, 27);
@@ -313,91 +310,102 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
 
       if (_waveformHG!=NULL && _waveformLG!=NULL &&_waveformNormHG!=NULL && _waveformNormLG!=NULL){
-	
-	// Onle fill these if maximum is above some threshold (ie, it is signal)
-	if ( (*max_LG) - ped_LG > thresh_LG) {
-	  for (int ts=0; ts<nSCA; ts++){
-	    _waveformLG->Fill(ts, plane.GetPixel(pix, ts));
-	    _waveformNormLG->Fill(ts, (float)plane.GetPixel(pix, ts)/(*max_LG));
-	  }
-	}
-	if ( (*max_HG) - ped_HG > thresh_HG) {
-	  for (int ts=0; ts<nSCA; ts++){
-	    _waveformHG->Fill(ts, plane.GetPixel(pix, nSCA+ts));
-	    _waveformNormHG->Fill(ts, (float)plane.GetPixel(pix, nSCA+ts)/(*max_HG));
-	  }
-	}
+  
+        // Onle fill these if maximum is above some threshold (ie, it is signal)
+        if ( (*max_LG) - ped_LG > thresh_LG) {
+          for (int ts=0; ts<nSCA; ts++){
+            _waveformLG->Fill(ts, plane.GetPixel(pix, ts));
+            _waveformNormLG->Fill(ts, (float)plane.GetPixel(pix, ts)/(*max_LG));
+          }
+        }
+        if ( (*max_HG) - ped_HG > thresh_HG) {
+          for (int ts=0; ts<nSCA; ts++){
+            _waveformHG->Fill(ts, plane.GetPixel(pix, nSCA+ts));
+            _waveformNormHG->Fill(ts, (float)plane.GetPixel(pix, nSCA+ts)/(*max_HG));
+          }
+        }
       }
 
+
       if (_hit2Dmap != NULL)
-	_hit2Dmap->Fill(pixel_x, pixel_y);
+        _hit2Dmap->Fill(pixel_x, pixel_y);
       if (_hit1Docc != NULL)
-	_hit1Docc->Fill(pixel_x*64+pixel_y);
+        _hit1Docc->Fill(pixel_x*64+pixel_y);
 
 
       if ( (*max_LG) > 4000 || (*max_HG) > 4000 ){
-	nHot+=1;
-	if (_BadPixelMap != NULL)
-	  _BadPixelMap->Fill(pixel_x, pixel_y);
-      }
+    nHot+=1;
+    if (_BadPixelMap != NULL)
+      _BadPixelMap->Fill(pixel_x, pixel_y);
+    }
 
       
       if ( (toa_rise==4 || toa_fall==4) && _BadPixelMap != NULL)
-	// This is bad because the hits are slected based on HA bit, which should be equivalent to TOA
-	_BadPixelMap->Fill(pixel_x, pixel_y);
-	            
+  // This is bad because the hits are slected based on HA bit, which should be equivalent to TOA
+  _BadPixelMap->Fill(pixel_x, pixel_y);
+              
 
       if (_LGvsTOTfast != NULL)
-	_LGvsTOTfast->Fill(tot_fast, peak_LG);
+        _LGvsTOTfast->Fill(tot_fast, peak_LG);
       if (_LGvsTOTslow != NULL)
-	_LGvsTOTslow->Fill(tot_slow, peak_LG);
+        _LGvsTOTslow->Fill(tot_slow, peak_LG);
       if (_HGvsLG != NULL)
-	_HGvsLG->Fill(peak_LG, peak_HG);
+        _HGvsLG->Fill(peak_LG, peak_HG);
       if (_TOAvsChId != NULL)
-	_TOAvsChId->Fill(pixel_x*64+pixel_y, toa_fall);
-	  
+        _TOAvsChId->Fill(pixel_x*64+pixel_y, toa_fall);
+    
       // Loop over the bins and Fill the one matched to our channel
       for (int icell = 0; icell < 133 ; icell++) {
 
-	const int bin = ch_to_bin_map[icell];
+      const int bin = ch_to_bin_map[icell];
 
-	//std::cout<<" pixel_x = "<<pixel_x <<"  pixel_y="<<pixel_y
-	//	 <<"  channel = "<<ch<<"  icell="<<icell<<"  bin="<<bin<<std::endl;
-	if (bin == ch){
-	  //std::cout<<"Our bin matched the channel: "<<bin<<std::endl;
+      //std::cout<<" pixel_x = "<<pixel_x <<"  pixel_y="<<pixel_y
+      //   <<"  channel = "<<ch<<"  icell="<<icell<<"  bin="<<bin<<std::endl;
+      if (bin == ch){
+        //std::cout<<"Our bin matched the channel: "<<bin<<std::endl;
 
-	  if (_hexagons_charge!=NULL)
-	    _hexagons_charge->SetBinContent(icell+1, peak_HG);
+        if (_hexagons_charge!=NULL)
+          _hexagons_charge->SetBinContent(icell+1, peak_HG);
 
-	  //char buffer_bin[3]; sprintf(buffer_bin,"%d", (char)(icell+1));
-	  std::ostringstream oss;  oss << "Sensor_" << icell+1;
-          const string bin_name = oss.str();
+        //char buffer_bin[3]; sprintf(buffer_bin,"%d", (char)(icell+1));
+        std::ostringstream oss;  oss << "Sensor_" << icell+1;
+        const string bin_name = oss.str();
 
-          if ((avg_HG - ped_HG) > thresh_HG && _hexagons_occ_adc!=NULL)
-            _hexagons_occ_adc->Fill(bin_name.c_str(), 1);
+        if ((avg_HG - ped_HG) > thresh_HG && _hexagons_occ_adc!=NULL)
+          _hexagons_occ_adc->Fill(bin_name.c_str(), 1);
 
-          if (tot_slow!=4 &&_hexagons_occ_tot!=NULL)
-            _hexagons_occ_tot->Fill(bin_name.c_str(), 1);
+        if (tot_slow!=4 &&_hexagons_occ_tot!=NULL)
+          _hexagons_occ_tot->Fill(bin_name.c_str(), 1);
 
-          if (toa_fall!=4 && _hexagons_occ_toa!=NULL)
-            _hexagons_occ_toa->Fill(bin_name.c_str(), 1);
+        if (toa_fall!=4 && _hexagons_occ_toa!=NULL)
+          _hexagons_occ_toa->Fill(bin_name.c_str(), 1);
 
-          if (_hexagons_occ_HA_bit!=NULL)
-            _hexagons_occ_HA_bit->Fill(bin_name.c_str(), 1);
+        if (_hexagons_occ_HA_bit!=NULL)
+          _hexagons_occ_HA_bit->Fill(bin_name.c_str(), 1);
 
-	}
       }
+      }
+      nHit++;
+
     }
-
-
+  
+  if (_nHits != NULL){
+    _nHits->Fill(nHit);
+    handleOverflowBins(_nHits);
+  }
+  
+  //if ((_nbadHits != NULL)) {
+  //_nbadHits->Fill(2);
+  //}
+  
   if (_nHotPixels != NULL)
     _nHotPixels->Fill(nHot);
 
 
   if (_hexagons_charge!=NULL && evNumber%100==0)
     ev_display_list->Add(_hexagons_charge->Clone(Form("%s_%i_HG_Display_Event_%05i",
-						      _sensor.c_str(), _id,
-						      evNumber)));
+                  _sensor.c_str(), _id,
+                  evNumber)));
   // We need to increase the counter once per event.
   // Since this Fill() method is done once per plane, let's just increment it at zeros plane
   //if (plane.Sensor()=="HexaBoard-RDB2" && plane.ID()==0)
@@ -499,26 +507,19 @@ void HexagonHistos::Write() {
 
   /*
   gSystem->Sleep(100);
-
   gROOT->SetBatch(kTRUE);
   TCanvas *tmpcan = new TCanvas("tmpcan","Canvas for PNGs",600,600);
   tmpcan->cd();
-
   _hexagons_occ_adc->Draw("COLZ TEXT");
   tmpcan->SaveAs("../snapshots/Occupancy_ADC_HG.png");
-
   _hexagons_occ_tot->Draw("COLZ TEXT");
   tmpcan->SaveAs("../snapshots/Occupancy_TOT.png");
-
   _hexagons_occ_toa->Draw("COLZ TEXT");
   tmpcan->SaveAs("../snapshots/Occupancy_TOA.png");
-
   _nHits->Draw("hist");
   tmpcan->SaveAs("../snapshots/nHits.png");
-
   tmpcan->Close();
   gROOT->SetBatch(kFALSE);
-
   */
 
   //std::cout<<"Doing HexagonHistos::Write() after canvas drawing"<<std::endl;

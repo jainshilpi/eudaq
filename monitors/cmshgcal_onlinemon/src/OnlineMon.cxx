@@ -114,6 +114,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
       exit(-1);
     }
   
+  hexaCollection->SetPedestalRun((bool)mon_configdata.DoPedestal());
   
   // print the configuration
   mon_configdata.PrintConfiguration();

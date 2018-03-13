@@ -34,7 +34,7 @@ void HexagonCollection::bookHistograms(const eudaq::StandardEvent &ev) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
       if (Plane.Sensor().find("HexaBoard")!=std::string::npos)
-	registerPlane(Plane);
+        registerPlane(Plane);
     }
   }
 }
@@ -122,39 +122,40 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     // cout << "HexagonCollection:: Monitor running in online-mode" << endl;
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
-    
-    sprintf(tree, "%s/Module %i/Occ_HA_bit", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccHAbitHisto(), "COLZ2 TEXT");
-    _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
-    sprintf(tree, "%s/Module %i/Occ_ADC_HG", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccAdcHisto(), "COLZ2 TEXT");
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
-
-    sprintf(tree, "%s/Module %i/Occ_TOT", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccTotHisto(), "COLZ2 TEXT");
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+    if (!_isPedestalRun){
+      sprintf(tree, "%s/Module %i/Occ_HA_bit", p.Sensor().c_str(), p.ID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccHAbitHisto(), "COLZ2 TEXT");
+      _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+      
+      sprintf(tree, "%s/Module %i/Occ_ADC_HG", p.Sensor().c_str(), p.ID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccAdcHisto(), "COLZ2 TEXT");
+      //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+      
+      sprintf(tree, "%s/Module %i/Occ_TOT", p.Sensor().c_str(), p.ID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccTotHisto(), "COLZ2 TEXT");
+      //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+      
+      //sprintf(tree, "%s/Module %i/Occ_TOA", p.Sensor().c_str(), p.ID());
+      //_mon->getOnlineMon()->registerTreeItem(tree);
+      //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccToaHisto(), "COLZ2 TEXT");
+      //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+      
+      sprintf(tree, "%s/Module %i/RawHitmap", p.Sensor().c_str(), p.ID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHitmapHisto(), "COLZ2", 0);
     
-    //sprintf(tree, "%s/Module %i/Occ_TOA", p.Sensor().c_str(), p.ID());
-    //_mon->getOnlineMon()->registerTreeItem(tree);
-    //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccToaHisto(), "COLZ2 TEXT");
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
-
-    sprintf(tree, "%s/Module %i/RawHitmap", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHitmapHisto(), "COLZ2", 0);
-    
-    //sprintf(tree, "%s/Module %i/Hit_1D_Occupancy", p.Sensor().c_str(), p.ID());
-    //_mon->getOnlineMon()->registerTreeItem(tree);
-    //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHit1DoccHisto());
-    
-    sprintf(tree, "%s/Module %i/NumHits", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getNHitsHisto());
-
+      //sprintf(tree, "%s/Module %i/Hit_1D_Occupancy", p.Sensor().c_str(), p.ID());
+      //_mon->getOnlineMon()->registerTreeItem(tree);
+      //_mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHit1DoccHisto());
+      
+      sprintf(tree, "%s/Module %i/NumHits", p.Sensor().c_str(), p.ID());
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getNHitsHisto());
+    }
     
     sprintf(tree, "%s/Module %i/SignalADC_LG", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
@@ -164,7 +165,6 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getSigAdcHGHisto());
 
-
     sprintf(tree, "%s/Module %i/PedestalLG", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getPedLGHisto());
@@ -172,7 +172,8 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     sprintf(tree, "%s/Module %i/PedestalHG", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getPedHGHisto());
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+    if (_isPedestalRun)
+      _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
     sprintf(tree, "%s/Module %i/LGvsTOTfast", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);

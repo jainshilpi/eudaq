@@ -124,6 +124,9 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         } else if (key.compare("DqmColorMap") == 0) {
           value = remove_this_character(value, '"');
           DqmColorMap = StringToNumber<int>(value);
+  } else if (key.compare("doPedestal") == 0) {
+          value = remove_this_character(value, '"');
+          doPedestal = StringToNumber<int>(value);
         } else if (key.compare("mainFrameTS") == 0) {
           value = remove_this_character(value, '"');
           mainFrameTS = StringToNumber<int>(value);
@@ -203,6 +206,7 @@ void OnlineMonConfiguration::SetDefaults() {
   SnapShotDir = "../snapshots/";
   SnapShotFormat = ".png";
   DqmColorMap = 54;
+  doPedestal = 0;
   // mimosa26 settings
   mimosa26_max_sections = 4;
   mimosa26_section_boundary = 288;
@@ -256,6 +260,8 @@ void OnlineMonConfiguration::setSnapShotFormat(string SnapShotFormat) {
 
 int OnlineMonConfiguration::getDqmColorMap() const {
   return DqmColorMap;
+}int OnlineMonConfiguration::DoPedestal() const {
+  return doPedestal;
 }
 int OnlineMonConfiguration::getMainFrameTS() const {
   return mainFrameTS;
