@@ -268,7 +268,8 @@ public:
 	virtual void OnStartRun(unsigned runnumber) {
 
 		m_run = runnumber;
-		
+		m_ev = 0;
+
 		try {
 			// If a stepping is wanted, execute the next step.
 
@@ -354,7 +355,7 @@ public:
 
 
 		    // get position
-		        double pos_curr1;
+			double pos_curr1;
 			double pos_curr2;
 			double pos_curr3;
 			double pos_curr4;
@@ -376,15 +377,15 @@ public:
 
 		    // It must send a BORE to the Data Collector
 		    eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
-                   // You can set tags on the BORE that will be saved in the data file
-                   // and can be used later to help decoding
-                   bore.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
-                   bore.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
-                   bore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
-                   bore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+		   // You can set tags on the BORE that will be saved in the data file
+		   // and can be used later to help decoding
+		   bore.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+		   bore.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+		   bore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+		   bore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
 
-                   // Send the event to the Data Collector
-                   SendEvent(bore);
+		   // Send the event to the Data Collector
+		   SendEvent(bore);
 
 		    SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
 		}
@@ -428,10 +429,16 @@ public:
 
 	void Loop() {
 
-    	        m_ev = 0;
-
 		// Loop until Run Control tells us to terminate
 		while (!m_terminated) {
+
+		    if (GetConnectionState() != eudaq::ConnectionState::STATE_RUNNING)
+		    {
+			// Now sleep for a bit, to prevent chewing up all the CPU
+			eudaq::mSleep(20);
+			// Then restart the loop
+			continue;
+		    }
 
 		    if (m_ev % 100 == 0){
 			// get position
@@ -460,7 +467,6 @@ public:
 		    // Move this thread to the end of the scheduler queue:
 		    //sched_yield();
 		    eudaq::mSleep(50);
-		    continue;
 		}
 	}
 
@@ -505,12 +511,12 @@ private:
 	unsigned int m_start_position_id = 0;
 	double m_home_position1 = 0;
 	double m_home_position2 = 0;
-        unsigned int m_npositions = 0;
+	unsigned int m_npositions = 0;
 
 	HexGrid hexgrid;
 
 	unsigned m_run;
-    	unsigned m_ev;
+	unsigned m_ev;
 };
 
 // The main function that will create a Producer instance and run it
