@@ -140,6 +140,9 @@ public:
 			m_movemode = config.Get("MoveMode", 0);
 
 			if (m_movemode == 1){
+
+			    EUDAQ_INFO("PI stage moving in hexagonal grid.");
+
 			    // Read other parameters for hexagon
 			    m_start_position_id = config.Get("StartPosID",-1);
 
@@ -147,7 +150,7 @@ public:
 			    m_home_position2 = config.Get("HomePosition2",0);
 
 			    // If start position ID not given, check for start position X/Y
-			    if (m_start_position_id > -1){
+			    if (m_start_position_id == -1){
 				m_start_position1 = config.Get("StartPos1",0);
 				m_start_position2 = config.Get("StartPos2",0);
 			    }
@@ -162,6 +165,9 @@ public:
 			    m_npositions = hexgrid.getNpos();
 			    EUDAQ_INFO("Number of positions " + std::to_string(m_npositions) + ". Starting at " + std::to_string(m_start_position_id));
 
+			}
+			else {
+			    EUDAQ_INFO("PI stage moving linear.");
 			}
 
 
@@ -339,6 +345,9 @@ public:
 				m_position2 = m_home_position2;
 
 				if (m_position1 <= m_axis1max && m_position1 >= 0. && m_position2 <= m_axis2max && m_position2 >= 0.){
+
+				    EUDAQ_INFO("Moving to home position");
+
 				    wrapper->moveTo(m_axis1, m_position1);
 				    wrapper->moveTo(m_axis2, m_position2);
 
@@ -509,7 +518,7 @@ private:
 	unsigned int m_currstep = 0;
 
 	// parameters for hexa grid
-	unsigned int m_start_position_id = 0;
+	int m_start_position_id = 0;
 	double m_home_position1 = 0;
 	double m_home_position2 = 0;
 	unsigned int m_npositions = 0;
