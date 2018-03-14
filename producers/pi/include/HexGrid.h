@@ -20,9 +20,9 @@ class HexGrid {
 
 protected:
 
-    // Hexagon parameters
-    const double m_largeD = 1350.;
-    const double m_smallD = 1250.;
+    // Hexagon parameters [mm]
+    const double m_largeD = 135.;
+    const double m_smallD = 125.;
 
     const double m_largeR = m_largeD / 2.;
     const double m_smallR = m_smallD / 2.;
@@ -33,19 +33,19 @@ protected:
     const double m_b =  2. * m_smallR;
     const double m_a = -2. * m_smallR/m_largeR;
 
-    // center positions
+    // center positions [mm]
     double m_centerX = 0.;
     double m_centerY = 0.;
 
-    // step sizes
+    // step sizes [mm]
     double m_stepSizeX = 50.;
     double m_stepSizeY = 25.;
 
-    // border offset
+    // border offset [mm]
     double m_borderOffsetX = 0;
     double m_borderOffsetY = 0;
 
-    // start positions
+    // start positions [mm]
     double m_startY = m_smallR - m_borderOffsetY;
     double m_startX = - (m_startY - m_b) / m_a + m_borderOffsetX;
 
