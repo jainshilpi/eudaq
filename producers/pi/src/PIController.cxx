@@ -146,6 +146,9 @@ public:
 			    // Read other parameters for hexagon
 			    m_start_position_id = config.Get("StartPosID",-1);
 
+			    hexgrid.setLargeD(config.Get("HexaLargeD",135.));
+			    hexgrid.setLargeD(config.Get("HexaSmallD",125.));
+
 			    m_home_position1 = config.Get("HomePosition1",0);
 			    m_home_position2 = config.Get("HomePosition2",0);
 
