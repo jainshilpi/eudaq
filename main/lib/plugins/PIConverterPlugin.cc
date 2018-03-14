@@ -39,10 +39,15 @@ namespace eudaq {
 					 const Event &ev) const {
 
 	    // Read PI stage position
-	    m_pi_pos_chan1 = ev.GetTag("pi_pos_chan1", 0);
-	    m_pi_pos_chan2 = ev.GetTag("pi_pos_chan2", 0);
-	    m_pi_pos_chan3 = ev.GetTag("pi_pos_chan3", 0);
-	    m_pi_pos_chan4 = ev.GetTag("pi_pos_chan4", 0);
+	    double pi_pos_chan1;
+	    double pi_pos_chan2;
+	    double pi_pos_chan3;
+	    double pi_pos_chan4;
+
+	    pi_pos_chan1 = ev.GetTag("pi_pos_chan1", 0);
+	    pi_pos_chan2 = ev.GetTag("pi_pos_chan2", 0);
+	    pi_pos_chan3 = ev.GetTag("pi_pos_chan3", 0);
+	    pi_pos_chan4 = ev.GetTag("pi_pos_chan4", 0);
 
 	    // Create "plane" of the PI stage position
 	    std::string sensortype = "pistage";
