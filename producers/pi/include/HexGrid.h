@@ -21,17 +21,17 @@ class HexGrid {
 protected:
 
     // Hexagon parameters [mm]
-    const double m_largeD = 135.;
-    const double m_smallD = 125.;
+    double m_largeD = 135.;
+    double m_smallD = 125.;
 
-    const double m_largeR = m_largeD / 2.;
-    const double m_smallR = m_smallD / 2.;
+    double m_largeR = m_largeD / 2.;
+    double m_smallR = m_smallD / 2.;
 
     // side parameters
     // y = ax + b for the top-right edge
     // x = (y-b)/a
-    const double m_b =  2. * m_smallR;
-    const double m_a = -2. * m_smallR/m_largeR;
+    double m_b =  2. * m_smallR;
+    double m_a = -2. * m_smallR/m_largeR;
 
     // center positions [mm]
     double m_centerX = 0.;
@@ -71,6 +71,24 @@ public:
     void setCenterY(double posY) { m_centerY = posY; } ;
     void setStepX(int step) { m_stepSizeX = step; };
     void setStepY(int step) { m_stepSizeY = step; };
+
+    // update Hexagon parameters
+    void setLargeD(double largeD) {
+	m_largeD = largeD;
+	m_largeR = m_largeD / 2.;
+	m_a = -2. * m_smallR/m_largeR;
+
+	m_startX = - (m_startY - m_b) / m_a + m_borderOffsetX;
+    } ;
+
+    void setSmallD(double smallD) {
+	m_smallD = smallD;
+	m_smallR = m_smallD / 2.;
+	m_b =  2. * m_smallR;
+
+	m_startY = m_smallR - m_borderOffsetY;
+    } ;
+
 
     // functions to get parameters
     int getPosX(int posID) { return (posID < m_npoints)? m_positionsX.at(posID):-1; };
