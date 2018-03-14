@@ -392,10 +392,18 @@ public:
 		    eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
 		   // You can set tags on the BORE that will be saved in the data file
 		   // and can be used later to help decoding
-		   bore.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
-		   bore.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
-		   bore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
-		   bore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+		   if( wrapper->axisIsReferenced(m_axis1) ) {
+		       bore.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+		   }
+		   if( wrapper->axisIsReferenced(m_axis2) ) {
+		       bore.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+		   }
+		   if( wrapper->axisIsReferenced(m_axis3) ) {
+		       bore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+		   }
+		   if( wrapper->axisIsReferenced(m_axis4) ) {
+		       bore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+		   }
 
 		   // Send the event to the Data Collector
 		   SendEvent(bore);
@@ -411,14 +419,47 @@ public:
 	virtual void OnStopRun() {
 
 		try {
-			// No Action
+		    // get position
+		    double pos_curr1;
+		    double pos_curr2;
+		    double pos_curr3;
+		    double pos_curr4;
+		    wrapper->getPosition2(m_axis1, &pos_curr1);
+		    wrapper->getPosition2(m_axis2, &pos_curr2);
+		    wrapper->getPosition2(m_axis3, &pos_curr3);
+		    wrapper->getPosition2(m_axis4, &pos_curr4);
+		    printf("\nCurrent position:\n");
+		    wrapper->printPosition(m_axis1);
+		    wrapper->printPosition(m_axis2);
+		    wrapper->printPosition(m_axis3);
+		    wrapper->printPosition(m_axis4);
 
-			// get position
-			printf("\nCurrent position:\n");
-			wrapper->printPosition(m_axis1);
-			wrapper->printPosition(m_axis2);
-			wrapper->printPosition(m_axis3);
-			wrapper->printPosition(m_axis4);
+		    EUDAQ_INFO("PI stage in position 1=" + std::to_string(pos_curr1) +
+			       ", 2=" + std::to_string(pos_curr2) +
+			       ", 3=" + std::to_string(pos_curr3) +
+			       ", 4=" + std::to_string(pos_curr4));
+
+
+		    // It must send a EORE to the Data Collector
+		    eudaq::RawDataEvent eore(eudaq::RawDataEvent::EORE(EVENT_TYPE, m_run));
+		    // You can set tags on the EORE that will be saved in the data file
+		    // and can be used later to help decoding
+		    if( wrapper->axisIsReferenced(m_axis1) ) {
+			eore.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+		    }
+		    if( wrapper->axisIsReferenced(m_axis2) ) {
+			eore.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+		    }
+		    if( wrapper->axisIsReferenced(m_axis3) ) {
+			eore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+		    }
+		    if( wrapper->axisIsReferenced(m_axis4) ) {
+			eore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+		    }
+
+		    // Send the event to the Data Collector
+		    SendEvent(eore);
+
 
 			SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopped");
 		}
@@ -464,12 +505,20 @@ public:
 			wrapper->getPosition2(m_axis3, &pos_curr3);
 			wrapper->getPosition2(m_axis4, &pos_curr4);
 
-			// It must send a BORE to the Data Collector
+			// Send event to data collector
 			eudaq::RawDataEvent ev(eudaq::RawDataEvent(EVENT_TYPE, m_run, m_ev));
-			ev.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
-			ev.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
-			ev.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
-			ev.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+			if( wrapper->axisIsReferenced(m_axis1) ) {
+			    ev.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+			}
+			if( wrapper->axisIsReferenced(m_axis2) ) {
+			    ev.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+			}
+			if( wrapper->axisIsReferenced(m_axis3) ) {
+			    ev.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+			}
+			if( wrapper->axisIsReferenced(m_axis4) ) {
+			    ev.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+			}
 
 			// Send the event to the Data Collector
 			SendEvent(ev);
