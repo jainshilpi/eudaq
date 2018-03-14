@@ -271,7 +271,7 @@ public:
 		m_ev = 0;
 
 		try {
-			// If a stepping is wanted, execute the next step.
+		    // If a stepping is wanted, execute the next step.
 
 		    if(m_movemode == 0){
 			if (m_currstep < m_nsteps4 && m_stepsize4!=0){
@@ -305,6 +305,7 @@ public:
 		    else if (m_movemode == 1){
 			if (m_currstep == m_start_position_id){
 			    EUDAQ_INFO("Initial step, staying at first position.");
+			    m_currstep += 1;
 			}
 			else if (m_currstep < m_npositions){
 			    // get position coordinates
@@ -355,14 +356,14 @@ public:
 
 
 		    // get position
-			double pos_curr1;
-			double pos_curr2;
-			double pos_curr3;
-			double pos_curr4;
-			wrapper->getPosition2(m_axis1, &pos_curr1);
-			wrapper->getPosition2(m_axis2, &pos_curr2);
-			wrapper->getPosition2(m_axis3, &pos_curr3);
-			wrapper->getPosition2(m_axis4, &pos_curr4);
+		    double pos_curr1;
+		    double pos_curr2;
+		    double pos_curr3;
+		    double pos_curr4;
+		    wrapper->getPosition2(m_axis1, &pos_curr1);
+		    wrapper->getPosition2(m_axis2, &pos_curr2);
+		    wrapper->getPosition2(m_axis3, &pos_curr3);
+		    wrapper->getPosition2(m_axis4, &pos_curr4);
 		    printf("\nCurrent position:\n");
 		    wrapper->printPosition(m_axis1);
 		    wrapper->printPosition(m_axis2);
