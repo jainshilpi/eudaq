@@ -495,7 +495,7 @@ public:
 		    }
 
 		    if (m_movemode == 2){
-			for ( unsingned nstep = 0; nstep < m_npositions; ++nstep ) {
+			for ( unsigned nstep = 0; nstep < m_npositions; ++nstep ) {
 			    // get position coordinates
 			    m_position1 = hexgrid.getPosX(m_currstep);
 			    m_position2 = hexgrid.getPosY(m_currstep);
@@ -519,6 +519,7 @@ public:
 			    // Increment step
 			    m_currstep += 1;
 			}
+		    }
 
 
 		    if (m_ev % 100 == 0){
