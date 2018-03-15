@@ -500,6 +500,8 @@ public:
 			    m_position1 = hexgrid.getPosX(m_currstep);
 			    m_position2 = hexgrid.getPosY(m_currstep);
 
+			    EUDAQ_INFO("Want to move to position " + std::to_string(m_currstep)+ " x=" + std::to_string(m_position1) + " , y=" + std::to_string(m_position2));
+
 			    if (m_position1 <= m_axis1max && m_position1 >= 0. && m_position2 <= m_axis2max && m_position2 >= 0.){
 				wrapper->moveTo(m_axis1, m_position1);
 				wrapper->moveTo(m_axis2, m_position2);
