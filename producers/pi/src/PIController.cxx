@@ -507,10 +507,14 @@ public:
 				wrapper->moveTo(m_axis2, m_position2);
 
 				// check position
-				double pos_curr1;
-				double pos_curr2;
-				wrapper->getPosition2(m_axis1, &pos_curr1);
-				wrapper->getPosition2(m_axis2, &pos_curr2);
+				double pos_curr1 = -1;
+				double pos_curr2 = -1;
+
+				while ( abs ( pos_curr1 - m_position1 ) > m_stepsize1/2. && abs ( pos_curr2 - m_position2 ) > m_stepsize2/2. ){
+				    eudaq::mSleep(50);
+				    wrapper->getPosition2(m_axis1, &pos_curr1);
+				    wrapper->getPosition2(m_axis2, &pos_curr2);
+				}
 
 				EUDAQ_INFO("Moved to position " + std::to_string(m_currstep)+ " x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
 			    }
