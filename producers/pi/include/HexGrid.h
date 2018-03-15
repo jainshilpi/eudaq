@@ -69,8 +69,8 @@ public:
     // functions to set parameters
     void setCenterX(double posX) { m_centerX = posX; } ;
     void setCenterY(double posY) { m_centerY = posY; } ;
-    void setStepX(int step) { m_stepSizeX = step; };
-    void setStepY(int step) { m_stepSizeY = step; };
+    void setStepX(double step) { m_stepSizeX = step; };
+    void setStepY(double step) { m_stepSizeY = step; };
 
     // update Hexagon parameters
     void setLargeD(double largeD) {
@@ -91,8 +91,8 @@ public:
 
 
     // functions to get parameters
-    int getPosX(int posID) { return (posID < m_npoints)? m_positionsX.at(posID):-1; };
-    int getPosY(int posID) { return (posID < m_npoints)? m_positionsY.at(posID):-1; };
+    double getPosX(unsigned posID) { return (posID < m_npoints)? m_positionsX.at(posID):-1; };
+    double getPosY(unsigned posID) { return (posID < m_npoints)? m_positionsY.at(posID):-1; };
     int getNpos() {return m_npoints;};
 };
 
