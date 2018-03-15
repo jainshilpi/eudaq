@@ -441,7 +441,7 @@ public:
 
 
 		    // It must send a EORE to the Data Collector
-		    eudaq::RawDataEvent eore(eudaq::RawDataEvent::EORE(EVENT_TYPE, m_run));
+		    eudaq::RawDataEvent eore(eudaq::RawDataEvent::EORE(EVENT_TYPE, m_run, m_ev));
 		    // You can set tags on the EORE that will be saved in the data file
 		    // and can be used later to help decoding
 		    if( wrapper->axisIsReferenced(m_axis1) ) {
