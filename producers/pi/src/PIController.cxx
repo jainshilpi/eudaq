@@ -497,10 +497,10 @@ public:
 		    if (m_movemode == 2){
 			for ( unsigned nstep = 0; nstep < m_npositions; ++nstep ) {
 			    // get position coordinates
-			    m_position1 = hexgrid.getPosX(m_currstep);
-			    m_position2 = hexgrid.getPosY(m_currstep);
+			    m_position1 = hexgrid.getPosX(nstep);
+			    m_position2 = hexgrid.getPosY(nstep);
 
-			    EUDAQ_INFO("Want to move to position " + std::to_string(m_currstep)+ " x=" + std::to_string(m_position1) + " , y=" + std::to_string(m_position2));
+			    EUDAQ_INFO("Want to move to position " + std::to_string(nstep)+ " x=" + std::to_string(m_position1) + " , y=" + std::to_string(m_position2));
 
 			    if (m_position1 <= m_axis1max && m_position1 >= 0. && m_position2 <= m_axis2max && m_position2 >= 0.){
 				wrapper->moveTo(m_axis1, m_position1);
@@ -516,14 +516,14 @@ public:
 				    wrapper->getPosition2(m_axis2, &pos_curr2);
 				}
 
-				EUDAQ_INFO("Moved to position " + std::to_string(m_currstep)+ " x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
+				EUDAQ_INFO("Moved to position " + std::to_string(nstep)+ " x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
 			    }
 			    else {
 				EUDAQ_ERROR("Position target out of range: x= " + std::to_string(m_position1) + " y= " + std::to_string(m_position2));
 			    }
 
-			    // Increment step
-			    m_currstep += 1;
+			    // wait a second
+			    eudaq::mSleep(1000);
 			}
 		    }
 
