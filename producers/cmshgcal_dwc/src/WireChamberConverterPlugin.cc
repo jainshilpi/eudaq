@@ -91,7 +91,7 @@ namespace eudaq {
           memcpy(&yu, &bl[4*wc_index*4+8], sizeof(yu));
           memcpy(&yd, &bl[4*wc_index*4+12], sizeof(yd));
 
-          std::cout<<"Wire chamber "<<wc_index<<": "<<"xl="<<xl<<" xr="<<xr<<"     yu="<<yu<<" yd="<<yd<<std::endl;;
+          //std::cout<<"Wire chamber "<<wc_index<<": "<<"xl="<<xl<<" xr="<<xr<<"     yu="<<yu<<" yd="<<yd<<std::endl;;
           StandardPlane wc(wc_index, EVENT_TYPE, sensortype);
           wc.SetSizeRaw(1, 4);
           wc.SetPixel(0, 0, 0, xl);
