@@ -85,8 +85,8 @@ endif()
 if (BUILD_cmshgcal_onlinemon)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/pi/src/PIConverterPlugin.cc)
 endif()
-
 
 if (BUILD_calice)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/calice/src/CaliceGenericConverterPlugin.cc)
