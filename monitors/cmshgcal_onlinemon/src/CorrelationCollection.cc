@@ -122,6 +122,7 @@ void CorrelationCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
     simpEv.addPlane(simpPlane);
   }
 
+  simpEv.doClustering();
   Fill(simpEv);
 }
 
@@ -207,7 +208,7 @@ void CorrelationCollection::Fill(const SimpleStandardEvent &simpev) {
             (skip_this_plane[planeB]) == false) {
           const SimpleStandardPlane &p1 = simpev.getPlane(planeA);
           const SimpleStandardPlane &p2 = simpev.getPlane(planeB);
-          fillHistograms(p1, p2,simpev);
+          fillHistograms(p1, p2, simpev);
         }
       }
     }
@@ -444,7 +445,7 @@ void CorrelationCollection::fillHistograms(const SimpleStandardPlane &p1,
           continue;
         } else {
           corrmap->Fill(oneAcluster, oneBcluster);
-	  corrmap->FillCorrVsTime(oneAcluster, oneBcluster, simpEv);
+	        corrmap->FillCorrVsTime(oneAcluster, oneBcluster, simpEv);
         }
       }
     }
