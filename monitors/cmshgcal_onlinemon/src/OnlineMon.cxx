@@ -66,6 +66,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   ahcalCollection = new AhcalCollection();
   wcCollection = new WireChamberCollection();
   beamTelescopeHitCollection = new HitmapCollection();
+  beamTelescopeCorrCollection = new CorrelationCollection();
 
   cout << "--- Done ---"<<endl<<endl;
 
@@ -74,6 +75,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   _colls.push_back(ahcalCollection);
   _colls.push_back(wcCollection);
   _colls.push_back(beamTelescopeHitCollection);
+  _colls.push_back(beamTelescopeCorrCollection);
   
   // set the root Monitor
   if (_offline <= 0) {
@@ -81,6 +83,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
     ahcalCollection->setRootMonitor(this);
     wcCollection->setRootMonitor(this);
     beamTelescopeHitCollection->setRootMonitor(this);
+    beamTelescopeCorrCollection->setRootMonitor(this);
 
     onlinemon->setCollections(_colls);
   }
@@ -106,7 +109,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
       gStyle->SetPalette(mon_configdata.getDqmColorMap());
       gStyle->SetNumberContours(50);
       gStyle->SetOptStat(0);
-      gStyle->SetStatH(static_cast<Float_t>(0.15));
+      //gStyle->SetStatH(static_cast<Float_t>(0.15));
     }
   else
     {
