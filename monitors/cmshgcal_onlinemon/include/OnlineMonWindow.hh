@@ -32,6 +32,7 @@
 #include <map>
 #include "BaseCollection.hh"
 #include "OnlineMon.hh"
+#include <mutex>
 
 // class RootMonitor;
 
@@ -81,6 +82,7 @@ protected:
   std::map<std::string, std::vector<std::string>> _summaryMap;
   std::map<std::string, std::string> _hitmapOptions;
   std::map<std::string, unsigned int> _logScaleMap;
+  std::map<std::string, std::mutex*> _mutexMap;
   TGListTreeItem *Itm_Eudet;
   TGListTreeItem *Itm_DUT;
   TGListTreeItem *Itm_EudetHM;
@@ -109,6 +111,9 @@ protected:
   //#ifndef __CINT__
   // void setRootMonitor(RootMonitor *mon) {_mon = mon;}
   //#endif
+  #ifndef __CINT__
+  void registerMutex(std::string tree, std::mutex *m);
+  #endif  
   void registerTreeItem(std::string);
   void makeTreeItemSummary(std::string);
   void addTreeItemSummary(std::string item, std::string histoitem);

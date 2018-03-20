@@ -12,6 +12,8 @@ SET (HgcOnlineMon_SOURCES
   src/AhcalHistos.cc
   src/HitmapCollection.cc
   src/HitmapHistos.cc
+  src/CorrelationCollection.cc
+  src/CorrelationHistos.cc
   src/WireChamberCollection.cc
   src/WireChamberHistos.cc
   src/CheckEOF.cc

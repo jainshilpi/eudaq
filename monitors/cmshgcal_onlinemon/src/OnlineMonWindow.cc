@@ -1,5 +1,6 @@
 // ROOT includes
 #include <TH2F.h>
+#include <TGraph.h>
 #include <TCanvas.h>
 #include <TGPicture.h>
 #include <TGLabel.h>
@@ -360,53 +361,54 @@ void OnlineMonWindow::registerHisto(std::string tree, TH1 *h, std::string op,
   }
 }
 
-void OnlineMonWindow::autoUpdate() {
+void OnlineMonWindow::registerMutex(std::string tree, std::mutex *m){
+  _mutexMap[tree] = m;
+}
 
-  myStopWatch.Start(true);
-  
+void OnlineMonWindow::autoUpdate() {
   _reduceUpdate++;
   unsigned int activeHistoSize = _activeHistos.size();
-  if (_reduceUpdate > activeHistoSize) {
-
-    if (activeHistoSize != 0) { //&&_hitmapMap[_activeHisto]!=NULL) {
-      TCanvas *fCanvas = ECvs_right->GetCanvas();
-      if (activeHistoSize == 1)
-        fCanvas->cd();
-      for (unsigned int i = 0; i < activeHistoSize; ++i) {
-        if (activeHistoSize > 1)
-          fCanvas->cd(i + 1);
-        if (_hitmapMap[_activeHistos.at(i)] != NULL) {
-          _hitmapMap[_activeHistos.at(i)]->Draw(
-              _hitmapOptions[_activeHistos.at(i)].c_str());
-        }
-        if (activeHistoSize > 1) {
-
-          fCanvas->GetPad(i + 1)->Modified();
-          // fCanvas->GetPad(i+1)->Update();
-        }
+  if (activeHistoSize && _reduceUpdate > activeHistoSize){
+    TCanvas *fCanvas = ECvs_right->GetCanvas();
+    for (unsigned int i = 0; i < activeHistoSize; ++i) {
+      if(activeHistoSize ==1){
+  fCanvas->cd();
+  fCanvas->Clear();
       }
-
-      // fCanvas->Modified();
-      fCanvas->Update();
+      else{
+  fCanvas->GetPad(i+1)->Clear();
+  fCanvas->cd(i + 1);
+      }
+      std::string tree = _activeHistos.at(i);
+      TNamed *hg = _hitmapMap[tree];
+      if(hg) {
+  TH1 *h = dynamic_cast<TH1 *> (hg);
+  std::mutex mu_dummy;
+  std::mutex *mu = &mu_dummy;
+  auto it = _mutexMap.find(tree);
+  if(it != _mutexMap.end())
+    mu=it->second;
+  if(h){
+    std::lock_guard<std::mutex> lck(*mu);
+    h->Draw(_hitmapOptions[tree].c_str());
+    gPad->Update();
+  }
+  TGraph *g = dynamic_cast<TGraph *> (hg);
+  if(g){
+    std::lock_guard<std::mutex> lck(*mu);
+    g->Draw(_hitmapOptions[tree].c_str());
+    gPad->Update();
+  }
+      }
     }
-
-      
     UpdateEventNumber(_eventnum);
     UpdateRunNumber(_runnum);
     UpdateTotalEventNumber(_analysedEvents);
 
     MapSubwindows();
     MapWindow();
-
     _reduceUpdate = 0;
-    
-    myStopWatch.Stop();
-    
-    //std::cout<<"APZ Timer. OnlineMonWindow::autoUpdate() t = "<< myStopWatch.RealTime() <<" sec"<<std::endl;
-
   }
-
-  // cout << "...updated" << endl;
 }
 
 void OnlineMonWindow::ChangeReduce(Long_t /*num*/) {
