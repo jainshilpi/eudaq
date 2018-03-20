@@ -512,11 +512,15 @@ void HexagonHistos::Write() {
 
   handleOverflowBins(_sigAdcLG);
   handleOverflowBins(_sigAdcHG);
+  
+  _sigAdcLG->SetStats(true);
+  _sigAdcHG->SetStats(true);
   _sigAdcLG->Write();
   _sigAdcHG->Write();
 
   _LGvsTOTfast->Write();
   _LGvsTOTslow->Write();
+  _HGvsLG->SetStats(true);
   _HGvsLG->Write();
   _TOAvsChId->Write();
 
