@@ -25,10 +25,10 @@ namespace eudaq {
   // You may extract information from the BORE and/or configuration
   // and store it in member variables to use during the decoding later.
   virtual void Initialize(const Event &bore, const Configuration &cnf) {
-      m_pi_pos_chan1 = bore.GetTag("pi_pos_chan1", 0);
-      m_pi_pos_chan2 = bore.GetTag("pi_pos_chan2", 0);
-      m_pi_pos_chan3 = bore.GetTag("pi_pos_chan3", 0);
-      m_pi_pos_chan4 = bore.GetTag("pi_pos_chan4", 0);
+      m_pi_pos_chan1 = bore.GetTag("pi_pos_chan1", 0.);
+      m_pi_pos_chan2 = bore.GetTag("pi_pos_chan2", 0.);
+      m_pi_pos_chan3 = bore.GetTag("pi_pos_chan3", 0.);
+      m_pi_pos_chan4 = bore.GetTag("pi_pos_chan4", 0.);
 
   #ifndef WIN32 // some linux Stuff //$$change
       (void)cnf; // just to suppress a warning about unused parameter cnf
@@ -37,7 +37,8 @@ namespace eudaq {
 
   virtual bool GetStandardSubEvent(StandardEvent &sev,
            const Event &ev) const {
-
+      std::cout<<"HELLO"<<std::endl;
+      /*
       // Read PI stage position
       double pi_pos_chan1;
       double pi_pos_chan2;
@@ -64,6 +65,7 @@ namespace eudaq {
       sev.AddPlane(plane);
 
       // Indicate that data was successfully converted
+      */
       return true;
   }
 

@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard[1] = {12};
-const uint32_t skiMask[1] = {0x000f0ff0};
+const size_t nSkiPerBoard[1] = {4};
+const uint32_t skiMask[1] = {0xf00};
 const bool runForPedestal = true;
 //const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
 //const uint32_t skiMask = 0;
@@ -30,6 +30,8 @@ const int nSCA=13;
 //const int ped = 250;  // pedestal. It is now calculated as median from all channels in hexaboard
 //const int noi = 10;   // noise
 //const int thresh = 300; // ZS threshold (above pedestal)
+const int thresh_HGTS3over0 = 20;
+const int thresh_HGTS3over5 = 20;
 
 // Size of ZS data ()per channel
 const char hitSizeZS = 31;
@@ -94,7 +96,6 @@ namespace eudaq {
 	std::cout<<"Number of Raw Data Blocks: "<<nBlocks<<std::endl;
 
 	int RDBOARD = 0;
-
 	for (unsigned blo=0; blo<nBlocks; blo++){
 
 	  std::cout<<"Block = "<<blo<<"  Raw GetID = "<<rev->GetID(blo)<<std::endl;
@@ -151,6 +152,8 @@ namespace eudaq {
 	      const unsigned nHits  = dataBlockZS[h].size()/hitSizeZS;
 	      
 	      //std::cout<<"Number of Hits (above ZS threshold): "<<nHits<<std::endl;
+
+	      if (nHits > 20) continue;
 	      
 	      plane.SetSizeZS(4, 64, nHits, hitSizeZS-1);
 	      
@@ -336,10 +339,12 @@ namespace eudaq {
 
       /*
 	std::array<int, 13> rollPositions(const unsigned int r) const {
+
 	//std::bitset<nSCA> bitstmp = r;
 	std::bitset<nSCA> bits = r;
 	//for( size_t i=0; i<nSCA; i++ )
 	//bits[i]=bitstmp[nSCA-1-i];
+
 	std::array<int, nSCA> roll;
 	if(bits.test(0) && bits.test(nSCA-1)){
 	roll[0]=0;
@@ -397,37 +402,50 @@ namespace eudaq {
 	    for (int ch = 0; ch < 64; ch+=2){
 	    // Here lets estimate the pedestal and noise by averaging over all channels
 	    const int chArrPos = 63-ch; // position of the hit in array
+
 	    unsigned short adc = 0;
 	    adc = gray_to_brady(decoded[ski][mainFrame*128 + 64 + chArrPos] & 0x0FFF);
 	    if (adc==0) adc=4096; // Taking care of overflow
 	    tmp_adc.push_back(adc);
 	    }
+
 	    std::sort(tmp_adc.begin(), tmp_adc.end());
+
+
 	    unsigned median = 0 ;
+
 	    if (tmp_adc.size() == 32){
 	    median = tmp_adc[15];
 	    //// We could also do mean and stdev if we wanted to:
 	    //double sum = std::accumulate(tmp_adc.begin(), tmp_adc.end(), 0.0);
 	    //double mean = sum / tmp_adc.size();
+
 	    //double sq_sum = std::inner_product(tmp_adc.begin(), tmp_adc.end(), tmp_adc.begin(), 0.0);
 	    //double stdev = std::sqrt(sq_sum / tmp_adc.size() - mean * mean);
 	    ////
 	    }
 	    else
 	    std::cout<<"There is something wrong with your tmp_adc.size()"<<tmp_adc.size()<<std::endl;
+
+
 	    //std::cout<<" Median of all channels:\n"<<median
 	    //	 <<"\t also, first guy:"<<tmp_adc.front()<<"  and last guy:"<<tmp_adc.back()<<std::endl;
+
 	    tmp_adc.clear();
+
 	    //const int ped = 150;
 	    //const int ped = median;
+
 	  */
 
 	  /*
 	  const std::array<int, 13> rollPos = rollPositions(r);
+
 	  std::cout<<"Roll positions array"<<std::endl;
 	  for (int i=0; i<nSCA; i++)
 	    std::cout<<"  "<<rollPos[i];
 	  std::cout<<std::endl;
+
 	  std::cout<<"Subtracted Roll positions array"<<std::endl;
 	  for (int i=0; i<nSCA; i++)
 	    std::cout<<"  "<<nSCA-1-rollPos[i];
@@ -450,35 +468,56 @@ namespace eudaq {
 	      int maxADC = -10;
 	      int tmp_TS = -10;
 	      for (int ts = 0; ts < 13; ts++){
+
 	      const int ts1 = 12-ts;
 	      const int chargeLG = gray_to_brady(decoded[ski][ts1*128 + chArrPos] & 0x0FFF);
 	      //const int chargeHG = gray_to_brady(decoded[ski][ts1*128 + 64 + chArrPos] & 0x0FFF);
+
 	      if (chargeLG > maxADC){
 	      //std::cout<<ch <<": chargeHG="<<chargeHG<<"  at ts="<<ts<<std::endl;
 	      maxADC = chargeLG;
 	      tmp_TS = ts1;
 	      }
 	      }
+
 	      // ZeroSuppressed:
 	      //if (maxADC > 300)
 	      //&& maxADC - (ped+noi) > thresh)
 	      //std::cout<<ch <<": Max charge of HG="<<maxADC<<"  at ts="<<tmp_TS
 	      //	     << "  mainFrame = "<<mainFrame<<"  TS0 = "<<TS0<<std::endl;
+
 	      */
 
 	    unsigned short adc = 0;
+
+	    // Signal-like selection based on HG
+	    //ts = 12-(TS0+ts)%13
 	    
+	    //const int TS0 = 12 - (TS0)%13;
+	    const int TS3 = 12 - (TS0+3)%13;
+	    const int TS5 = 12 - (TS0+5)%13;
+
+	    int hg_TS0 = gray_to_brady(decoded[ski][TS0*128 + 64 + chArrPos] & 0x0FFF);
+	    int hg_TS3 = gray_to_brady(decoded[ski][TS3*128 + 64 + chArrPos] & 0x0FFF);
+	    int hg_TS5 = gray_to_brady(decoded[ski][TS5*128 + 64 + chArrPos] & 0x0FFF);
+
+	    int hg_TS3over0 = hg_TS3 - hg_TS0;
+	    int hg_TS3over5 = hg_TS3 - hg_TS5;
+
 	    /*
 	    const int TS2 = (TS0+2)%13;
 	    const int TS3 = (TS0+3)%13;
 	    const int TS4 = (TS0+4)%13;
+
 	    int chargeHG_avg_in3TS = 0;
+
 	    adc = gray_to_brady(decoded[ski][TS2*128 + 64 + chArrPos] & 0x0FFF);
 	    chargeHG_avg_in3TS += adc;
 	    adc = gray_to_brady(decoded[ski][TS3*128 + 64 + chArrPos] & 0x0FFF);
 	    chargeHG_avg_in3TS += adc;
 	    adc = gray_to_brady(decoded[ski][TS4*128 + 64 + chArrPos] & 0x0FFF);
 	    chargeHG_avg_in3TS += adc;
+
 	    chargeHG_avg_in3TS = chargeHG_avg_in3TS/3;
 	    
 	    */
@@ -499,6 +538,14 @@ namespace eudaq {
 	      // ZeroSuppress it:
 	      //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
 	      if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
+		continue;
+	    }
+	    else {
+
+	      if (! (hg_TS3over0 > thresh_HGTS3over0
+		     && hg_TS3over5 > thresh_HGTS3over5
+		     && hg_TS5 - hg_TS0 < 0
+		     ) )
 		continue;
 	    }
 	    
@@ -560,11 +607,13 @@ namespace eudaq {
 
 
 	    /* Let's not save this for the moment (no need)
+
 	    // Global TS 14 MSB (it's gray encoded?). Not decoded here!
 	    // Not sure how to decode Global Time Stamp yet...
 	    adc = decoded[ski][1921];
 	    if (adc==0) adc=4096;
 	    dataBlockZS[hexa].push_back(adc);
+
 	    // Global TS 12 LSB + 1 extra bit (binary encoded)
 	    adc = decoded[ski][1922];
 	    if (adc==0) adc=4096;
