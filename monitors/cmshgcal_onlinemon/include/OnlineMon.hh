@@ -34,6 +34,7 @@
 #include "WireChamberCollection.hh"
 #include "HitmapCollection.hh"
 #include "CorrelationCollection.hh"
+#include "CrossCorrelationCollection.hh"
 
 #include "OnlineMonWindow.hh"
 #include "SimpleStandardEvent.hh"
@@ -91,6 +92,7 @@ public:
   WireChamberCollection *wcCollection;
   HitmapCollection *beamTelescopeHitCollection;
   CorrelationCollection *beamTelescopeCorrCollection;
+  CrossCorrelationCollection *crossCorrelationCollection;
 
   virtual void StartIdleing() {}
   OnlineMonWindow *getOnlineMon() { return onlinemon; }

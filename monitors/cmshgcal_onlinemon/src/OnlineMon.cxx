@@ -67,6 +67,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   wcCollection = new WireChamberCollection();
   beamTelescopeHitCollection = new HitmapCollection();
   beamTelescopeCorrCollection = new CorrelationCollection();
+  crossCorrelationCollection = new CrossCorrelationCollection();
 
   cout << "--- Done ---"<<endl<<endl;
 
@@ -76,6 +77,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   _colls.push_back(wcCollection);
   _colls.push_back(beamTelescopeHitCollection);
   _colls.push_back(beamTelescopeCorrCollection);
+  _colls.push_back(crossCorrelationCollection);
   
   // set the root Monitor
   if (_offline <= 0) {
@@ -84,6 +86,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
     wcCollection->setRootMonitor(this);
     beamTelescopeHitCollection->setRootMonitor(this);
     beamTelescopeCorrCollection->setRootMonitor(this);
+    crossCorrelationCollection->setRootMonitor(this);
 
     onlinemon->setCollections(_colls);
   }

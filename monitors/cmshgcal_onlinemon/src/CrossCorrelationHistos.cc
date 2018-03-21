@@ -127,7 +127,6 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
       _ChannelVsMIMOSA26_X->Fill(ch*1., clusters[cl].first);
       _ChannelVsMIMOSA26_Y->Fill(ch*1., clusters[cl].second);
     }
-
   }
   
   
