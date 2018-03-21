@@ -264,6 +264,7 @@ public:
 			}
 			else if (m_movemode > 0){
 			    EUDAQ_INFO("Moved to x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
+			    EUDAQ_INFO("Relative to home: x=" + std::to_string(pos_curr1 - m_home_position1) + " , y=" + std::to_string(pos_curr2 - m_home_position2));
 			}
 
 			SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
@@ -332,6 +333,7 @@ public:
 				wrapper->getPosition2(m_axis2, &pos_curr2);
 
 				EUDAQ_INFO("Moved to position " + std::to_string(m_currstep)+ " x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
+        EUDAQ_INFO("Relative to home: x=" + std::to_string(pos_curr1 - m_home_position1) + " , y=" + std::to_string(pos_curr2 - m_home_position2)); 
 			    }
 			    else {
 				EUDAQ_ERROR("Position target out of range: x= " + std::to_string(m_position1) + " y= " + std::to_string(m_position2));
@@ -361,6 +363,7 @@ public:
 				    wrapper->getPosition2(m_axis2, &pos_curr2);
 
 				    EUDAQ_INFO("Moved to x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
+            EUDAQ_INFO("Relative to home: x=" + std::to_string(pos_curr1 - m_home_position1) + " , y=" + std::to_string(pos_curr2 - m_home_position2));
 				}
 			    }
 			}
@@ -386,6 +389,10 @@ public:
 			       ", 2=" + std::to_string(pos_curr2) +
 			       ", 3=" + std::to_string(pos_curr3) +
 			       ", 4=" + std::to_string(pos_curr4));
+			 
+        if (m_movemode > 0)
+          EUDAQ_INFO("Relative to home: x=" + std::to_string(pos_curr1 - m_home_position1) + " , y=" + std::to_string(pos_curr2 - m_home_position2));
+
 
 
 		    // It must send a BORE to the Data Collector
@@ -393,17 +400,21 @@ public:
 		   // You can set tags on the BORE that will be saved in the data file
 		   // and can be used later to help decoding
 		   if( wrapper->axisIsReferenced(m_axis1) ) {
-		       bore.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+		       bore.SetTag("pi_pos_chan1", (pos_curr1));
 		   }
 		   if( wrapper->axisIsReferenced(m_axis2) ) {
-		       bore.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+		       bore.SetTag("pi_pos_chan2", (pos_curr2));
 		   }
 		   if( wrapper->axisIsReferenced(m_axis3) ) {
-		       bore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+		       bore.SetTag("pi_pos_chan3", (pos_curr3));
 		   }
 		   if( wrapper->axisIsReferenced(m_axis4) ) {
-		       bore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+		       bore.SetTag("pi_pos_chan4", (pos_curr4));
 		   }
+		   
+		   // send home position
+		   bore.SetTag("pi_home_pos_chan1", (m_home_position1));
+		   bore.SetTag("pi_home_pos_chan2", (m_home_position2));
 
 		   // Send the event to the Data Collector
 		   SendEvent(bore);
@@ -445,16 +456,16 @@ public:
 		    // You can set tags on the EORE that will be saved in the data file
 		    // and can be used later to help decoding
 		    if( wrapper->axisIsReferenced(m_axis1) ) {
-			eore.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+			eore.SetTag("pi_pos_chan1", (pos_curr1));
 		    }
 		    if( wrapper->axisIsReferenced(m_axis2) ) {
-			eore.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+			eore.SetTag("pi_pos_chan2", (pos_curr2));
 		    }
 		    if( wrapper->axisIsReferenced(m_axis3) ) {
-			eore.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+			eore.SetTag("pi_pos_chan3", (pos_curr3));
 		    }
 		    if( wrapper->axisIsReferenced(m_axis4) ) {
-			eore.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+			eore.SetTag("pi_pos_chan4", (pos_curr4));
 		    }
 
 		    // Send the event to the Data Collector
@@ -517,6 +528,8 @@ public:
 				}
 
 				EUDAQ_INFO("Moved to position " + std::to_string(nstep)+ " x=" + std::to_string(pos_curr1) + " , y=" + std::to_string(pos_curr2));
+				EUDAQ_INFO("Relative to home: x=" + std::to_string(pos_curr1 - m_home_position1) + " , y=" + std::to_string(pos_curr2 - m_home_position2));
+
 			    }
 			    else {
 				EUDAQ_ERROR("Position target out of range: x= " + std::to_string(m_position1) + " y= " + std::to_string(m_position2));
@@ -524,6 +537,11 @@ public:
 
 			    // wait a second
 			    eudaq::mSleep(1000);
+			    
+			    if ( m_terminated || 
+               GetConnectionState() != eudaq::ConnectionState::STATE_RUNNING
+              )
+               break;
 			}
 		    }
 
@@ -542,16 +560,16 @@ public:
 			// Send event to data collector
 			eudaq::RawDataEvent ev(eudaq::RawDataEvent(EVENT_TYPE, m_run, m_ev));
 			if( wrapper->axisIsReferenced(m_axis1) ) {
-			    ev.SetTag("pi_pos_chan1", eudaq::to_string(pos_curr1));
+			    ev.SetTag("pi_pos_chan1", (pos_curr1));
 			}
 			if( wrapper->axisIsReferenced(m_axis2) ) {
-			    ev.SetTag("pi_pos_chan2", eudaq::to_string(pos_curr2));
+			    ev.SetTag("pi_pos_chan2", (pos_curr2));
 			}
 			if( wrapper->axisIsReferenced(m_axis3) ) {
-			    ev.SetTag("pi_pos_chan3", eudaq::to_string(pos_curr3));
+			    ev.SetTag("pi_pos_chan3", (pos_curr3));
 			}
 			if( wrapper->axisIsReferenced(m_axis4) ) {
-			    ev.SetTag("pi_pos_chan4", eudaq::to_string(pos_curr4));
+			    ev.SetTag("pi_pos_chan4", (pos_curr4));
 			}
 
 			// Send the event to the Data Collector
@@ -592,7 +610,7 @@ private:
 	double m_velocity2 = 0.0;
 	double m_velocity3 = 0.0;
 	double m_velocity4 = 0.0;
-	double m_velocitymax = 10.0;
+	double m_velocitymax = 50.0;
 	double m_stepsize1 = 0.0;
 	double m_stepsize2 = 0.0;
 	double m_stepsize3 = 0.0;
