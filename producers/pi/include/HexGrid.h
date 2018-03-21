@@ -71,6 +71,10 @@ public:
     void setCenterY(double posY) { m_centerY = posY; } ;
     void setStepX(double step) { m_stepSizeX = step; };
     void setStepY(double step) { m_stepSizeY = step; };
+ 
+    void setStartX(double pos) { m_startX = pos; };
+    void setStartY(double pos) { m_startY = pos; };
+
 
     // update Hexagon parameters
     void setLargeD(double largeD) {

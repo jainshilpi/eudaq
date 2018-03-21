@@ -156,6 +156,9 @@ public:
 			    if (m_start_position_id == -1){
 				m_start_position1 = config.Get("StartPos1",0);
 				m_start_position2 = config.Get("StartPos2",0);
+				
+				hexgrid.setStartX(m_start_position1);
+			  hexgrid.setStartY(m_start_position2);
 			    }
 
 			    // set parameters of grid
