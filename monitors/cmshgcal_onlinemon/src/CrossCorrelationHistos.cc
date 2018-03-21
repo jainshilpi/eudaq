@@ -53,13 +53,13 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
     sprintf(out, "%s %i channel vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_ch_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _ChannelVsMIMOSA26_X = new TH2F(out2, out, 128, 0, 128, 1153, 0, 1153);
+    _ChannelVsMIMOSA26_X = new TH2I(out2, out, 128, 0, 128, 1153, 0, 1153);
     
     SetHistoAxisLabels(_ChannelVsMIMOSA26_X, "channel Hexaboard", "pixel X on MIMOSA 1");
 
     sprintf(out, "%s %i channel vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_ch_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _ChannelVsMIMOSA26_Y = new TH2F(out2, out, 128, 0, 128, 557, 0, 557);
+    _ChannelVsMIMOSA26_Y = new TH2I(out2, out, 128, 0, 128, 557, 0, 557);
     SetHistoAxisLabels(_ChannelVsMIMOSA26_Y, "channel Hexaboard", "pixel Y on MIMOSA 1");
 
     
@@ -115,8 +115,8 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
 
   // std::cout<< "FILL with a plane." << std::endl;
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
-    const int pixel_x = plane.GetX(pix);
-    const int pixel_y = plane.GetY(pix);
+    const int pixel_x = plMIMOSA1.GetX(pix);
+    const int pixel_y = plMIMOSA1.GetY(pix);
     const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
     double HG_TS3 = plane.GetPixel(pix, 3+13);
 
@@ -124,8 +124,8 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
     //end of hexaboard loop
 
     for (size_t cl=0; cl<clusters.size(); cl++) {
-      _ChannelVsMIMOSA26_X->Fill(ch*1., clusters[cl].first);
-      _ChannelVsMIMOSA26_Y->Fill(ch*1., clusters[cl].second);
+      _ChannelVsMIMOSA26_X->Fill(ch*1., (int)clusters[cl].first);
+      _ChannelVsMIMOSA26_Y->Fill(ch*1., (int)clusters[cl].second);
     }
   }
   

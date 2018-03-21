@@ -13,7 +13,7 @@ bool CrossCorrelationCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 void CrossCorrelationCollection::fillHistograms(const eudaq::StandardPlane &pl, const eudaq::StandardPlane &plMIMOSA1) {
   //std::cout<<"In CrossCorrelationCollection::fillHistograms(StandardPlane)"<<std::endl;
 
-  if (pl.Sensor()!="HexaBoard")
+  if (pl.Sensor().find("HexaBoard")==std::string::npos)
     return;
   
   if (!isPlaneRegistered(pl)) {
@@ -127,17 +127,17 @@ void CrossCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) {
     sprintf(folder, "%s", p.Sensor().c_str());
     
 
-    sprintf(tree, "%s/HexaBoard %i/CorrelationToMIMOSA1_x", p.Sensor().c_str(), p.ID());      
+    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationToMIMOSA1_x", p.Sensor().c_str(), p.ID());      
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getChannelVsMIMOSA26_XHisto(), "", 0);
     //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
 
-    sprintf(tree, "%s/HexaBoard %i/CorrelationToMIMOSA1_y", p.Sensor().c_str(), p.ID());      
+    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationToMIMOSA1_y", p.Sensor().c_str(), p.ID());      
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getChannelVsMIMOSA26_YHisto(), "", 0);
         
     
-    sprintf(tree, "%s/HexaBoard %i", p.Sensor().c_str(), p.ID());
+    sprintf(tree, "XCorrelation/%s/Module %i", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->makeTreeItemSummary(tree);
 
     

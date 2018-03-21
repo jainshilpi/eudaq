@@ -3,9 +3,7 @@
 #ifndef CROSSCORRELATIONHISTOS_HH_
 #define CROSSCORRELATIONHISTOS_HH_
 
-#include <TH2F.h>
-#include <TH1F.h>
-#include <TH2Poly.h>
+#include <TH2I.h>
 #include <TFile.h>
 
 #include <map>
@@ -28,8 +26,8 @@ protected:
 
   map < pair < int,int >, int > _ski_to_ch_map; //channel mapping
   
-  TH2F *_ChannelVsMIMOSA26_X;
-  TH2F *_ChannelVsMIMOSA26_Y;
+  TH2I *_ChannelVsMIMOSA26_X;
+  TH2I *_ChannelVsMIMOSA26_Y;
 
   
 public:
@@ -44,8 +42,8 @@ public:
   void Calculate(const int currentEventNum);
   void Write();
 
-  TH2F *getChannelVsMIMOSA26_XHisto() { return _ChannelVsMIMOSA26_X; }
-  TH2F *getChannelVsMIMOSA26_YHisto() { return _ChannelVsMIMOSA26_Y; }
+  TH2I *getChannelVsMIMOSA26_XHisto() { return _ChannelVsMIMOSA26_X; }
+  TH2I *getChannelVsMIMOSA26_YHisto() { return _ChannelVsMIMOSA26_Y; }
 
   
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
