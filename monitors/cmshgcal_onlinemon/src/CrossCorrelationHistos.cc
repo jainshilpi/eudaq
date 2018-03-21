@@ -54,7 +54,6 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
     sprintf(out, "%s %i channel vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_ch_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
     _ChannelVsMIMOSA26_X = new TH2I(out2, out, 128, 0, 128, 1153, 0, 1153);
-    
     SetHistoAxisLabels(_ChannelVsMIMOSA26_X, "channel Hexaboard", "pixel X on MIMOSA 1");
 
     sprintf(out, "%s %i channel vs. MIMOSA1 y", _sensor.c_str(), _id);
@@ -81,7 +80,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
     std::cout << "No max sensorsize known!" << std::endl;
   }
 
-
+  Set_SkiToHexaboard_ChannelMap();
 }
 
 int CrossCorrelationHistos::zero_plane_array() {
@@ -104,7 +103,7 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
   clusterEntitites.clear();
   clusters.clear();
   for (size_t ipix = 0; ipix < pxl.size(); ++ipix) {
-    int pixelX = plMIMOSA1.GetX(ipix), pixelY = plane.GetY(ipix);
+    int pixelX = plMIMOSA1.GetX(ipix), pixelY = plMIMOSA1.GetY(ipix);
     clusterEntitites.push_back(std::make_pair(pixelX, pixelY));     
   }
 
