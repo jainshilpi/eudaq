@@ -27,6 +27,11 @@ int HexGrid::BuildGrid() {
      -------
 
     */
+    
+    // clear positions
+    m_positionsX.clear();
+    m_positionsY.clear();
+    m_npoints = 0;
 
     double posX = m_startX;
     double posY = m_startY;
