@@ -25,29 +25,39 @@ namespace eudaq {
 	// You may extract information from the BORE and/or configuration
 	// and store it in member variables to use during the decoding later.
 	virtual void Initialize(const Event &bore, const Configuration &cnf) {
-	    m_pi_pos_chan1 = bore.GetTag("pi_pos_chan1", 0);
-	    m_pi_pos_chan2 = bore.GetTag("pi_pos_chan2", 0);
-	    m_pi_pos_chan3 = bore.GetTag("pi_pos_chan3", 0);
-	    m_pi_pos_chan4 = bore.GetTag("pi_pos_chan4", 0);
+	    m_pi_pos_chan1 = bore.GetTag("pi_pos_chan1", 0.);
+	    m_pi_pos_chan2 = bore.GetTag("pi_pos_chan2", 0.);
+	    m_pi_pos_chan3 = bore.GetTag("pi_pos_chan3", 0.);
+	    m_pi_pos_chan4 = bore.GetTag("pi_pos_chan4", 0.);
 
 	#ifndef WIN32 // some linux Stuff //$$change
 	    (void)cnf; // just to suppress a warning about unused parameter cnf
 	#endif
 	}
+	
+	   // This should return the trigger ID (as provided by the TLU)
+    // if it was read out, otherwise it can either return (unsigned)-1,
+    // or be left undefined as there is already a default version.
+    virtual unsigned GetTriggerID(const Event &ev) const {
+      // If we are unable to extract the Trigger ID, signal with (unsigned)-1
+      return (unsigned)-1;
+    }
+
 
 	virtual bool GetStandardSubEvent(StandardEvent &sev,
 					 const Event &ev) const {
 
+      /*
 	    // Read PI stage position
 	    double pi_pos_chan1;
 	    double pi_pos_chan2;
 	    double pi_pos_chan3;
 	    double pi_pos_chan4;
 
-	    pi_pos_chan1 = ev.GetTag("pi_pos_chan1", 0);
-	    pi_pos_chan2 = ev.GetTag("pi_pos_chan2", 0);
-	    pi_pos_chan3 = ev.GetTag("pi_pos_chan3", 0);
-	    pi_pos_chan4 = ev.GetTag("pi_pos_chan4", 0);
+	    pi_pos_chan1 = ev.GetTag("pi_pos_chan1", 0.);
+	    pi_pos_chan2 = ev.GetTag("pi_pos_chan2", 0.);
+	    pi_pos_chan3 = ev.GetTag("pi_pos_chan3", 0.);
+	    pi_pos_chan4 = ev.GetTag("pi_pos_chan4", 0.);
 
 	    // Create "plane" of the PI stage position
 	    std::string sensortype = "pistage";
@@ -59,9 +69,10 @@ namespace eudaq {
 	    // preallocate 1 "pixel" - the position
 	    plane.SetSizeZS(width, height, 1);
 	    // Push positions a la pixel hits
-	    plane.PushPixel(m_pi_pos_chan1,m_pi_pos_chan2, 1);
+	    plane.PushPixel((int) m_pi_pos_chan1*10, (int)m_pi_pos_chan2*10, 1);
 	    // Add the plane to the StandardEvent
 	    sev.AddPlane(plane);
+	    */
 
 	    // Indicate that data was successfully converted
 	    return true;
