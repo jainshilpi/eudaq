@@ -33,7 +33,7 @@ void CrossCorrelationCollection::bookHistograms(const eudaq::StandardEvent &ev) 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
-      if (Plane.Sensor()=="HexaBoard")
+      if (Plane.Sensor().find("HexaBoard")!=std::string::npos)
 	     registerPlane(Plane);
     }
   }
@@ -91,7 +91,7 @@ void CrossCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int evNumb
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-    if (Plane.Sensor()=="HexaBoard") {
+    if (Plane.Sensor().find("HexaBoard")!=std::string::npos) {
       for (int plane2 = 0; plane2 < ev.NumPlanes(); plane2++) {
         const eudaq::StandardPlane &Plane2 = ev.GetPlane(plane2);
         if (Plane2.Sensor()!="MIMOSA26") continue;
