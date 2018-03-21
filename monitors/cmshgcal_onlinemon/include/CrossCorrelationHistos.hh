@@ -5,6 +5,7 @@
 
 #include <TH2I.h>
 #include <TFile.h>
+#include "HexagonHistos.hh"   //for the sc map
 
 #include <map>
 #include <cstdlib>

@@ -104,7 +104,7 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
   clusterEntitites.clear();
   clusters.clear();
   for (size_t ipix = 0; ipix < pxl.size(); ++ipix) {
-    int pixelX = plane.GetX(ipix), pixelY = plane.GetY(ipix);
+    int pixelX = plMIMOSA1.GetX(ipix), pixelY = plane.GetY(ipix);
     clusterEntitites.push_back(std::make_pair(pixelX, pixelY));     
   }
 
@@ -115,8 +115,8 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
 
   // std::cout<< "FILL with a plane." << std::endl;
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
-    const int pixel_x = plMIMOSA1.GetX(pix);
-    const int pixel_y = plMIMOSA1.GetY(pix);
+    const int pixel_x = plane.GetX(pix);
+    const int pixel_y = plane.GetY(pix);
     const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
     double HG_TS3 = plane.GetPixel(pix, 3+13);
 
@@ -124,8 +124,8 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
     //end of hexaboard loop
 
     for (size_t cl=0; cl<clusters.size(); cl++) {
-      _ChannelVsMIMOSA26_X->Fill(ch*1., (int)clusters[cl].first);
-      _ChannelVsMIMOSA26_Y->Fill(ch*1., (int)clusters[cl].second);
+      _ChannelVsMIMOSA26_X->Fill(ch, (int)clusters[cl].first);
+      _ChannelVsMIMOSA26_Y->Fill(ch, (int)clusters[cl].second);
     }
   }
   
