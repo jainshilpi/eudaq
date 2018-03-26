@@ -126,45 +126,14 @@ void CrossCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) {
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
     
+    for (int ch=0; ch<128; ch++) {
+      sprintf(tree, "XCorrelation/%s/Module %i/Ch_%iCorrelationToMIMOSA3", p.Sensor().c_str(), p.ID(), ch);      
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getMIMOSA_map_ForChannel(ch), "", 0);
+      //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
+      
+    }
 
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationXToMIMOSA1_x", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalXVsMIMOSA26_XHisto(), "", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
-
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationYToMIMOSA1_y", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalYVsMIMOSA26_YHisto(), "", 0);
-
-
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationXToMIMOSA1_x_rot30", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalXVsMIMOSA26_XHisto_rot30(), "", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
-
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationYToMIMOSA1_y_rot30", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalYVsMIMOSA26_YHisto_rot30(), "", 0);        
-   
-
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationXToMIMOSA1_x_rot60", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalXVsMIMOSA26_XHisto_rot60(), "", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
-
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationYToMIMOSA1_y_rot60", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalYVsMIMOSA26_YHisto_rot60(), "", 0);  
-
-
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationXToMIMOSA1_x_rot90", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalXVsMIMOSA26_XHisto_rot90(), "", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
-
-    sprintf(tree, "XCorrelation/%s/Module %i/CorrelationYToMIMOSA1_y_rot90", p.Sensor().c_str(), p.ID());      
-    _mon->getOnlineMon()->registerTreeItem(tree);
-    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getHGCalYVsMIMOSA26_YHisto_rot90(), "", 0); 
 
     sprintf(tree, "XCorrelation/%s/Module %i", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->makeTreeItemSummary(tree);

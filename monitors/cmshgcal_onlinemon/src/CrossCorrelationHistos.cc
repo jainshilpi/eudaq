@@ -10,6 +10,8 @@
 
 
 double MAXCLUSTERRADIUS2 = 9.0;
+float pixelGap_MIMOSA26 = 0.0184; //mm
+
 //some simple clustering
 void CrossCorrelationHistos::findClusters(std::vector<std::pair<int, int> >& entities, std::vector<std::pair<float, float> >& clusters ) {
   std::vector<bool> used;
@@ -39,8 +41,7 @@ void CrossCorrelationHistos::findClusters(std::vector<std::pair<int, int> >& ent
 
 
 CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon)
-  :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false),
-  _HGCalXVsMIMOSA26_X(NULL), _HGCalYVsMIMOSA26_Y(NULL), _HGCalXVsMIMOSA26_X_rot30(NULL), _HGCalYVsMIMOSA26_Y_rot30(NULL){
+  :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false){
     
   char out[1024], out2[1024];
 
@@ -51,61 +52,15 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
   if (_maxX != -1 && _maxY != -1) {
 
-    sprintf(out, "%s %i pixel X vs. MIMOSA1 x", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_x_rot0_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X = new TH2F(out2, out, 100, -7.5, 7.5, 1153, 0, 1153);
-    _HGCalXVsMIMOSA26_X->SetOption("COLZ");
-    _HGCalXVsMIMOSA26_X->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X, "Hexaboard x [cm]", "pixel X on MIMOSA 3");
+    for (int ch=0; ch<128; ch++) {
+      sprintf(out, "%s %i, channel %i projected on MIMOSA26 plane 3", _sensor.c_str(), _id, ch);
+      sprintf(out2, "h_hgcal_ch%i_vs_MIMOSA26_3_%s_%i", ch, _sensor.c_str(), _id);
+      _MIMOSA_map_ForChannel[ch] = new TH2F(out2, out, 400, 0, 1153*pixelGap_MIMOSA26, 200, 0, 557*pixelGap_MIMOSA26);
+      _MIMOSA_map_ForChannel[ch]->SetOption("COLZ");
+      _MIMOSA_map_ForChannel[ch]->SetStats(false);
+      SetHistoAxisLabels(_MIMOSA_map_ForChannel[ch], "MIMOSA26, plane 3, x [mm]", "MIMOSA26, plane 3, y [mm]");      
+    }
 
-    sprintf(out, "%s %i pixel X vs. MIMOSA1 y", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_y_rot0_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y = new TH2F(out2, out, 100, -7.5, 7.5, 557, 0, 557);
-    _HGCalYVsMIMOSA26_Y->SetOption("COLZ");
-    _HGCalYVsMIMOSA26_Y->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y, "Hexaboard y [cm]", "pixel Y on MIMOSA 3");
-
-    sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 x", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_x_rot30_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot30 = new TH2F(out2, out, 100, -7.5, 7.5, 1153, 0, 1153);
-    _HGCalXVsMIMOSA26_X_rot30->SetOption("COLZ");
-    _HGCalXVsMIMOSA26_X_rot30->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot30, "Hexaboard x, rot30 [cm]", "pixel X on MIMOSA 3");
-
-    sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 y", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_y_rot30_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot30 = new TH2F(out2, out, 100, -7.5, 7.5, 557, 0, 557);
-    _HGCalYVsMIMOSA26_Y_rot30->SetOption("COLZ");
-    _HGCalYVsMIMOSA26_Y_rot30->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot30, "Hexaboard y, rot30 [cm]", "pixel Y on MIMOSA 3");
-
-    sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 x", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_x_rot60_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot60 = new TH2F(out2, out, 100, -7.5, 7.5, 1153, 0, 1153);
-    _HGCalXVsMIMOSA26_X_rot60->SetOption("COLZ");
-    _HGCalXVsMIMOSA26_X_rot60->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot60, "Hexaboard x, rot60 [cm]", "pixel X on MIMOSA 3");
-
-    sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 y", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_y_rot60_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot60 = new TH2F(out2, out, 100, -7.5, 7.5, 557, 0, 557);
-    _HGCalYVsMIMOSA26_Y_rot60->SetOption("COLZ");
-    _HGCalYVsMIMOSA26_Y_rot60->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot60, "Hexaboard y, rot60 [cm]", "pixel Y on MIMOSA 3");
-
-    sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 x", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_x_rot90_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot90 = new TH2F(out2, out, 100, -7.5, 7.5, 1153, 0, 1153);
-    _HGCalXVsMIMOSA26_X_rot90->SetOption("COLZ");
-    _HGCalXVsMIMOSA26_X_rot90->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot90, "Hexaboard x, rot90 [cm]", "pixel X on MIMOSA 3");
-
-    sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 y", _sensor.c_str(), _id);
-    sprintf(out2, "h_hgcal_y_rot90_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot90 = new TH2F(out2, out, 100, -7.5, 7.5, 557, 0, 557);
-    _HGCalYVsMIMOSA26_Y_rot90->SetOption("COLZ");
-    _HGCalYVsMIMOSA26_Y_rot90->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot90, "Hexaboard y, rot90 [cm]", "pixel Y on MIMOSA 3");
     
     // make a plane array for calculating e..g hotpixels and occupancy
     plane_map_array = new int *[_maxX];
@@ -139,9 +94,9 @@ int CrossCorrelationHistos::zero_plane_array() {
 }
 
 
-void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA1) {
+void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA2) {
   //MIMOSA clustering
-  std::vector<double> pxl = plMIMOSA1.GetPixels<double>();
+  std::vector<double> pxl = plMIMOSA2.GetPixels<double>();
   std::vector<std::pair<int, int> > clusterEntitites;
   std::vector<std::pair<float, float> > clusters;
   int _N_hits = pxl.size();
@@ -149,55 +104,28 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
   clusterEntitites.clear();
   clusters.clear();
   for (size_t ipix = 0; ipix < pxl.size(); ++ipix) {
-    int pixelX = plMIMOSA1.GetX(ipix), pixelY = plMIMOSA1.GetY(ipix);
+    int pixelX = plMIMOSA2.GetX(ipix), pixelY = plMIMOSA2.GetY(ipix);
     clusterEntitites.push_back(std::make_pair(pixelX, pixelY));     
   }
 
-  //energy weighted sum to infer the impact position on the HGCal modules
-  float x_sum = 0, y_sum = 0;
-  float E_sum = 0;
-  // std::cout<< "FILL with a plane." << std::endl;
+  //find the clusters      
+  findClusters(clusterEntitites, clusters);
+
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
     const int pixel_x = plane.GetX(pix);    //corresponds to the skiroc index
     const int pixel_y = plane.GetY(pix);    //corresponds to the channel id
     
-    int u = electronicsMap[std::make_pair(pixel_x+1, pixel_y)].first;
-    int v = electronicsMap[std::make_pair(pixel_x+1, pixel_y)].second;
-
-    const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
     double energyHG_estimate = plane.GetPixel(pix, 3+13) - plane.GetPixel(pix, 0+13);
-
-    if (energyHG_estimate < 10.) continue; 
+    if (energyHG_estimate < 20.) continue; 
     
-    x_sum += energyHG_estimate * (1.12583 * (u + v/2.));  //cm, cell side x (sqrt 3 x u + (sqrt 3) / 2 x v), in agreement to TB 2016 calculation
-    y_sum += energyHG_estimate * (0.975 * v ); //cm, 1.5 x cell side x v, in agreement to TB 2016 calculation
-    E_sum += energyHG_estimate;
-
+    
+    const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
+    for (size_t cl=0; cl<clusters.size(); cl++) {
+      //_MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first, clusters[cl].second);   //binary entries
+      _MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26, energyHG_estimate);   //energy weighted entries
+    }    
   }
 
-  float x = x_sum/E_sum;
-  float y = y_sum/E_sum;
-  float x_rot30 = 0.8660254038 * x + 0.5 * y;   //HGCAL sensors are rotated virtually
-  float y_rot30 = -0.5 * x + 0.8660254038 * y;
-  float x_rot60 = 0.5 * x + 0.8660254038 * y;
-  float y_rot60 = -0.8660254038 * x + 0.5 * y;
-  float x_rot90 = y;
-  float y_rot90 = -x;
-
-  //find the clusters      
-  findClusters(clusterEntitites, clusters);
-  for (size_t cl=0; cl<clusters.size(); cl++) {
-    _HGCalXVsMIMOSA26_X->Fill(x, clusters[cl].first);
-    _HGCalYVsMIMOSA26_Y->Fill(y, clusters[cl].second);
-    _HGCalXVsMIMOSA26_X_rot30->Fill(x_rot30, clusters[cl].first);
-    _HGCalYVsMIMOSA26_Y_rot30->Fill(y_rot30, clusters[cl].second);
-    _HGCalXVsMIMOSA26_X_rot60->Fill(x_rot60, clusters[cl].first);
-    _HGCalYVsMIMOSA26_Y_rot60->Fill(y_rot60, clusters[cl].second);
-    _HGCalXVsMIMOSA26_X_rot90->Fill(x_rot90, clusters[cl].first);
-    _HGCalYVsMIMOSA26_Y_rot90->Fill(y_rot90, clusters[cl].second);
-  }
-  
-  
 }
 
 void CrossCorrelationHistos::Set_UV_FromChannelMap() {
@@ -340,15 +268,8 @@ void CrossCorrelationHistos::Set_SkiToHexaboard_ChannelMap(){
 
 void CrossCorrelationHistos::Reset() {
 
-  
-  _HGCalXVsMIMOSA26_X->Reset();
-  _HGCalYVsMIMOSA26_Y->Reset();
-  _HGCalXVsMIMOSA26_X_rot30->Reset();
-  _HGCalYVsMIMOSA26_Y_rot30->Reset();
-  _HGCalXVsMIMOSA26_X_rot60->Reset();
-  _HGCalYVsMIMOSA26_Y_rot60->Reset();
-  _HGCalXVsMIMOSA26_X_rot90->Reset();
-  _HGCalYVsMIMOSA26_Y_rot90->Reset();
+  for (int ch=0; ch<128; ch++)
+    _MIMOSA_map_ForChannel[ch]->Reset();
   
   // we have to reset the aux array as well
   zero_plane_array();
@@ -361,14 +282,9 @@ void CrossCorrelationHistos::Calculate(const int currentEventNum) {
 }
 
 void CrossCorrelationHistos::Write() {
-  _HGCalXVsMIMOSA26_X->Write();
-  _HGCalYVsMIMOSA26_Y->Write();
-  _HGCalXVsMIMOSA26_X_rot30->Write();
-  _HGCalYVsMIMOSA26_Y_rot30->Write();
-  _HGCalXVsMIMOSA26_X_rot60->Write();
-  _HGCalYVsMIMOSA26_Y_rot60->Write();
-  _HGCalXVsMIMOSA26_X_rot90->Write();
-  _HGCalYVsMIMOSA26_Y_rot90->Write();
+  for (int ch=0; ch<128; ch++)
+    _MIMOSA_map_ForChannel[ch]->Write();
+
 }
 
 int CrossCorrelationHistos::SetHistoAxisLabelx(TH1 *histo, string xlabel) {

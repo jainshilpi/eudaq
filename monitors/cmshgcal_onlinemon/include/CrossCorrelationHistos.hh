@@ -17,6 +17,7 @@ using namespace std;
 class RootMonitor;
 
 
+
 class CrossCorrelationHistos {
 protected:
   string _sensor;
@@ -27,14 +28,7 @@ protected:
 
   map < pair < int,int >, int > _ski_to_ch_map; //channel mapping
   
-  TH2F *_HGCalXVsMIMOSA26_X;
-  TH2F *_HGCalYVsMIMOSA26_Y;
-  TH2F *_HGCalXVsMIMOSA26_X_rot30;
-  TH2F *_HGCalYVsMIMOSA26_Y_rot30;
-  TH2F *_HGCalXVsMIMOSA26_X_rot60;
-  TH2F *_HGCalYVsMIMOSA26_Y_rot60;
-  TH2F *_HGCalXVsMIMOSA26_X_rot90;
-  TH2F *_HGCalYVsMIMOSA26_Y_rot90;
+  std::map<int, TH2F *> _MIMOSA_map_ForChannel;
   
 public:
   CrossCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon);
@@ -49,14 +43,8 @@ public:
   void Calculate(const int currentEventNum);
   void Write();
 
-  TH2F *getHGCalXVsMIMOSA26_XHisto() { return _HGCalXVsMIMOSA26_X; }
-  TH2F *getHGCalYVsMIMOSA26_YHisto() { return _HGCalYVsMIMOSA26_Y; }
-  TH2F *getHGCalXVsMIMOSA26_XHisto_rot30() { return _HGCalXVsMIMOSA26_X_rot30; }
-  TH2F *getHGCalYVsMIMOSA26_YHisto_rot30() { return _HGCalYVsMIMOSA26_Y_rot30; }
-  TH2F *getHGCalXVsMIMOSA26_XHisto_rot60() { return _HGCalXVsMIMOSA26_X_rot60; }
-  TH2F *getHGCalYVsMIMOSA26_YHisto_rot60() { return _HGCalYVsMIMOSA26_Y_rot60; }
-  TH2F *getHGCalXVsMIMOSA26_XHisto_rot90() { return _HGCalXVsMIMOSA26_X_rot90; }
-  TH2F *getHGCalYVsMIMOSA26_YHisto_rot90() { return _HGCalYVsMIMOSA26_Y_rot90; }
+  TH2F *getMIMOSA_map_ForChannel(int channel) { return _MIMOSA_map_ForChannel[channel]; }
+
   
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
 
