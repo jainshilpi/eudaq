@@ -37,6 +37,7 @@ public:
     std::cout << " Initialising CrossCorrelationCollection Collection" << std::endl;
     isOnePlaneRegistered = false;
     CollectionType = CROSSCORRELATION_COLLECTION_TYPE;
+
   }
   void Fill(const SimpleStandardEvent &simpev) { ; };
   void Fill(const eudaq::StandardEvent &ev, int evNumber=-1);
@@ -44,7 +45,11 @@ public:
   void Reset();
   virtual void Write(TFile *file);
   virtual void Calculate(const unsigned int currentEventNumber);
+
 };
+
+
+
 
 #ifdef __CINT__
 #pragma link C++ class CrossCorrelationCollection - ;

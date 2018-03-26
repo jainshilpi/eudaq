@@ -40,7 +40,7 @@ void CrossCorrelationHistos::findClusters(std::vector<std::pair<int, int> >& ent
 
 CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon)
   :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false),
-  _ChannelVsMIMOSA26_X(NULL), _ChannelVsMIMOSA26_Y(NULL){
+  _HGCalXVsMIMOSA26_X(NULL), _HGCalYVsMIMOSA26_Y(NULL), _HGCalXVsMIMOSA26_X_rot30(NULL), _HGCalYVsMIMOSA26_Y_rot30(NULL){
     
   char out[1024], out2[1024];
 
@@ -51,16 +51,61 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
   if (_maxX != -1 && _maxY != -1) {
 
-    sprintf(out, "%s %i channel vs. MIMOSA1 x", _sensor.c_str(), _id);
-    sprintf(out2, "h_ch_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _ChannelVsMIMOSA26_X = new TH2I(out2, out, 128, 0, 128, 1153, 0, 1153);
-    SetHistoAxisLabels(_ChannelVsMIMOSA26_X, "channel Hexaboard", "pixel X on MIMOSA 1");
+    sprintf(out, "%s %i pixel X vs. MIMOSA1 x", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_x_rot0_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
+    _HGCalXVsMIMOSA26_X = new TH2F(out2, out, 25, -12.5, 12.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X->SetOption("COLZ");
+    _HGCalXVsMIMOSA26_X->SetStats(false);
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X, "Hexaboard x", "pixel X on MIMOSA 3");
 
-    sprintf(out, "%s %i channel vs. MIMOSA1 y", _sensor.c_str(), _id);
-    sprintf(out2, "h_ch_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _ChannelVsMIMOSA26_Y = new TH2I(out2, out, 128, 0, 128, 557, 0, 557);
-    SetHistoAxisLabels(_ChannelVsMIMOSA26_Y, "channel Hexaboard", "pixel Y on MIMOSA 1");
+    sprintf(out, "%s %i pixel X vs. MIMOSA1 y", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_y_rot0_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
+    _HGCalYVsMIMOSA26_Y = new TH2F(out2, out, 15, -7.5, 7.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y->SetOption("COLZ");
+    _HGCalYVsMIMOSA26_Y->SetStats(false);
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y, "Hexaboard y", "pixel Y on MIMOSA 3");
 
+    sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 x", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_x_rot30_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
+    _HGCalXVsMIMOSA26_X_rot30 = new TH2F(out2, out, 15, -7.5, 7.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot30->SetOption("COLZ");
+    _HGCalXVsMIMOSA26_X_rot30->SetStats(false);
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot30, "Hexaboard x, rot30", "pixel X on MIMOSA 3");
+
+    sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 y", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_y_rot30_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
+    _HGCalYVsMIMOSA26_Y_rot30 = new TH2F(out2, out, 25, -12.5, 12.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot30->SetOption("COLZ");
+    _HGCalYVsMIMOSA26_Y_rot30->SetStats(false);
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot30, "Hexaboard y, rot30", "pixel Y on MIMOSA 3");
+
+    sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 x", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_x_rot60_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
+    _HGCalXVsMIMOSA26_X_rot60 = new TH2F(out2, out, 25, -12.5, 12.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot60->SetOption("COLZ");
+    _HGCalXVsMIMOSA26_X_rot60->SetStats(false);
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot60, "Hexaboard x, rot60", "pixel X on MIMOSA 3");
+
+    sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 y", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_y_rot60_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
+    _HGCalYVsMIMOSA26_Y_rot60 = new TH2F(out2, out, 15, -7.5, 7.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot60->SetOption("COLZ");
+    _HGCalYVsMIMOSA26_Y_rot60->SetStats(false);
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot60, "Hexaboard y, rot60", "pixel Y on MIMOSA 3");
+
+    sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 x", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_x_rot90_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
+    _HGCalXVsMIMOSA26_X_rot90 = new TH2F(out2, out, 15, -7.5, 7.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot90->SetOption("COLZ");
+    _HGCalXVsMIMOSA26_X_rot90->SetStats(false);
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot90, "Hexaboard x, rot90", "pixel X on MIMOSA 3");
+
+    sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 y", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_y_rot90_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
+    _HGCalYVsMIMOSA26_Y_rot90 = new TH2F(out2, out, 25, -12.5, 12.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot90->SetOption("COLZ");
+    _HGCalYVsMIMOSA26_Y_rot90->SetStats(false);
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot90, "Hexaboard y, rot90", "pixel Y on MIMOSA 3");
     
     // make a plane array for calculating e..g hotpixels and occupancy
     plane_map_array = new int *[_maxX];
@@ -81,6 +126,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
   }
 
   Set_SkiToHexaboard_ChannelMap();
+  Set_UV_FromChannelMap();
 }
 
 int CrossCorrelationHistos::zero_plane_array() {
@@ -114,21 +160,172 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
 
   // std::cout<< "FILL with a plane." << std::endl;
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
-    const int pixel_x = plane.GetX(pix);
-    const int pixel_y = plane.GetY(pix);
+    const int pixel_x = plane.GetX(pix);    //corresponds to the skiroc index
+    const int pixel_y = plane.GetY(pix);    //corresponds to the channel id
+    
+    int u = electronicsMap[std::make_pair(pixel_x, pixel_y)].first;
+    int v = electronicsMap[std::make_pair(pixel_x, pixel_y)].second;
+    float x = 1.12583 * (u + v/2.); //cm, cell side x (sqrt 3 x u + (sqrt 3) / 2 x v)
+    float y = 0.975 * v;    //cm, 1.5 x cell side x v
+    float x_rot30 = 0.8660254038 * x + 0.5 * y;   //HGCAL sensors are rotated virtually
+    float y_rot30 = -0.5 * x + 0.8660254038 * y;
+    float x_rot60 = 0.5 * x + 0.8660254038 * y;
+    float y_rot60 = -0.8660254038 * x + 0.5 * y;
+    float x_rot90 = y;
+    float y_rot90 = -x;
+
+
     const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
     double HG_TS3 = plane.GetPixel(pix, 3+13);
+
+    //electronicsMap[std::make_pair(1,0)]=std::make_pair(-2,5);
 
     if (HG_TS3 < 30.) continue; //only fill if hexaboard hit is above 30
     //end of hexaboard loop
 
     for (size_t cl=0; cl<clusters.size(); cl++) {
-      _ChannelVsMIMOSA26_X->Fill(ch, (int)clusters[cl].first);
-      _ChannelVsMIMOSA26_Y->Fill(ch, (int)clusters[cl].second);
+      _HGCalXVsMIMOSA26_X->Fill(x, clusters[cl].first);
+      _HGCalYVsMIMOSA26_Y->Fill(y, clusters[cl].second);
+      _HGCalXVsMIMOSA26_X_rot30->Fill(x_rot30, clusters[cl].first);
+      _HGCalYVsMIMOSA26_Y_rot30->Fill(y_rot30, clusters[cl].second);
+      _HGCalXVsMIMOSA26_X_rot60->Fill(x_rot60, clusters[cl].first);
+      _HGCalYVsMIMOSA26_Y_rot60->Fill(y_rot60, clusters[cl].second);
+      _HGCalXVsMIMOSA26_X_rot90->Fill(x_rot90, clusters[cl].first);
+      _HGCalYVsMIMOSA26_Y_rot90->Fill(y_rot90, clusters[cl].second);
     }
   }
   
   
+}
+
+void CrossCorrelationHistos::Set_UV_FromChannelMap() {
+  electronicsMap[std::make_pair(1,0)]=std::make_pair(-2,5);
+  electronicsMap[std::make_pair(1,2)]=std::make_pair(-2,4);
+  electronicsMap[std::make_pair(1,4)]=std::make_pair(-1,4);
+  electronicsMap[std::make_pair(1,6)]=std::make_pair(-2,6);
+  electronicsMap[std::make_pair(1,8)]=std::make_pair(0,3);
+  electronicsMap[std::make_pair(1,10)]=std::make_pair(-1,6);
+  electronicsMap[std::make_pair(1,12)]=std::make_pair(-1,5);
+  electronicsMap[std::make_pair(1,14)]=std::make_pair(0,2);
+  electronicsMap[std::make_pair(1,16)]=std::make_pair(-1,3);
+  electronicsMap[std::make_pair(1,18)]=std::make_pair(-1,2);
+  electronicsMap[std::make_pair(1,20)]=std::make_pair(-2,3);
+  electronicsMap[std::make_pair(1,22)]=std::make_pair(-2,2);
+  electronicsMap[std::make_pair(1,24)]=std::make_pair(-1,1);
+  electronicsMap[std::make_pair(1,26)]=std::make_pair(-2,1);
+  electronicsMap[std::make_pair(1,28)]=std::make_pair(-3,2);
+  electronicsMap[std::make_pair(1,30)]=std::make_pair(-4,2);
+  electronicsMap[std::make_pair(1,32)]=std::make_pair(-5,3);
+  electronicsMap[std::make_pair(1,34)]=std::make_pair(-4,3);
+  electronicsMap[std::make_pair(1,36)]=std::make_pair(-5,4);
+  electronicsMap[std::make_pair(1,38)]=std::make_pair(-4,4);
+  electronicsMap[std::make_pair(1,40)]=std::make_pair(-3,3);
+  electronicsMap[std::make_pair(1,42)]=std::make_pair(-3,4);
+  electronicsMap[std::make_pair(1,44)]=std::make_pair(-6,3);
+  electronicsMap[std::make_pair(1,46)]=std::make_pair(-3,7);
+  electronicsMap[std::make_pair(1,48)]=std::make_pair(-6,4);
+  electronicsMap[std::make_pair(1,50)]=std::make_pair(-6,5);
+  electronicsMap[std::make_pair(1,52)]=std::make_pair(-5,5);
+  electronicsMap[std::make_pair(1,54)]=std::make_pair(-4,5);
+  electronicsMap[std::make_pair(1,56)]=std::make_pair(-5,6);
+  electronicsMap[std::make_pair(1,58)]=std::make_pair(-3,6);
+  electronicsMap[std::make_pair(1,60)]=std::make_pair(-3,5);
+  electronicsMap[std::make_pair(1,62)]=std::make_pair(-4,6);
+  electronicsMap[std::make_pair(2,0)]=std::make_pair(-3,-2);
+  electronicsMap[std::make_pair(2,2)]=std::make_pair(-4,-2);
+  electronicsMap[std::make_pair(2,4)]=std::make_pair(-3,-3);
+  electronicsMap[std::make_pair(2,6)]=std::make_pair(-4,-1);
+  electronicsMap[std::make_pair(2,8)]=std::make_pair(-5,0);
+  electronicsMap[std::make_pair(2,10)]=std::make_pair(-5,-1);
+  electronicsMap[std::make_pair(2,12)]=std::make_pair(-6,1);
+  electronicsMap[std::make_pair(2,14)]=std::make_pair(-4,0);
+  electronicsMap[std::make_pair(2,16)]=std::make_pair(-3,-1);
+  electronicsMap[std::make_pair(2,18)]=std::make_pair(-3,0);
+  electronicsMap[std::make_pair(2,20)]=std::make_pair(-7,3);
+  electronicsMap[std::make_pair(2,22)]=std::make_pair(-6,2);
+  electronicsMap[std::make_pair(2,24)]=std::make_pair(-5,1);
+  electronicsMap[std::make_pair(2,26)]=std::make_pair(-4,1);
+  electronicsMap[std::make_pair(2,28)]=std::make_pair(-5,2);
+  electronicsMap[std::make_pair(2,30)]=std::make_pair(-3,1);
+  electronicsMap[std::make_pair(2,32)]=std::make_pair(-2,0);
+  electronicsMap[std::make_pair(2,34)]=std::make_pair(-1,0);
+  electronicsMap[std::make_pair(2,36)]=std::make_pair(-1,0);
+  electronicsMap[std::make_pair(2,38)]=std::make_pair(-1,-1);
+  electronicsMap[std::make_pair(2,40)]=std::make_pair(0,-4);
+  electronicsMap[std::make_pair(2,42)]=std::make_pair(0,-3);
+  electronicsMap[std::make_pair(2,44)]=std::make_pair(-1,-3);
+  electronicsMap[std::make_pair(2,46)]=std::make_pair(0,-5);
+  electronicsMap[std::make_pair(2,48)]=std::make_pair(-1,-5);
+  electronicsMap[std::make_pair(2,50)]=std::make_pair(-1,-4);
+  electronicsMap[std::make_pair(2,52)]=std::make_pair(-1,-2);
+  electronicsMap[std::make_pair(2,54)]=std::make_pair(-2,-1);
+  electronicsMap[std::make_pair(2,56)]=std::make_pair(-2,-2);
+  electronicsMap[std::make_pair(2,58)]=std::make_pair(-2,-3);
+  electronicsMap[std::make_pair(2,60)]=std::make_pair(-3,-4);
+  electronicsMap[std::make_pair(2,62)]=std::make_pair(-2,-4);
+  electronicsMap[std::make_pair(3,0)]=std::make_pair(3,-4);
+  electronicsMap[std::make_pair(3,2)]=std::make_pair(2,-4);
+  electronicsMap[std::make_pair(3,4)]=std::make_pair(3,-5);
+  electronicsMap[std::make_pair(3,6)]=std::make_pair(4,-6);
+  electronicsMap[std::make_pair(3,8)]=std::make_pair(1,-5);
+  electronicsMap[std::make_pair(3,10)]=std::make_pair(3,-6);
+  electronicsMap[std::make_pair(3,12)]=std::make_pair(4,-7);
+  electronicsMap[std::make_pair(3,14)]=std::make_pair(2,-6);
+  electronicsMap[std::make_pair(3,16)]=std::make_pair(1,-6);
+  electronicsMap[std::make_pair(3,18)]=std::make_pair(2,-5);
+  electronicsMap[std::make_pair(3,20)]=std::make_pair(1,-4);
+  electronicsMap[std::make_pair(3,22)]=std::make_pair(1,-3);
+  electronicsMap[std::make_pair(3,24)]=std::make_pair(2,-3);
+  electronicsMap[std::make_pair(3,26)]=std::make_pair(1,-2);
+  electronicsMap[std::make_pair(3,28)]=std::make_pair(0,-2);
+  electronicsMap[std::make_pair(3,30)]=std::make_pair(3,-3);
+  electronicsMap[std::make_pair(3,32)]=std::make_pair(3,-2);
+  electronicsMap[std::make_pair(3,34)]=std::make_pair(2,-2);
+  electronicsMap[std::make_pair(3,36)]=std::make_pair(0,0);
+  electronicsMap[std::make_pair(3,38)]=std::make_pair(1,-1);
+  electronicsMap[std::make_pair(3,40)]=std::make_pair(2,-1);
+  electronicsMap[std::make_pair(3,42)]=std::make_pair(4,-2);
+  electronicsMap[std::make_pair(3,44)]=std::make_pair(4,-3);
+  electronicsMap[std::make_pair(3,46)]=std::make_pair(5,-3);
+  electronicsMap[std::make_pair(3,48)]=std::make_pair(6,-4);
+  electronicsMap[std::make_pair(3,50)]=std::make_pair(5,-4);
+  electronicsMap[std::make_pair(3,52)]=std::make_pair(6,-5);
+  electronicsMap[std::make_pair(3,54)]=std::make_pair(4,-5);
+  electronicsMap[std::make_pair(3,56)]=std::make_pair(5,-5);
+  electronicsMap[std::make_pair(3,58)]=std::make_pair(4,-4);
+  electronicsMap[std::make_pair(3,62)]=std::make_pair(5,-6);
+  electronicsMap[std::make_pair(4,0)]=std::make_pair(2,2);
+  electronicsMap[std::make_pair(4,2)]=std::make_pair(3,1);
+  electronicsMap[std::make_pair(4,4)]=std::make_pair(3,2);
+  electronicsMap[std::make_pair(4,6)]=std::make_pair(4,0);
+  electronicsMap[std::make_pair(4,8)]=std::make_pair(3,3);
+  electronicsMap[std::make_pair(4,10)]=std::make_pair(4,-1);
+  electronicsMap[std::make_pair(4,12)]=std::make_pair(5,-1);
+  electronicsMap[std::make_pair(4,14)]=std::make_pair(2,4);
+  electronicsMap[std::make_pair(4,16)]=std::make_pair(3,4);
+  electronicsMap[std::make_pair(4,18)]=std::make_pair(4,2);
+  electronicsMap[std::make_pair(4,20)]=std::make_pair(4,1);
+  electronicsMap[std::make_pair(4,22)]=std::make_pair(5,1);
+  electronicsMap[std::make_pair(4,24)]=std::make_pair(5,0);
+  electronicsMap[std::make_pair(4,26)]=std::make_pair(6,-1);
+  electronicsMap[std::make_pair(4,28)]=std::make_pair(6,-2);
+  electronicsMap[std::make_pair(4,30)]=std::make_pair(5,-2);
+  electronicsMap[std::make_pair(4,32)]=std::make_pair(6,-3);
+  electronicsMap[std::make_pair(4,34)]=std::make_pair(7,-4);
+  electronicsMap[std::make_pair(4,36)]=std::make_pair(1,0);
+  electronicsMap[std::make_pair(4,38)]=std::make_pair(2,0);
+  electronicsMap[std::make_pair(4,40)]=std::make_pair(3,-1);
+  electronicsMap[std::make_pair(4,42)]=std::make_pair(3,0);
+  electronicsMap[std::make_pair(4,44)]=std::make_pair(0,1);
+  electronicsMap[std::make_pair(4,46)]=std::make_pair(1,3);
+  electronicsMap[std::make_pair(4,48)]=std::make_pair(0,4);
+  electronicsMap[std::make_pair(4,50)]=std::make_pair(0,5);
+  electronicsMap[std::make_pair(4,52)]=std::make_pair(1,2);
+  electronicsMap[std::make_pair(4,54)]=std::make_pair(1,1);
+  electronicsMap[std::make_pair(4,56)]=std::make_pair(2,1);
+  electronicsMap[std::make_pair(4,58)]=std::make_pair(2,3);
+  electronicsMap[std::make_pair(4,60)]=std::make_pair(1,5);
+  electronicsMap[std::make_pair(4,62)]=std::make_pair(1,4);  
 }
 
 void CrossCorrelationHistos::Set_SkiToHexaboard_ChannelMap(){
@@ -142,8 +339,14 @@ void CrossCorrelationHistos::Set_SkiToHexaboard_ChannelMap(){
 void CrossCorrelationHistos::Reset() {
 
   
-  _ChannelVsMIMOSA26_X->Reset();
-  _ChannelVsMIMOSA26_Y->Reset();
+  _HGCalXVsMIMOSA26_X->Reset();
+  _HGCalYVsMIMOSA26_Y->Reset();
+  _HGCalXVsMIMOSA26_X_rot30->Reset();
+  _HGCalYVsMIMOSA26_Y_rot30->Reset();
+  _HGCalXVsMIMOSA26_X_rot60->Reset();
+  _HGCalYVsMIMOSA26_Y_rot60->Reset();
+  _HGCalXVsMIMOSA26_X_rot90->Reset();
+  _HGCalYVsMIMOSA26_Y_rot90->Reset();
   
   // we have to reset the aux array as well
   zero_plane_array();
@@ -156,10 +359,14 @@ void CrossCorrelationHistos::Calculate(const int currentEventNum) {
 }
 
 void CrossCorrelationHistos::Write() {
-
-  _ChannelVsMIMOSA26_X->Write();
-  _ChannelVsMIMOSA26_Y->Write();
-
+  _HGCalXVsMIMOSA26_X->Write();
+  _HGCalYVsMIMOSA26_Y->Write();
+  _HGCalXVsMIMOSA26_X_rot30->Write();
+  _HGCalYVsMIMOSA26_Y_rot30->Write();
+  _HGCalXVsMIMOSA26_X_rot60->Write();
+  _HGCalYVsMIMOSA26_Y_rot60->Write();
+  _HGCalXVsMIMOSA26_X_rot90->Write();
+  _HGCalYVsMIMOSA26_Y_rot90->Write();
 }
 
 int CrossCorrelationHistos::SetHistoAxisLabelx(TH1 *histo, string xlabel) {

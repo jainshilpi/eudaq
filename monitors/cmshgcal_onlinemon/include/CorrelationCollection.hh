@@ -96,6 +96,10 @@ private:
   unsigned windowWidthForCorrelation;
 };
 
+
+
+
+
 #ifdef __CINT__
 #pragma link C++ class CorrelationCollection - ;
 #endif

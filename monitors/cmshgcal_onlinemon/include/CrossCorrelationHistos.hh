@@ -3,7 +3,7 @@
 #ifndef CROSSCORRELATIONHISTOS_HH_
 #define CROSSCORRELATIONHISTOS_HH_
 
-#include <TH2I.h>
+#include <TH2F.h>
 #include <TFile.h>
 #include "HexagonHistos.hh"   //for the sc map
 
@@ -27,9 +27,14 @@ protected:
 
   map < pair < int,int >, int > _ski_to_ch_map; //channel mapping
   
-  TH2I *_ChannelVsMIMOSA26_X;
-  TH2I *_ChannelVsMIMOSA26_Y;
-
+  TH2F *_HGCalXVsMIMOSA26_X;
+  TH2F *_HGCalYVsMIMOSA26_Y;
+  TH2F *_HGCalXVsMIMOSA26_X_rot30;
+  TH2F *_HGCalYVsMIMOSA26_Y_rot30;
+  TH2F *_HGCalXVsMIMOSA26_X_rot60;
+  TH2F *_HGCalYVsMIMOSA26_Y_rot60;
+  TH2F *_HGCalXVsMIMOSA26_X_rot90;
+  TH2F *_HGCalYVsMIMOSA26_Y_rot90;
   
 public:
   CrossCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon);
@@ -38,14 +43,20 @@ public:
 
   void Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA1);
   void Set_SkiToHexaboard_ChannelMap();
+  void Set_UV_FromChannelMap();
   void Reset();
 
   void Calculate(const int currentEventNum);
   void Write();
 
-  TH2I *getChannelVsMIMOSA26_XHisto() { return _ChannelVsMIMOSA26_X; }
-  TH2I *getChannelVsMIMOSA26_YHisto() { return _ChannelVsMIMOSA26_Y; }
-
+  TH2F *getHGCalXVsMIMOSA26_XHisto() { return _HGCalXVsMIMOSA26_X; }
+  TH2F *getHGCalYVsMIMOSA26_YHisto() { return _HGCalYVsMIMOSA26_Y; }
+  TH2F *getHGCalXVsMIMOSA26_XHisto_rot30() { return _HGCalXVsMIMOSA26_X_rot30; }
+  TH2F *getHGCalYVsMIMOSA26_YHisto_rot30() { return _HGCalYVsMIMOSA26_Y_rot30; }
+  TH2F *getHGCalXVsMIMOSA26_XHisto_rot60() { return _HGCalXVsMIMOSA26_X_rot60; }
+  TH2F *getHGCalYVsMIMOSA26_YHisto_rot60() { return _HGCalYVsMIMOSA26_Y_rot60; }
+  TH2F *getHGCalXVsMIMOSA26_XHisto_rot90() { return _HGCalXVsMIMOSA26_X_rot90; }
+  TH2F *getHGCalYVsMIMOSA26_YHisto_rot90() { return _HGCalYVsMIMOSA26_Y_rot90; }
   
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
 
@@ -60,7 +71,10 @@ private:
   
   RootMonitor *_mon;
 
-  bool is_WIRECHAMBER;
+
+  //implements the electronic map of layer one from July 2017 (H2)
+  // SKIROC CHANNEL  IX IV
+  std::map<std::pair<int, int>, std::pair<int, int> > electronicsMap;
 };
 
 
