@@ -52,13 +52,17 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
   if (_maxX != -1 && _maxY != -1) {
 
-    for (int ch=0; ch<128; ch++) {
-      sprintf(out, "%s %i, channel %i projected on MIMOSA26 plane 3", _sensor.c_str(), _id, ch);
-      sprintf(out2, "h_hgcal_ch%i_vs_MIMOSA26_3_%s_%i", ch, _sensor.c_str(), _id);
-      _MIMOSA_map_ForChannel[ch] = new TH2F(out2, out, 40, 0, 1153*pixelGap_MIMOSA26, 20, 0, 557*pixelGap_MIMOSA26);
-      _MIMOSA_map_ForChannel[ch]->SetOption("COLZ");
-      _MIMOSA_map_ForChannel[ch]->SetStats(false);
-      SetHistoAxisLabels(_MIMOSA_map_ForChannel[ch], "MIMOSA26, plane 3, x [mm]", "MIMOSA26, plane 3, y [mm]");      
+    for (int ski=0; ski<4; ski++) {
+      for (int ch=0; ch<=64; ch++) {
+        if (ch%1==1) continue;
+        int key = ski*1000+ch;
+        sprintf(out, "%s %i, skiroc %i, channel %i projected on MIMOSA26 plane 3", _sensor.c_str(), _id, ski, ch);
+        sprintf(out2, "h_hgcal_ski%i_ch%i_vs_MIMOSA26_3_%s_%i", ski, ch, _sensor.c_str(), _id);
+        _MIMOSA_map_ForChannel[key] = new TH2F(out2, out, 40, 0, 1153*pixelGap_MIMOSA26, 20, 0, 557*pixelGap_MIMOSA26);
+        _MIMOSA_map_ForChannel[key]->SetOption("COLZ");
+        _MIMOSA_map_ForChannel[key]->SetStats(false);
+        SetHistoAxisLabels(_MIMOSA_map_ForChannel[key], "MIMOSA26, plane 3, x [mm]", "MIMOSA26, plane 3, y [mm]");      
+      }
     }
 
     
@@ -133,9 +137,9 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
     double energyHG_estimate = plane.GetPixel(pix, 3+13) - common_mode[skiroc];
     if (energyHG_estimate < 30.) continue; 
       
-    const int ch  = _ski_to_ch_map.find(make_pair(skiroc,channel))->second;
+    int key = 1000*skiroc+channel;
     for (size_t cl=0; cl<clusters.size(); cl++) 
-      _MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26);   //binary entries
+      _MIMOSA_map_ForChannel[key]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26);   //binary entries
   }
 
 }

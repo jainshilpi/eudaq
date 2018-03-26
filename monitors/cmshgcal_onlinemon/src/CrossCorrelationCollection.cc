@@ -126,12 +126,15 @@ void CrossCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) {
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
     
-    for (int ch=0; ch<128; ch++) {
-      sprintf(tree, "XCorrelation/%s/Module %i/Ch_%iCorrelationToMIMOSA3", p.Sensor().c_str(), p.ID(), ch);      
-      _mon->getOnlineMon()->registerTreeItem(tree);
-      _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getMIMOSA_map_ForChannel(ch), "", 0);
-      //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
-      
+    for (int ski=0; ski<4; ski++) {
+      for (int ch=0; ch<=64; ch++) {
+        if (ch%1==1) continue;
+        int key = ski*1000+ch;
+        sprintf(tree, "XCorrelation/%s/Module %i/Skiroc_%i/Ch_%iCorrelationToMIMOSA3", p.Sensor().c_str(), p.ID(), ski, ch);      
+        _mon->getOnlineMon()->registerTreeItem(tree);
+        _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getMIMOSA_map_ForChannel(key), "", 0);
+        //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
+      }
     }
 
 
