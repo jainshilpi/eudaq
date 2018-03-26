@@ -1,5 +1,8 @@
 // -*- mode: c -*-
 
+//author: Thorben Quast, thorben.quast@cern.ch
+//26 March 2018
+
 #ifndef CROSSCORRELATION_COLLECTION_
 #define CROSSCORRELATION_COLLECTION_
 // ROOT Includes
@@ -27,7 +30,7 @@ protected:
   bool isOnePlaneRegistered;
   std::map<eudaq::StandardPlane, CrossCorrelationHistos *> _map;
   bool isPlaneRegistered(eudaq::StandardPlane p);
-  void fillHistograms(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA1);
+  void fillHistograms(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA3, const eudaq::StandardPlane &plMIMOSA4);
     
 public:
   void registerPlane(const eudaq::StandardPlane &p);

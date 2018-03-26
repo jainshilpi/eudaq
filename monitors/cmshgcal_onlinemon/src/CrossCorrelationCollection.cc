@@ -1,3 +1,6 @@
+//author: Thorben Quast, thorben.quast@cern.ch
+//26 March 2018
+
 #include "CrossCorrelationCollection.hh"
 #include "OnlineMon.hh"
 
@@ -10,7 +13,7 @@ bool CrossCorrelationCollection::isPlaneRegistered(eudaq::StandardPlane p) {
   return (it != _map.end());
 }
 
-void CrossCorrelationCollection::fillHistograms(const eudaq::StandardPlane &pl, const eudaq::StandardPlane &plMIMOSA1) {
+void CrossCorrelationCollection::fillHistograms(const eudaq::StandardPlane &pl, const eudaq::StandardPlane &plMIMOSA3, const eudaq::StandardPlane &plMIMOSA4) {
   //std::cout<<"In CrossCorrelationCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (pl.Sensor().find("HexaBoard")==std::string::npos)
@@ -22,7 +25,7 @@ void CrossCorrelationCollection::fillHistograms(const eudaq::StandardPlane &pl, 
   }
 
   CrossCorrelationHistos *wcmap = _map[pl];
-  wcmap->Fill(pl, plMIMOSA1);
+  wcmap->Fill(pl, plMIMOSA3, plMIMOSA4);
 
   ++counting;
 }
@@ -92,12 +95,16 @@ void CrossCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int evNumb
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
     if (Plane.Sensor().find("HexaBoard")!=std::string::npos) {
-      for (int plane2 = 0; plane2 < ev.NumPlanes(); plane2++) {
-        const eudaq::StandardPlane &Plane2 = ev.GetPlane(plane2);
-        if (Plane2.Sensor()!="MIMOSA26") continue;
-        if (Plane2.ID()!=3) continue;
-        fillHistograms(Plane, Plane2);
+      int plane2_idx=-1, plane3_idx=-1;
+      for (int plane_idx = 0; plane_idx < ev.NumPlanes(); plane_idx++) {
+        const eudaq::StandardPlane &Plane = ev.GetPlane(plane_idx);
+        if (Plane.Sensor()=="MIMOSA26") continue;
+        if (Plane.ID()==3) plane2_idx=plane_idx;
+        else if (Plane.ID()==4) plane3_idx=plane_idx;
       }
+      const eudaq::StandardPlane &Plane2 = ev.GetPlane(plane2_idx);
+      const eudaq::StandardPlane &Plane3 = ev.GetPlane(plane3_idx);
+      fillHistograms(Plane, Plane2, Plane3);
     }
   }
 }
@@ -125,23 +132,21 @@ void CrossCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) {
     // cout << "CrossCorrelationCollection:: Monitor running in online-mode" << endl;
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
-    
+
+    sprintf(tree, "XCorrelation/%s/Module %i/ChannelOccupancy", p.Sensor().c_str(), p.ID());      
+    _mon->getOnlineMon()->registerTreeItem(tree);
+    _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getOccupancy_ForChannel(), "", 0);    
+
     for (int ski=0; ski<4; ski++) {
       for (int ch=0; ch<=64; ch++) {
-        if (ch%1==1) continue;
+        if (ch%2==1) continue;
         int key = ski*1000+ch;
         sprintf(tree, "XCorrelation/%s/Module %i/Skiroc_%i/Ch_%iCorrelationToMIMOSA3", p.Sensor().c_str(), p.ID(), ski, ch);      
         _mon->getOnlineMon()->registerTreeItem(tree);
         _mon->getOnlineMon()->registerHisto(tree, getCrossCorrelationHistos(p.Sensor(), p.ID())->getMIMOSA_map_ForChannel(key), "", 0);
-        //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
+        
       }
-    }
-
-
-    sprintf(tree, "XCorrelation/%s/Module %i", p.Sensor().c_str(), p.ID());
-    _mon->getOnlineMon()->makeTreeItemSummary(tree);
-
-    
+    }    
   }
 }
 

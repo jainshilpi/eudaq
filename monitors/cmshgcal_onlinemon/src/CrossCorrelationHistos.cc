@@ -1,5 +1,8 @@
 // -*- mode: c -*-
 
+//author: Thorben Quast, thorben.quast@cern.ch
+//26 March 2018
+
 #include <TROOT.h>
 #include "CrossCorrelationHistos.hh"
 #include "HexagonHistos.hh"   //for the channel mapping
@@ -47,10 +50,15 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
   _mon = mon;
 
-  // std::cout << "CrossCorrelationHistos::Sensorname: " << _sensor << " "<< _id<<
-  // std::endl;
-
   if (_maxX != -1 && _maxY != -1) {
+
+    sprintf(out, "%s %i, Channel Occupancy", _sensor.c_str(), _id);
+    sprintf(out2, "h_hgcal_channel_occupancy_%s_%i", _sensor.c_str(), _id);
+    Occupancy_ForChannel = new TH2I(out2, out, 4, -0.5, 3.5, 64, -0.5, 63.5);
+    Occupancy_ForChannel->SetOption("COLZ");
+    Occupancy_ForChannel->SetStats(false);
+    SetHistoAxisLabels(Occupancy_ForChannel, "Skiroc index", "channel index");   
+    
 
     for (int ski=0; ski<4; ski++) {
       for (int ch=0; ch<=64; ch++) {
@@ -58,7 +66,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
         int key = ski*1000+ch;
         sprintf(out, "%s %i, skiroc %i, channel %i projected on MIMOSA26 plane 3", _sensor.c_str(), _id, ski, ch);
         sprintf(out2, "h_hgcal_ski%i_ch%i_vs_MIMOSA26_3_%s_%i", ski, ch, _sensor.c_str(), _id);
-        _MIMOSA_map_ForChannel[key] = new TH2F(out2, out, 40, 0, 1153*pixelGap_MIMOSA26, 20, 0, 557*pixelGap_MIMOSA26);
+        _MIMOSA_map_ForChannel[key] = new TH2F(out2, out, 80, 0, 1153*pixelGap_MIMOSA26, 40, 0, 557*pixelGap_MIMOSA26);
         _MIMOSA_map_ForChannel[key]->SetOption("COLZ");
         _MIMOSA_map_ForChannel[key]->SetStats(false);
         SetHistoAxisLabels(_MIMOSA_map_ForChannel[key], "MIMOSA26, plane 3, x [mm]", "MIMOSA26, plane 3, y [mm]");      
@@ -84,8 +92,6 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
     std::cout << "No max sensorsize known!" << std::endl;
   }
 
-  Set_SkiToHexaboard_ChannelMap();
-  Set_UV_FromChannelMap();
 }
 
 int CrossCorrelationHistos::zero_plane_array() {
@@ -98,194 +104,72 @@ int CrossCorrelationHistos::zero_plane_array() {
 }
 
 
-void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA2) {
-  
-  
-
-  //1st: MIMOSA clustering
-  std::vector<double> pxl = plMIMOSA2.GetPixels<double>();
-
-  int _N_hits = pxl.size();
+void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA3, const eudaq::StandardPlane &plMIMOSA4) {
   clusterEntitites.clear();
-  clusters.clear();
-  for (size_t ipix = 0; ipix < pxl.size(); ++ipix) {
-    int pixelX = plMIMOSA2.GetX(ipix), pixelY = plMIMOSA2.GetY(ipix);
-    clusterEntitites.push_back(std::make_pair(pixelX, pixelY));     
-  }
-  //find the clusters      
-  findClusters(clusterEntitites, clusters);
+  clusters3.clear();
+  good_cluster3.clear();
+  clusters4.clear();
 
+
+  //general strategy
+  //1. cluster hits in MIMOSA planes 3 and 4
+  //2. selection of clusters in plane 3 that seem correlated to a cluster in plane 4
+  //3. signal selection of HGCal cells
+  //4. fill MIMOSA plane 3 display for each cell to see hexagonal structures in case of synchronised data streams
+    
+  //1st: MIMOSA clustering
+  std::vector<double> pxl3 = plMIMOSA3.GetPixels<double>();
+  for (size_t ipix = 0; ipix < pxl3.size(); ++ipix) clusterEntitites.push_back(std::make_pair(plMIMOSA3.GetX(ipix), plMIMOSA3.GetY(ipix)));     
+  //find the clusters3      
+  findClusters(clusterEntitites, clusters3);
+
+
+  clusterEntitites.clear();
+  //2nd: MIMOSA clustering
+  std::vector<double> pxl4 = plMIMOSA4.GetPixels<double>();
+  for (size_t ipix = 0; ipix < pxl4.size(); ++ipix) clusterEntitites.push_back(std::make_pair(plMIMOSA4.GetX(ipix), plMIMOSA4.GetY(ipix)));     
+  //find the clusters in plane4      
+  findClusters(clusterEntitites, clusters4);
   
-  for (int ski=0; ski<4; ski++) {
-    common_mode[ski] = 0;
-    common_mode_count[ski] = 0;
+
+  //cluster in plane 3 selection based on correlation to any cluster in plane 4 (radial distance below 200 pixel units)
+  for (size_t cl3=0; cl3<clusters3.size(); cl3++) {
+    good_cluster3.push_back(false);
+    for (size_t cl4=0; cl4<clusters4.size(); cl4++) {
+      if (pow(clusters3[cl3].first-clusters4[cl4].first,2) + pow(clusters3[cl3].second-clusters4[cl4].second,2) > 40000) {    //cluster selection based on the presence of a matching hit in MIMOSA plane 4 (distance < 300 pixel units)
+        good_cluster3[cl3] = true;
+        break;
+      }
+    }
   }
 
-  //3. reconstruct energy
-  //common mode estimate
+
+  //reconstruct energy and perform simple selection signal
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
-    const int skiroc = plane.GetX(pix);    //corresponds to the skiroc index
-    const int channel = plane.GetY(pix);    //corresponds to the channel id
-    common_mode[skiroc] += plane.GetPixel(pix, 3+13);
+    const int skiroc = plane.GetX(pix);    // x pixel corresponds to the skiroc index
+    const int channel = plane.GetY(pix);    //y pixel corresponds to the channel id
+
+    //energy selection
+    if (plane.GetPixel(pix, 3+13) - plane.GetPixel(pix, 0+13) < 20.) continue;
+    if (plane.GetPixel(pix, 5+13) - plane.GetPixel(pix, 3+13) > 0) continue;
+    if (plane.GetPixel(pix, 5+13) - plane.GetPixel(pix, 2+13) > 0) continue;
+    
+    //fill the occupancy in any case
+    Occupancy_ForChannel->Fill(skiroc, channel);
+
+    for (size_t cl3=0; cl3<clusters3.size(); cl3++) {
+      if (!good_cluster3[cl3]) continue;
+      int key = 1000*skiroc+channel;
+      _MIMOSA_map_ForChannel[key]->Fill(clusters3[cl3].first*pixelGap_MIMOSA26, clusters3[cl3].second*pixelGap_MIMOSA26);   //yes/no entries
+    }
   }
 
-  for (int ski=0; ski<4; ski++) common_mode[ski] /= common_mode_count[ski];
-
-  for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
-    const int skiroc = plane.GetX(pix);    //corresponds to the skiroc index
-    const int channel = plane.GetY(pix);    //corresponds to the channel id
-    double energyHG_estimate = plane.GetPixel(pix, 3+13) - common_mode[skiroc];
-    if (energyHG_estimate < 30.) continue; 
-      
-    int key = 1000*skiroc+channel;
-    for (size_t cl=0; cl<clusters.size(); cl++) 
-      _MIMOSA_map_ForChannel[key]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26);   //binary entries
-  }
-
-}
-
-void CrossCorrelationHistos::Set_UV_FromChannelMap() {
-  electronicsMap[std::make_pair(1,0)]=std::make_pair(-2,5);
-  electronicsMap[std::make_pair(1,2)]=std::make_pair(-2,4);
-  electronicsMap[std::make_pair(1,4)]=std::make_pair(-1,4);
-  electronicsMap[std::make_pair(1,6)]=std::make_pair(-2,6);
-  electronicsMap[std::make_pair(1,8)]=std::make_pair(0,3);
-  electronicsMap[std::make_pair(1,10)]=std::make_pair(-1,6);
-  electronicsMap[std::make_pair(1,12)]=std::make_pair(-1,5);
-  electronicsMap[std::make_pair(1,14)]=std::make_pair(0,2);
-  electronicsMap[std::make_pair(1,16)]=std::make_pair(-1,3);
-  electronicsMap[std::make_pair(1,18)]=std::make_pair(-1,2);
-  electronicsMap[std::make_pair(1,20)]=std::make_pair(-2,3);
-  electronicsMap[std::make_pair(1,22)]=std::make_pair(-2,2);
-  electronicsMap[std::make_pair(1,24)]=std::make_pair(-1,1);
-  electronicsMap[std::make_pair(1,26)]=std::make_pair(-2,1);
-  electronicsMap[std::make_pair(1,28)]=std::make_pair(-3,2);
-  electronicsMap[std::make_pair(1,30)]=std::make_pair(-4,2);
-  electronicsMap[std::make_pair(1,32)]=std::make_pair(-5,3);
-  electronicsMap[std::make_pair(1,34)]=std::make_pair(-4,3);
-  electronicsMap[std::make_pair(1,36)]=std::make_pair(-5,4);
-  electronicsMap[std::make_pair(1,38)]=std::make_pair(-4,4);
-  electronicsMap[std::make_pair(1,40)]=std::make_pair(-3,3);
-  electronicsMap[std::make_pair(1,42)]=std::make_pair(-3,4);
-  electronicsMap[std::make_pair(1,44)]=std::make_pair(-6,3);
-  electronicsMap[std::make_pair(1,46)]=std::make_pair(-3,7);
-  electronicsMap[std::make_pair(1,48)]=std::make_pair(-6,4);
-  electronicsMap[std::make_pair(1,50)]=std::make_pair(-6,5);
-  electronicsMap[std::make_pair(1,52)]=std::make_pair(-5,5);
-  electronicsMap[std::make_pair(1,54)]=std::make_pair(-4,5);
-  electronicsMap[std::make_pair(1,56)]=std::make_pair(-5,6);
-  electronicsMap[std::make_pair(1,58)]=std::make_pair(-3,6);
-  electronicsMap[std::make_pair(1,60)]=std::make_pair(-3,5);
-  electronicsMap[std::make_pair(1,62)]=std::make_pair(-4,6);
-  electronicsMap[std::make_pair(2,0)]=std::make_pair(-3,-2);
-  electronicsMap[std::make_pair(2,2)]=std::make_pair(-4,-2);
-  electronicsMap[std::make_pair(2,4)]=std::make_pair(-3,-3);
-  electronicsMap[std::make_pair(2,6)]=std::make_pair(-4,-1);
-  electronicsMap[std::make_pair(2,8)]=std::make_pair(-5,0);
-  electronicsMap[std::make_pair(2,10)]=std::make_pair(-5,-1);
-  electronicsMap[std::make_pair(2,12)]=std::make_pair(-6,1);
-  electronicsMap[std::make_pair(2,14)]=std::make_pair(-4,0);
-  electronicsMap[std::make_pair(2,16)]=std::make_pair(-3,-1);
-  electronicsMap[std::make_pair(2,18)]=std::make_pair(-3,0);
-  electronicsMap[std::make_pair(2,20)]=std::make_pair(-7,3);
-  electronicsMap[std::make_pair(2,22)]=std::make_pair(-6,2);
-  electronicsMap[std::make_pair(2,24)]=std::make_pair(-5,1);
-  electronicsMap[std::make_pair(2,26)]=std::make_pair(-4,1);
-  electronicsMap[std::make_pair(2,28)]=std::make_pair(-5,2);
-  electronicsMap[std::make_pair(2,30)]=std::make_pair(-3,1);
-  electronicsMap[std::make_pair(2,32)]=std::make_pair(-2,0);
-  electronicsMap[std::make_pair(2,34)]=std::make_pair(-1,0);
-  electronicsMap[std::make_pair(2,36)]=std::make_pair(-1,0);
-  electronicsMap[std::make_pair(2,38)]=std::make_pair(-1,-1);
-  electronicsMap[std::make_pair(2,40)]=std::make_pair(0,-4);
-  electronicsMap[std::make_pair(2,42)]=std::make_pair(0,-3);
-  electronicsMap[std::make_pair(2,44)]=std::make_pair(-1,-3);
-  electronicsMap[std::make_pair(2,46)]=std::make_pair(0,-5);
-  electronicsMap[std::make_pair(2,48)]=std::make_pair(-1,-5);
-  electronicsMap[std::make_pair(2,50)]=std::make_pair(-1,-4);
-  electronicsMap[std::make_pair(2,52)]=std::make_pair(-1,-2);
-  electronicsMap[std::make_pair(2,54)]=std::make_pair(-2,-1);
-  electronicsMap[std::make_pair(2,56)]=std::make_pair(-2,-2);
-  electronicsMap[std::make_pair(2,58)]=std::make_pair(-2,-3);
-  electronicsMap[std::make_pair(2,60)]=std::make_pair(-3,-4);
-  electronicsMap[std::make_pair(2,62)]=std::make_pair(-2,-4);
-  electronicsMap[std::make_pair(3,0)]=std::make_pair(3,-4);
-  electronicsMap[std::make_pair(3,2)]=std::make_pair(2,-4);
-  electronicsMap[std::make_pair(3,4)]=std::make_pair(3,-5);
-  electronicsMap[std::make_pair(3,6)]=std::make_pair(4,-6);
-  electronicsMap[std::make_pair(3,8)]=std::make_pair(1,-5);
-  electronicsMap[std::make_pair(3,10)]=std::make_pair(3,-6);
-  electronicsMap[std::make_pair(3,12)]=std::make_pair(4,-7);
-  electronicsMap[std::make_pair(3,14)]=std::make_pair(2,-6);
-  electronicsMap[std::make_pair(3,16)]=std::make_pair(1,-6);
-  electronicsMap[std::make_pair(3,18)]=std::make_pair(2,-5);
-  electronicsMap[std::make_pair(3,20)]=std::make_pair(1,-4);
-  electronicsMap[std::make_pair(3,22)]=std::make_pair(1,-3);
-  electronicsMap[std::make_pair(3,24)]=std::make_pair(2,-3);
-  electronicsMap[std::make_pair(3,26)]=std::make_pair(1,-2);
-  electronicsMap[std::make_pair(3,28)]=std::make_pair(0,-2);
-  electronicsMap[std::make_pair(3,30)]=std::make_pair(3,-3);
-  electronicsMap[std::make_pair(3,32)]=std::make_pair(3,-2);
-  electronicsMap[std::make_pair(3,34)]=std::make_pair(2,-2);
-  electronicsMap[std::make_pair(3,36)]=std::make_pair(0,0);
-  electronicsMap[std::make_pair(3,38)]=std::make_pair(1,-1);
-  electronicsMap[std::make_pair(3,40)]=std::make_pair(2,-1);
-  electronicsMap[std::make_pair(3,42)]=std::make_pair(4,-2);
-  electronicsMap[std::make_pair(3,44)]=std::make_pair(4,-3);
-  electronicsMap[std::make_pair(3,46)]=std::make_pair(5,-3);
-  electronicsMap[std::make_pair(3,48)]=std::make_pair(6,-4);
-  electronicsMap[std::make_pair(3,50)]=std::make_pair(5,-4);
-  electronicsMap[std::make_pair(3,52)]=std::make_pair(6,-5);
-  electronicsMap[std::make_pair(3,54)]=std::make_pair(4,-5);
-  electronicsMap[std::make_pair(3,56)]=std::make_pair(5,-5);
-  electronicsMap[std::make_pair(3,58)]=std::make_pair(4,-4);
-  electronicsMap[std::make_pair(3,62)]=std::make_pair(5,-6);
-  electronicsMap[std::make_pair(4,0)]=std::make_pair(2,2);
-  electronicsMap[std::make_pair(4,2)]=std::make_pair(3,1);
-  electronicsMap[std::make_pair(4,4)]=std::make_pair(3,2);
-  electronicsMap[std::make_pair(4,6)]=std::make_pair(4,0);
-  electronicsMap[std::make_pair(4,8)]=std::make_pair(3,3);
-  electronicsMap[std::make_pair(4,10)]=std::make_pair(4,-1);
-  electronicsMap[std::make_pair(4,12)]=std::make_pair(5,-1);
-  electronicsMap[std::make_pair(4,14)]=std::make_pair(2,4);
-  electronicsMap[std::make_pair(4,16)]=std::make_pair(3,4);
-  electronicsMap[std::make_pair(4,18)]=std::make_pair(4,2);
-  electronicsMap[std::make_pair(4,20)]=std::make_pair(4,1);
-  electronicsMap[std::make_pair(4,22)]=std::make_pair(5,1);
-  electronicsMap[std::make_pair(4,24)]=std::make_pair(5,0);
-  electronicsMap[std::make_pair(4,26)]=std::make_pair(6,-1);
-  electronicsMap[std::make_pair(4,28)]=std::make_pair(6,-2);
-  electronicsMap[std::make_pair(4,30)]=std::make_pair(5,-2);
-  electronicsMap[std::make_pair(4,32)]=std::make_pair(6,-3);
-  electronicsMap[std::make_pair(4,34)]=std::make_pair(7,-4);
-  electronicsMap[std::make_pair(4,36)]=std::make_pair(1,0);
-  electronicsMap[std::make_pair(4,38)]=std::make_pair(2,0);
-  electronicsMap[std::make_pair(4,40)]=std::make_pair(3,-1);
-  electronicsMap[std::make_pair(4,42)]=std::make_pair(3,0);
-  electronicsMap[std::make_pair(4,44)]=std::make_pair(0,1);
-  electronicsMap[std::make_pair(4,46)]=std::make_pair(1,3);
-  electronicsMap[std::make_pair(4,48)]=std::make_pair(0,4);
-  electronicsMap[std::make_pair(4,50)]=std::make_pair(0,5);
-  electronicsMap[std::make_pair(4,52)]=std::make_pair(1,2);
-  electronicsMap[std::make_pair(4,54)]=std::make_pair(1,1);
-  electronicsMap[std::make_pair(4,56)]=std::make_pair(2,1);
-  electronicsMap[std::make_pair(4,58)]=std::make_pair(2,3);
-  electronicsMap[std::make_pair(4,60)]=std::make_pair(1,5);
-  electronicsMap[std::make_pair(4,62)]=std::make_pair(1,4);  
-}
-
-void CrossCorrelationHistos::Set_SkiToHexaboard_ChannelMap(){
-
-  for(int c=0; c<127; c++){
-    int row = c*3;
-    _ski_to_ch_map.insert(make_pair(make_pair(sc_to_ch_map[row+1],sc_to_ch_map[row+2]),sc_to_ch_map[row]));
-  }
 }
 
 void CrossCorrelationHistos::Reset() {
-
-  for (int ch=0; ch<128; ch++)
-    _MIMOSA_map_ForChannel[ch]->Reset();
+  Occupancy_ForChannel->Reset();
+  for (int ski=0; ski<4; ski++) for (int ch=0; ch<=64; ch+=2)
+    _MIMOSA_map_ForChannel[1000*ski+ch]->Reset();
   
   // we have to reset the aux array as well
   zero_plane_array();
@@ -298,8 +182,9 @@ void CrossCorrelationHistos::Calculate(const int currentEventNum) {
 }
 
 void CrossCorrelationHistos::Write() {
-  for (int ch=0; ch<128; ch++)
-    _MIMOSA_map_ForChannel[ch]->Write();
+  Occupancy_ForChannel->Write();
+  for (int ski=0; ski<4; ski++) for (int ch=0; ch<=64; ch+=2) 
+    _MIMOSA_map_ForChannel[1000*ski+ch]->Write();
 
 }
 
