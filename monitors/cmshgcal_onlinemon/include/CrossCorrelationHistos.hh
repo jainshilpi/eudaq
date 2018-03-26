@@ -63,6 +63,9 @@ private:
   //implements the electronic map of layer one from July 2017 (H2)
   // SKIROC CHANNEL  IX IV
   std::map<std::pair<int, int>, std::pair<int, int> > electronicsMap;
+  std::vector<std::pair<int, int> > clusterEntitites;
+  std::vector<std::pair<float, float> > clusters;  
+  std::map<int, float> common_mode; std::map<int, int> common_mode_count;
 };
 
 

@@ -55,7 +55,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
     for (int ch=0; ch<128; ch++) {
       sprintf(out, "%s %i, channel %i projected on MIMOSA26 plane 3", _sensor.c_str(), _id, ch);
       sprintf(out2, "h_hgcal_ch%i_vs_MIMOSA26_3_%s_%i", ch, _sensor.c_str(), _id);
-      _MIMOSA_map_ForChannel[ch] = new TH2F(out2, out, 400, 0, 1153*pixelGap_MIMOSA26, 200, 0, 557*pixelGap_MIMOSA26);
+      _MIMOSA_map_ForChannel[ch] = new TH2F(out2, out, 40, 0, 1153*pixelGap_MIMOSA26, 20, 0, 557*pixelGap_MIMOSA26);
       _MIMOSA_map_ForChannel[ch]->SetOption("COLZ");
       _MIMOSA_map_ForChannel[ch]->SetStats(false);
       SetHistoAxisLabels(_MIMOSA_map_ForChannel[ch], "MIMOSA26, plane 3, x [mm]", "MIMOSA26, plane 3, y [mm]");      
@@ -95,35 +95,47 @@ int CrossCorrelationHistos::zero_plane_array() {
 
 
 void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA2) {
-  //MIMOSA clustering
-  std::vector<double> pxl = plMIMOSA2.GetPixels<double>();
-  std::vector<std::pair<int, int> > clusterEntitites;
-  std::vector<std::pair<float, float> > clusters;
-  int _N_hits = pxl.size();
   
+  
+
+  //1st: MIMOSA clustering
+  std::vector<double> pxl = plMIMOSA2.GetPixels<double>();
+
+  int _N_hits = pxl.size();
   clusterEntitites.clear();
   clusters.clear();
   for (size_t ipix = 0; ipix < pxl.size(); ++ipix) {
     int pixelX = plMIMOSA2.GetX(ipix), pixelY = plMIMOSA2.GetY(ipix);
     clusterEntitites.push_back(std::make_pair(pixelX, pixelY));     
   }
-
   //find the clusters      
   findClusters(clusterEntitites, clusters);
 
+  
+  for (int ski=0; ski<4; ski++) {
+    common_mode[ski] = 0;
+    common_mode_count[ski] = 0;
+  }
+
+  //3. reconstruct energy
+  //common mode estimate
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
-    const int pixel_x = plane.GetX(pix);    //corresponds to the skiroc index
-    const int pixel_y = plane.GetY(pix);    //corresponds to the channel id
-    
-    double energyHG_estimate = plane.GetPixel(pix, 3+13) - plane.GetPixel(pix, 0+13);
-    if (energyHG_estimate < 20.) continue; 
-    
-    
-    const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
-    for (size_t cl=0; cl<clusters.size(); cl++) {
-      _MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first, clusters[cl].second);   //binary entries
-      //_MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26, energyHG_estimate);   //energy weighted entries
-    }    
+    const int skiroc = plane.GetX(pix);    //corresponds to the skiroc index
+    const int channel = plane.GetY(pix);    //corresponds to the channel id
+    common_mode[skiroc] += plane.GetPixel(pix, 3+13);
+  }
+
+  for (int ski=0; ski<4; ski++) common_mode[ski] /= common_mode_count[ski];
+
+  for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
+    const int skiroc = plane.GetX(pix);    //corresponds to the skiroc index
+    const int channel = plane.GetY(pix);    //corresponds to the channel id
+    double energyHG_estimate = plane.GetPixel(pix, 3+13) - common_mode[skiroc];
+    if (energyHG_estimate < 30.) continue; 
+      
+    const int ch  = _ski_to_ch_map.find(make_pair(skiroc,channel))->second;
+    for (size_t cl=0; cl<clusters.size(); cl++) 
+      _MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26);   //binary entries
   }
 
 }
