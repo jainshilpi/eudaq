@@ -121,8 +121,8 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
     
     const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
     for (size_t cl=0; cl<clusters.size(); cl++) {
-      //_MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first, clusters[cl].second);   //binary entries
-      _MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26, energyHG_estimate);   //energy weighted entries
+      _MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first, clusters[cl].second);   //binary entries
+      //_MIMOSA_map_ForChannel[ch]->Fill(clusters[cl].first*pixelGap_MIMOSA26, clusters[cl].second*pixelGap_MIMOSA26, energyHG_estimate);   //energy weighted entries
     }    
   }
 
