@@ -53,59 +53,59 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
     sprintf(out, "%s %i pixel X vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot0_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X = new TH2F(out2, out, 25, -12.5, 12.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X = new TH2F(out2, out, 25, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X, "Hexaboard x", "pixel X on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X, "Hexaboard x [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot0_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y = new TH2F(out2, out, 15, -7.5, 7.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y = new TH2F(out2, out, 15, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y, "Hexaboard y", "pixel Y on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y, "Hexaboard y [cm]", "pixel Y on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot30_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot30 = new TH2F(out2, out, 15, -7.5, 7.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot30 = new TH2F(out2, out, 15, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X_rot30->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X_rot30->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot30, "Hexaboard x, rot30", "pixel X on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot30, "Hexaboard x, rot30 [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot30_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot30 = new TH2F(out2, out, 25, -12.5, 12.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot30 = new TH2F(out2, out, 25, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y_rot30->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y_rot30->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot30, "Hexaboard y, rot30", "pixel Y on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot30, "Hexaboard y, rot30 [cm]", "pixel Y on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot60_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot60 = new TH2F(out2, out, 25, -12.5, 12.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot60 = new TH2F(out2, out, 25, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X_rot60->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X_rot60->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot60, "Hexaboard x, rot60", "pixel X on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot60, "Hexaboard x, rot60 [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot60_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot60 = new TH2F(out2, out, 15, -7.5, 7.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot60 = new TH2F(out2, out, 15, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y_rot60->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y_rot60->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot60, "Hexaboard y, rot60", "pixel Y on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot60, "Hexaboard y, rot60 [cm]", "pixel Y on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot90_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot90 = new TH2F(out2, out, 15, -7.5, 7.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot90 = new TH2F(out2, out, 15, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X_rot90->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X_rot90->SetStats(false);
-    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot90, "Hexaboard x, rot90", "pixel X on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot90, "Hexaboard x, rot90 [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot90_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot90 = new TH2F(out2, out, 25, -12.5, 12.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot90 = new TH2F(out2, out, 25, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y_rot90->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y_rot90->SetStats(false);
-    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot90, "Hexaboard y, rot90", "pixel Y on MIMOSA 3");
+    SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot90, "Hexaboard y, rot90 [cm]", "pixel Y on MIMOSA 3");
     
     // make a plane array for calculating e..g hotpixels and occupancy
     plane_map_array = new int *[_maxX];
