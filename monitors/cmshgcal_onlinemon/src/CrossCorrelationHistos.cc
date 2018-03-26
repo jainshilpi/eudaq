@@ -53,56 +53,56 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
     sprintf(out, "%s %i pixel X vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot0_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X = new TH2F(out2, out, 25, -6.5, 6.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X = new TH2F(out2, out, 100, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X->SetStats(false);
     SetHistoAxisLabels(_HGCalXVsMIMOSA26_X, "Hexaboard x [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot0_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y = new TH2F(out2, out, 15, -6.5, 6.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y = new TH2F(out2, out, 100, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y->SetStats(false);
     SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y, "Hexaboard y [cm]", "pixel Y on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot30_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot30 = new TH2F(out2, out, 15, -6.5, 6.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot30 = new TH2F(out2, out, 100, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X_rot30->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X_rot30->SetStats(false);
     SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot30, "Hexaboard x, rot30 [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 30) vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot30_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot30 = new TH2F(out2, out, 25, -6.5, 6.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot30 = new TH2F(out2, out, 100, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y_rot30->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y_rot30->SetStats(false);
     SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot30, "Hexaboard y, rot30 [cm]", "pixel Y on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot60_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot60 = new TH2F(out2, out, 25, -6.5, 6.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot60 = new TH2F(out2, out, 100, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X_rot60->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X_rot60->SetStats(false);
     SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot60, "Hexaboard x, rot60 [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 60) vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot60_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot60 = new TH2F(out2, out, 15, -6.5, 6.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot60 = new TH2F(out2, out, 100, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y_rot60->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y_rot60->SetStats(false);
     SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot60, "Hexaboard y, rot60 [cm]", "pixel Y on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 x", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_x_rot90_vs_MIMOSA1x_%s_%i", _sensor.c_str(), _id);
-    _HGCalXVsMIMOSA26_X_rot90 = new TH2F(out2, out, 15, -6.5, 6.5, 1153, 0, 1153);
+    _HGCalXVsMIMOSA26_X_rot90 = new TH2F(out2, out, 100, -6.5, 6.5, 1153, 0, 1153);
     _HGCalXVsMIMOSA26_X_rot90->SetOption("COLZ");
     _HGCalXVsMIMOSA26_X_rot90->SetStats(false);
     SetHistoAxisLabels(_HGCalXVsMIMOSA26_X_rot90, "Hexaboard x, rot90 [cm]", "pixel X on MIMOSA 3");
 
     sprintf(out, "%s %i pixel X (rot 90) vs. MIMOSA1 y", _sensor.c_str(), _id);
     sprintf(out2, "h_hgcal_y_rot90_vs_MIMOSA1y_%s_%i", _sensor.c_str(), _id);
-    _HGCalYVsMIMOSA26_Y_rot90 = new TH2F(out2, out, 25, -6.5, 6.5, 557, 0, 557);
+    _HGCalYVsMIMOSA26_Y_rot90 = new TH2F(out2, out, 100, -6.5, 6.5, 557, 0, 557);
     _HGCalYVsMIMOSA26_Y_rot90->SetOption("COLZ");
     _HGCalYVsMIMOSA26_Y_rot90->SetStats(false);
     SetHistoAxisLabels(_HGCalYVsMIMOSA26_Y_rot90, "Hexaboard y, rot90 [cm]", "pixel Y on MIMOSA 3");
@@ -153,11 +153,9 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
     clusterEntitites.push_back(std::make_pair(pixelX, pixelY));     
   }
 
-  
-  //find the clusters      
-  findClusters(clusterEntitites, clusters);
-
-
+  //energy weighted sum to infer the impact position on the HGCal modules
+  float x_sum = 0, y_sum = 0;
+  float E_sum = 0;
   // std::cout<< "FILL with a plane." << std::endl;
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {
     const int pixel_x = plane.GetX(pix);    //corresponds to the skiroc index
@@ -167,32 +165,38 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
     int v = electronicsMap[std::make_pair(pixel_x, pixel_y)].second;
     float x = 1.12583 * (u + v/2.); //cm, cell side x (sqrt 3 x u + (sqrt 3) / 2 x v)
     float y = 0.975 * v;    //cm, 1.5 x cell side x v
-    float x_rot30 = 0.8660254038 * x + 0.5 * y;   //HGCAL sensors are rotated virtually
-    float y_rot30 = -0.5 * x + 0.8660254038 * y;
-    float x_rot60 = 0.5 * x + 0.8660254038 * y;
-    float y_rot60 = -0.8660254038 * x + 0.5 * y;
-    float x_rot90 = y;
-    float y_rot90 = -x;
-
 
     const int ch  = _ski_to_ch_map.find(make_pair(pixel_x,pixel_y))->second;
-    double HG_TS3 = plane.GetPixel(pix, 3+13);
+    double energyHG_estimate = plane.GetPixel(pix, 3+13) - plane.GetPixel(pix, 0+13);
 
-    //electronicsMap[std::make_pair(1,0)]=std::make_pair(-2,5);
+    if (energyHG_estimate < 10.) continue; 
+    
+    x_sum += energyHG_estimate * x;
+    y_sum += energyHG_estimate * y;
+    E_sum += energyHG_estimate;
 
-    if (HG_TS3 < 30.) continue; //only fill if hexaboard hit is above 30
-    //end of hexaboard loop
+  }
 
-    for (size_t cl=0; cl<clusters.size(); cl++) {
-      _HGCalXVsMIMOSA26_X->Fill(x, clusters[cl].first);
-      _HGCalYVsMIMOSA26_Y->Fill(y, clusters[cl].second);
-      _HGCalXVsMIMOSA26_X_rot30->Fill(x_rot30, clusters[cl].first);
-      _HGCalYVsMIMOSA26_Y_rot30->Fill(y_rot30, clusters[cl].second);
-      _HGCalXVsMIMOSA26_X_rot60->Fill(x_rot60, clusters[cl].first);
-      _HGCalYVsMIMOSA26_Y_rot60->Fill(y_rot60, clusters[cl].second);
-      _HGCalXVsMIMOSA26_X_rot90->Fill(x_rot90, clusters[cl].first);
-      _HGCalYVsMIMOSA26_Y_rot90->Fill(y_rot90, clusters[cl].second);
-    }
+  float x = x_sum/E_sum;
+  float y = y_sum/E_sum;
+  float x_rot30 = 0.8660254038 * x + 0.5 * y;   //HGCAL sensors are rotated virtually
+  float y_rot30 = -0.5 * x + 0.8660254038 * y;
+  float x_rot60 = 0.5 * x + 0.8660254038 * y;
+  float y_rot60 = -0.8660254038 * x + 0.5 * y;
+  float x_rot90 = y;
+  float y_rot90 = -x;
+
+  //find the clusters      
+  findClusters(clusterEntitites, clusters);
+  for (size_t cl=0; cl<clusters.size(); cl++) {
+    _HGCalXVsMIMOSA26_X->Fill(x, clusters[cl].first);
+    _HGCalYVsMIMOSA26_Y->Fill(y, clusters[cl].second);
+    _HGCalXVsMIMOSA26_X_rot30->Fill(x_rot30, clusters[cl].first);
+    _HGCalYVsMIMOSA26_Y_rot30->Fill(y_rot30, clusters[cl].second);
+    _HGCalXVsMIMOSA26_X_rot60->Fill(x_rot60, clusters[cl].first);
+    _HGCalYVsMIMOSA26_Y_rot60->Fill(y_rot60, clusters[cl].second);
+    _HGCalXVsMIMOSA26_X_rot90->Fill(x_rot90, clusters[cl].first);
+    _HGCalYVsMIMOSA26_Y_rot90->Fill(y_rot90, clusters[cl].second);
   }
   
   
