@@ -66,9 +66,9 @@ private:
   //implements the electronic map of layer one from July 2017 (H2)
   // SKIROC CHANNEL  IX IV
   std::vector<std::pair<int, int> > clusterEntitites;
+  std::vector<std::pair<float, float> > clusters2;  
+  std::vector<bool > good_cluster2;  
   std::vector<std::pair<float, float> > clusters3;  
-  std::vector<bool > good_cluster3;  
-  std::vector<std::pair<float, float> > clusters4;  
 };
 
 

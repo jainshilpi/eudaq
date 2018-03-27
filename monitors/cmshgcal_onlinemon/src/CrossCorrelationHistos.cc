@@ -62,7 +62,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
     for (int ski=0; ski<4; ski++) {
       for (int ch=0; ch<=64; ch++) {
-        if (ch%1==1) continue;
+        if (ch%2==1) continue;
         int key = ski*1000+ch;
         sprintf(out, "%s %i, skiroc %i, channel %i projected on MIMOSA26 plane 3", _sensor.c_str(), _id, ski, ch);
         sprintf(out2, "h_hgcal_ski%i_ch%i_vs_MIMOSA26_3_%s_%i", ski, ch, _sensor.c_str(), _id);
@@ -104,11 +104,11 @@ int CrossCorrelationHistos::zero_plane_array() {
 }
 
 
-void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA3, const eudaq::StandardPlane &plMIMOSA4) {
+void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA2, const eudaq::StandardPlane &plMIMOSA3) {
   clusterEntitites.clear();
+  clusters2.clear();
+  good_cluster2.clear();
   clusters3.clear();
-  good_cluster3.clear();
-  clusters4.clear();
 
 
   //general strategy
@@ -118,26 +118,26 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
   //4. fill MIMOSA plane 3 display for each cell to see hexagonal structures in case of synchronised data streams
     
   //1st: MIMOSA clustering
-  std::vector<double> pxl3 = plMIMOSA3.GetPixels<double>();
-  for (size_t ipix = 0; ipix < pxl3.size(); ++ipix) clusterEntitites.push_back(std::make_pair(plMIMOSA3.GetX(ipix), plMIMOSA3.GetY(ipix)));     
-  //find the clusters3      
-  findClusters(clusterEntitites, clusters3);
+  std::vector<double> pxl2 = plMIMOSA2.GetPixels<double>();
+  for (size_t ipix = 0; ipix < pxl2.size(); ++ipix) clusterEntitites.push_back(std::make_pair(plMIMOSA2.GetX(ipix), plMIMOSA2.GetY(ipix)));     
+  //find the clusters2      
+  findClusters(clusterEntitites, clusters2);
 
 
   clusterEntitites.clear();
   //2nd: MIMOSA clustering
-  std::vector<double> pxl4 = plMIMOSA4.GetPixels<double>();
-  for (size_t ipix = 0; ipix < pxl4.size(); ++ipix) clusterEntitites.push_back(std::make_pair(plMIMOSA4.GetX(ipix), plMIMOSA4.GetY(ipix)));     
+  std::vector<double> pxl3 = plMIMOSA3.GetPixels<double>();
+  for (size_t ipix = 0; ipix < pxl3.size(); ++ipix) clusterEntitites.push_back(std::make_pair(plMIMOSA3.GetX(ipix), plMIMOSA3.GetY(ipix)));     
   //find the clusters in plane4      
-  findClusters(clusterEntitites, clusters4);
+  findClusters(clusterEntitites, clusters3);
   
 
   //cluster in plane 3 selection based on correlation to any cluster in plane 4 (radial distance below 200 pixel units)
-  for (size_t cl3=0; cl3<clusters3.size(); cl3++) {
-    good_cluster3.push_back(false);
-    for (size_t cl4=0; cl4<clusters4.size(); cl4++) {
-      if (pow(clusters3[cl3].first-clusters4[cl4].first,2) + pow(clusters3[cl3].second-clusters4[cl4].second,2) > 40000) {    //cluster selection based on the presence of a matching hit in MIMOSA plane 4 (distance < 300 pixel units)
-        good_cluster3[cl3] = true;
+  for (size_t cl2=0; cl2<clusters2.size(); cl2++) {
+    good_cluster2.push_back(false);
+    for (size_t cl3=0; cl3<clusters3.size(); cl3++) {
+      if (pow(clusters2[cl2].first-clusters3[cl3].first,2) + pow(clusters2[cl2].second-clusters3[cl3].second,2) > 40000) {    //cluster selection based on the presence of a matching hit in MIMOSA plane 4 (distance < 300 pixel units)
+        good_cluster2[cl2] = true;
         break;
       }
     }
@@ -157,10 +157,10 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
     //fill the occupancy in any case
     Occupancy_ForChannel->Fill(skiroc, channel);
 
-    for (size_t cl3=0; cl3<clusters3.size(); cl3++) {
-      if (!good_cluster3[cl3]) continue;
+    for (size_t cl2=0; cl2<clusters2.size(); cl2++) {
+      if (!good_cluster2[cl2]) continue;
       int key = 1000*skiroc+channel;
-      _MIMOSA_map_ForChannel[key]->Fill(clusters3[cl3].first*pixelGap_MIMOSA26, clusters3[cl3].second*pixelGap_MIMOSA26);   //yes/no entries
+      _MIMOSA_map_ForChannel[key]->Fill(clusters2[cl2].first*pixelGap_MIMOSA26, clusters2[cl2].second*pixelGap_MIMOSA26);   //yes/no entries
     }
   }
 
