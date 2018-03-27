@@ -98,7 +98,7 @@ void CrossCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int evNumb
       int plane2_idx=-1, plane3_idx=-1;
       for (int plane_idx = 0; plane_idx < ev.NumPlanes(); plane_idx++) {
         const eudaq::StandardPlane &Plane = ev.GetPlane(plane_idx);
-        if (Plane.Sensor()=="MIMOSA26") continue;
+        if (Plane.Sensor().find("MIMOSA26")==std::string::npos) continue;
         if (Plane.ID()==3) plane2_idx=plane_idx;
         else if (Plane.ID()==4) plane3_idx=plane_idx;
       }
