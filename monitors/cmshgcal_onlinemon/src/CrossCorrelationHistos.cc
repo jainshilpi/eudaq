@@ -66,7 +66,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
         int key = ski*1000+ch;
         sprintf(out, "%s %i, skiroc %i, channel %i projected on MIMOSA26 plane 3", _sensor.c_str(), _id, ski, ch);
         sprintf(out2, "h_hgcal_ski%i_ch%i_vs_MIMOSA26_3_%s_%i", ski, ch, _sensor.c_str(), _id);
-        _MIMOSA_map_ForChannel[key] = new TH2F(out2, out, 80, 0, 1153*pixelGap_MIMOSA26, 40, 0, 557*pixelGap_MIMOSA26);
+        _MIMOSA_map_ForChannel[key] = new TH2F(out2, out, 40, 0, 1153*pixelGap_MIMOSA26, 20, 0, 557*pixelGap_MIMOSA26);   //1mmx1mm resolution
         _MIMOSA_map_ForChannel[key]->SetOption("COLZ");
         _MIMOSA_map_ForChannel[key]->SetStats(false);
         SetHistoAxisLabels(_MIMOSA_map_ForChannel[key], "MIMOSA26, plane 3, x [mm]", "MIMOSA26, plane 3, y [mm]");      

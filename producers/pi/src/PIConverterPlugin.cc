@@ -37,7 +37,6 @@ namespace eudaq {
 
   virtual bool GetStandardSubEvent(StandardEvent &sev,
            const Event &ev) const {
-      std::cout<<"HELLO"<<std::endl;
       /*
       // Read PI stage position
       double pi_pos_chan1;
