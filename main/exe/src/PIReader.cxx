@@ -13,6 +13,7 @@ int main(int /*argc*/, const char ** argv) {
       1);
   eudaq::OptionFlag doraw(op, "r", "raw", "Display raw data from events");
   eudaq::OptionFlag docon(op, "c", "converted", "Display converted events");
+  eudaq::OptionFlag do_bore(op, "b", "bore", "Display BORE");
   try {
     // This will look through the command-line arguments and set the options
     op.Parse(argv);
@@ -32,7 +33,9 @@ int main(int /*argc*/, const char ** argv) {
 	eudaq::PluginManager::Initialize(reader.GetDetectorEvent());
       }
 
-      //std::cout << reader.GetDetectorEvent() << std::endl;
+      if (do_bore.IsSet())
+	  std::cout << reader.GetDetectorEvent() << std::endl;
+
       if ( reader.GetDetectorEvent().IsBORE() ) {
 	  try{
 	      const eudaq::RawDataEvent & rev =
@@ -42,14 +45,13 @@ int main(int /*argc*/, const char ** argv) {
 			<< rev.GetRunNumber() << "\t"
 			<< "Pos1 " << rev.GetTag("pi_pos_chan1", 0.) << "\t"
 			<< "Pos2 " << rev.GetTag("pi_pos_chan2", 0.) << "\t"
+			<< "Home1 " << rev.GetTag("pi_home_pos_chan1", 0.) << "\t"
 			<< std::endl;
 	  }
 	  catch (const eudaq::Exception & ) {
-	      /*
-	    std::cout << "No " << EVENT_TYPE << " subevent in event "
-	      << reader.GetDetectorEvent().GetEventNumber()
-	      << std::endl;
-	      */
+	      std::cout << "No " << EVENT_TYPE << " subevent in run "
+			<< reader.GetDetectorEvent().GetRunNumber()
+			<< std::endl;
 	  }
       }
 
