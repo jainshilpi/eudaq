@@ -24,61 +24,69 @@ int main(int /*argc*/, const char ** argv) {
       eudaq::FileReader reader(op.GetArg(i));
 
       // Display the actual filename (argument could have been a run number)
-      std::cout << "Opened file: " << reader.Filename() << std::endl;
+      //std::cout << "Opened file: " << reader.Filename() << std::endl;
 
       // The BORE is now accessible in reader.GetDetectorEvent()
       if (docon.IsSet()) {
-        // The PluginManager should be initialized with the BORE
-        eudaq::PluginManager::Initialize(reader.GetDetectorEvent());
+	// The PluginManager should be initialized with the BORE
+	eudaq::PluginManager::Initialize(reader.GetDetectorEvent());
       }
 
       //std::cout << reader.GetDetectorEvent() << std::endl;
       if ( reader.GetDetectorEvent().IsBORE() ) {
-	  const eudaq::RawDataEvent & rev =
-              reader.GetDetectorEvent().GetRawSubEvent(EVENT_TYPE);
+	  try{
+	      const eudaq::RawDataEvent & rev =
+		  reader.GetDetectorEvent().GetRawSubEvent(EVENT_TYPE);
 
-	  std::cout << "Run\t"
-		    << rev.GetRunNumber() << "\t"
-		    << "Pos1 " << rev.GetTag("pi_pos_chan1", 0.) << "\t"
-		    << "Pos2 " << rev.GetTag("pi_pos_chan2", 0.) << "\t"
-		    << std::endl;
-
+	      std::cout << "Run\t"
+			<< rev.GetRunNumber() << "\t"
+			<< "Pos1 " << rev.GetTag("pi_pos_chan1", 0.) << "\t"
+			<< "Pos2 " << rev.GetTag("pi_pos_chan2", 0.) << "\t"
+			<< std::endl;
 	  }
+	  catch (const eudaq::Exception & ) {
+	      /*
+	    std::cout << "No " << EVENT_TYPE << " subevent in event "
+	      << reader.GetDetectorEvent().GetEventNumber()
+	      << std::endl;
+	      */
+	  }
+      }
 
       /*
       // Now loop over all events in the file
       while (reader.NextEvent()) {
-        if (reader.GetDetectorEvent().IsEORE()) {
-          std::cout << "End of run detected" << std::endl;
-          // Don't try to process if it is an EORE
-          break;
-        }
+	if (reader.GetDetectorEvent().IsEORE()) {
+	  std::cout << "End of run detected" << std::endl;
+	  // Don't try to process if it is an EORE
+	  break;
+	}
 
-        if (doraw.IsSet()) {
-          // Display summary of raw event
-          //std::cout << reader.GetDetectorEvent() << std::endl;
+	if (doraw.IsSet()) {
+	  // Display summary of raw event
+	  //std::cout << reader.GetDetectorEvent() << std::endl;
 
-          try {
-            // Look for a specific RawDataEvent, will throw an exception if not found
-            const eudaq::RawDataEvent & rev =
-              reader.GetDetectorEvent().GetRawSubEvent(EVENT_TYPE);
-            // Display summary of the Example RawDataEvent
-            std::cout << rev << std::endl;
-          } catch (const eudaq::Exception & ) {
-            std::cout << "No " << EVENT_TYPE << " subevent in event "
-              << reader.GetDetectorEvent().GetEventNumber()
-              << std::endl;
-          }
-        }
+	  try {
+	    // Look for a specific RawDataEvent, will throw an exception if not found
+	    const eudaq::RawDataEvent & rev =
+	      reader.GetDetectorEvent().GetRawSubEvent(EVENT_TYPE);
+	    // Display summary of the Example RawDataEvent
+	    std::cout << rev << std::endl;
+	  } catch (const eudaq::Exception & ) {
+	    std::cout << "No " << EVENT_TYPE << " subevent in event "
+	      << reader.GetDetectorEvent().GetEventNumber()
+	      << std::endl;
+	  }
+	}
 
-        if (docon.IsSet()) {
-          // Convert the RawDataEvent into a StandardEvent
-          eudaq::StandardEvent sev =
-            eudaq::PluginManager::ConvertToStandard(reader.GetDetectorEvent());
+	if (docon.IsSet()) {
+	  // Convert the RawDataEvent into a StandardEvent
+	  eudaq::StandardEvent sev =
+	    eudaq::PluginManager::ConvertToStandard(reader.GetDetectorEvent());
 
-          // Display summary of converted event
-          std::cout << sev << std::endl;
-        }
+	  // Display summary of converted event
+	  std::cout << sev << std::endl;
+	}
       }
       */
     }
