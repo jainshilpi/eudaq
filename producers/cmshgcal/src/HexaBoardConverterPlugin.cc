@@ -17,8 +17,8 @@
 
 const size_t RAW_EV_SIZE_32 = 123152;
 
-const size_t nSkiPerBoard[1] = {12};
-const uint32_t skiMask[1] = {0x000f0ff0};
+const size_t nSkiPerBoard[1] = {32};
+const uint32_t skiMask[1] = {0xffffffff};
 const bool runForPedestal = true;
 //const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
 //const uint32_t skiMask = 0;

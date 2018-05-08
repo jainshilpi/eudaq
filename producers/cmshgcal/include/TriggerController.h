@@ -22,13 +22,13 @@ class TriggerController
 {
  public:
   TriggerController(){;}
-  TriggerController(std::vector< ipbus::IpbusHwController* > rdout);
+  TriggerController(std::vector< ipbus::IpbusHwController* > rdout,int throwFirstTrigger );
   ~TriggerController(){;}
   void startrunning( uint32_t runNumber, const ACQ_MODE mode=BEAMTEST );
   bool checkState( STATES st ) const { return m_state==st; }
   void stopRun() { m_gotostop=true; std::cout << "receive stop command : gotostop = " << m_gotostop << std::endl; }
   void readoutCompleted();
-
+  
   void setAcqMode( const ACQ_MODE mode ){m_acqmode=mode;}
   ACQ_MODE getAcqMode(  ) const {return m_acqmode;}
   
@@ -38,6 +38,7 @@ class TriggerController
  private:
   void run();
   void runDebug();
+  void ReadAndThrowFirstTrigger();
 
   std::vector< ipbus::IpbusHwController* > m_rdout_orms;
   STATES m_state;
@@ -46,6 +47,7 @@ class TriggerController
   uint32_t m_evt;
   bool m_gotostop;
   bool m_rdoutcompleted;
+  int m_throwFirstTrigger;
 };
 
 #endif
