@@ -5,8 +5,9 @@
 #include "PI_GCS2_DLL.h"
 
 //system includes
-#include <windows.h>
+//#include <windows.h>
 #include <vector>
+#include <cstring>
 
 
 	//PI controller class
@@ -98,6 +99,8 @@
 		bool getVelocityStage(char* axis, double velo);
 		bool getVelocityStage2(char* axis, double* velo);
 		bool printVelocityStage(char* axis);
+		
+		char* _strupr(char* s);
 
 	};
 

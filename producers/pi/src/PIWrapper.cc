@@ -404,6 +404,16 @@
 		return PI_qSVO(getID(), "", &servoState);
 	}
 
+	char* PIWrapper::_strupr(char* s) {
+		char* tmp = s;
+
+		for (;*tmp;++tmp) {
+			*tmp = toupper((unsigned char) *tmp);
+		}
+
+		return s;
+	}
+	
 	bool PIWrapper::maxRangeOfStage(char* axis, double* maxValue) {
 		return PI_qTMX(getID(), axis, maxValue);
 	}
