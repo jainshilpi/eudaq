@@ -76,12 +76,16 @@ cd bin
 printf '\033[22;33m\t Starting Subprocesses \033[0m \n'
 #=====================================================================
 ######################################################################
+
+
 # euRun
 ###############
 printf '\033[22;33m\t RunControl \033[0m \n'
 ./euRun.exe -x 0 -y 0 -w 650 -g 550 -a tcp://$RCPORT &
 sleep 1
 ######################################################################
+
+
 # euLog
 ###############
 printf '\033[22;33m\t Logger  \033[0m \n'
@@ -89,6 +93,8 @@ printf '\033[22;33m\t Logger  \033[0m \n'
 sleep 2
 
 ######################################################################
+
+
 # DataCollector
 ###############
 printf '\033[22;33m\t TestDataCollector \033[0m \n'
@@ -98,13 +104,20 @@ printf "The logs from the DataCollector are in $flog file. \n"
 
 sleep 2
 
+######################################################################
+
+
 # cmshgcal Producer
 ###############
 printf '\033[22;33m\t cms hgcal Producer \033[0m \n'
 gnome-terminal --geometry=80x600-280-900 -t "CMS HGCal Producer" -e "bash -c \"source ../setup_eudaq_cmshgcal.sh; ./HGCalProducer.exe -r tcp://$HOSTIP:$RCPORT\" " &
 sleep 2
 
-#####################################################################
+######################################################################
+
+
+# DQM
+###############
 if [ -f "HgcOnlineMon.exe" ]
 then
     printf '\033[22;33m\t  HGC Online Monitor  \033[0m \n'
@@ -118,7 +131,6 @@ else
     printf '\033[22;31m\t  Online monitor not found! \033[0m \n'
     echo 'Configure EUDAQ with the CMake option "-D BUILD_cmshgcal_onlinemon=ON" and re-run "make install" to install.'
 fi
-
 
 printf ' \n'
 printf ' \n'
