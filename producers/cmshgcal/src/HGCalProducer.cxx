@@ -51,7 +51,7 @@ class HGCalProducer : public eudaq::Producer {
 public:
   HGCalProducer(const std::string & name, const std::string & runcontrol) : eudaq::Producer(name, runcontrol)
   {
-    m_run=m_ev=0;
+    m_run=m_ev=m_trigger=0;
     m_uhalLogLevel=5;
     m_blockSize=30787;
     m_state=STATE_UNCONF;
@@ -59,8 +59,9 @@ public:
   }
 
  private:
-  unsigned m_run, m_ev, m_uhalLogLevel, m_blockSize;
+  unsigned m_run, m_ev, m_trigger, m_uhalLogLevel, m_blockSize;
   uint16_t m_rdoutMask;
+  int m_throwFirstTrigger;
   ACQ_MODE m_acqmode;
   
   TriggerController *m_triggerController;
@@ -80,8 +81,13 @@ public:
   std::ofstream m_rawFile;
   
   TFile *m_outrootfile;
+
+  TH1D *m_heventtime;
   TH1D *m_hreadouttime;
-  TH1D *m_hwritertime;
+  TH1D *m_hwritetime;
+  TH1D *m_hresettime;
+  TH1D *m_hrdoutdonetime;
+  TH1D *m_hcouttime;
 
 public:
   bool checkCRC( const std::string & crcNodeName, ipbus::IpbusHwController *ptr )
@@ -127,14 +133,30 @@ public:
       }    
 
       if (m_state == STATE_RUNNING) {
-	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) ) continue;
-	if( m_ev==m_triggerController->eventNumber() ) continue;
+	if( !m_triggerController->checkState( (STATES)RDOUT_RDY ) ) {
+	  //std::cout << "HGCalProducer waits for RDOUT_RDY ... " << std::endl;
+	  boost::this_thread::sleep( boost::posix_time::microseconds(100) );
+	  continue;
+	}
+	std::cout << "... HGCalProducer receives RDOUT_RDY" << std::endl;
+	if( m_trigger==m_triggerController->eventNumber() ) continue;	
+	std::cout << "HGCalProducer : event number OK" << std::endl;
+	boost::timer::cpu_timer eventTimer;
+	boost::timer::cpu_timer readoutTimer;
+	boost::timer::cpu_timer writeTimer;
+	boost::timer::cpu_timer resetTimer;
+	boost::timer::cpu_timer rdoutDoneTimer;
+	boost::timer::cpu_timer coutTimer;
 
-	boost::timer::cpu_timer timerReadout;
-	boost::timer::cpu_times times;
+	coutTimer.start();coutTimer.stop();
+
+	eventTimer.start();
 	eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
+	m_ev++;
 	boost::thread threadVec[m_rdout_orms.size()];
-	
+
+	readoutTimer.start();
+	std::cout << "HGCalProducer : start reading data ..." << std::endl;
 	for( int i=0; i<(int)m_rdout_orms.size(); i++)
 	  threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i]);
 	  //threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i],&m_blockSize);
@@ -142,11 +164,10 @@ public:
 	for( int i=0; i<(int)m_rdout_orms.size(); i++){
 	  threadVec[i].join();}
 
-	times=timerReadout.elapsed();
-	m_hreadouttime->Fill(times.wall/1e9);
+	readoutTimer.stop();
 
+	writeTimer.start();
 	int head[1];
-	boost::timer::cpu_timer timerWriter;
 	for( int i=0; i<(int)m_rdout_orms.size(); i++){
 	  std::vector<uint32_t> the_data = m_rdout_orms[i]->getData() ;
 	  //  checkCRC( "RDOUT.CRC",m_rdout_orms[i]);
@@ -158,8 +179,10 @@ public:
           head[0] = i+1;
           ev.AddBlock(   2*i, head, sizeof(head));
 	  ev.AddBlock( 2*i+1, the_data);
-
+	  
+	  coutTimer.resume();
 	  std::cout<<"rdout board "<<i<<"  skiroc mask="<<std::setw(8)<<std::setfill('0')<<std::hex<<the_data[0]<<"  Size of the data (bytes): "<<std::dec<<the_data.size()*4<<std::endl;
+	  coutTimer.stop();
 
 	  the_data.push_back( m_rdout_orms[i]->ReadRegister("CLK_COUNT0") );
 	  the_data.push_back( m_rdout_orms[i]->ReadRegister("CLK_COUNT1") );
@@ -170,11 +193,13 @@ public:
 	  the_data.pop_back();
 	  the_data.pop_back();
 	}
-	times=timerWriter.elapsed();
-	m_hwritertime->Fill(times.wall/1e9);
 
-	m_ev=m_triggerController->eventNumber();
+	m_trigger=m_triggerController->eventNumber();
 	SendEvent(ev);
+	writeTimer.stop();
+
+	resetTimer.start();
+	std::cout << "... HGCalProducer : finish reading data -> wait for date stamp" << std::endl;
 	for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
 	  (*it)->ResetTheData();
 	  while(1){
@@ -184,10 +209,29 @@ public:
               boost::this_thread::sleep( boost::posix_time::microseconds(1) );     
 	  }
 	}
+	std::cout << "... HGCalProducer : receive data stamp" << std::endl;
+	resetTimer.stop();
+	
+	coutTimer.resume();
 	std::cout << "receive and save a new event" << std::endl;
+	coutTimer.stop();
+	
+	rdoutDoneTimer.start();
 	m_triggerController->readoutCompleted();
+	rdoutDoneTimer.stop();
+	eventTimer.stop();
+
+	m_heventtime->Fill(eventTimer.elapsed().wall/1e9);
+	m_hreadouttime->Fill(readoutTimer.elapsed().wall/1e9);
+	m_hwritetime->Fill(writeTimer.elapsed().wall/1e9);
+	m_hresettime->Fill(resetTimer.elapsed().wall/1e9);
+	m_hrdoutdonetime->Fill(rdoutDoneTimer.elapsed().wall/1e9);
+	m_hcouttime->Fill(coutTimer.elapsed().wall/1e9);
+	
       }
       if (m_state == STATE_GOTOSTOP) {
+	// m_ev++;
+	SendEvent( eudaq::RawDataEvent(EVENT_TYPE,m_run,m_ev) );
 	SendEvent( eudaq::RawDataEvent::EORE(EVENT_TYPE,m_run,++m_ev) );
 	eudaq::mSleep(1000);
 	m_state = STATE_CONFED;
@@ -199,21 +243,22 @@ public:
 private:
   virtual void OnInitialise(const eudaq::Configuration &param)
   {
+    EUDAQ_INFO("HGCalProducer received initialise command");
     SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Initialised");
   }
 
   virtual void OnConfigure(const eudaq::Configuration & config) 
   {
     if( m_state == STATE_CONFED ){
-      std::cout << "HGCalProducer was already confed -> we try to reset before" << std::endl;
       OnReset();
     }
-	
-    std::cout << "Configuring: " << config.Name() << std::endl;
+    
+    EUDAQ_INFO("HGCalProducer receive configure command with configuration file : "+config.Name());
 
     m_rdoutMask = config.Get("RDoutMask",1);
     m_uhalLogLevel = config.Get("UhalLogLevel", 5);
     m_blockSize = config.Get("DataBlockSize",962);
+    m_throwFirstTrigger = config.Get("ThrowFirstTrigger",0);
     const int mode=config.Get("AcquisitionMode",0);
     switch( mode ){
     case 0 : m_acqmode = DEBUG; break;
@@ -224,6 +269,7 @@ private:
     std::ostringstream os( std::ostringstream::ate );
     unsigned int bit=1;
     std::cout << "m_rdoutMask = " << m_rdoutMask << std::endl;
+    EUDAQ_DEBUG("m_rdoutMask = "+m_rdoutMask);
     for( int iorm=0; iorm<MAX_NUMBER_OF_ORM; iorm++ ){
       std::cout << "iorm = " << iorm << "..." << std::endl;
       bool activeSlot=(m_rdoutMask&bit);
@@ -235,8 +281,8 @@ private:
       //ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),os.str());
       ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(config.Get("ConnectionFile","file://./etc/connection.xml"),os.str(),m_blockSize);
       m_rdout_orms.push_back( orm );
-    }    
-    m_triggerController = new TriggerController(m_rdout_orms);
+    }
+    m_triggerController = new TriggerController(m_rdout_orms,m_throwFirstTrigger);
 
     for( std::vector<ipbus::IpbusHwController *>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
       std::string ormId=(*it)->getInterface()->id();
@@ -256,12 +302,14 @@ private:
     		<< "Check36 = " << std::dec << (*it)->ReadRegister("check36") << std::endl;
     
       const uint32_t mask=(*it)->ReadRegister("SKIROC_MASK");
-      std::cout << "ORM " << ormId << "\t SKIROC_MASK = " <<std::setw(8)<< std::hex<<mask << std::endl;
       const uint32_t cst0=(*it)->ReadRegister("CONSTANT0");
-      std::cout << "ORM " << ormId << "\t CONST0 = " << std::hex << cst0 << std::endl;
       const uint32_t cst1=(*it)->ReadRegister("CONSTANT1");
-      std::cout << "ORM " << ormId << "\t CONST1 = " << std::hex << cst1 << std::endl;
-    
+      os.str("");
+      os << "ORM " << ormId << "\t SKIROC_MASK = " <<std::setw(8)<< std::hex<<mask << "\n";
+      os << "ORM " << ormId << "\t CONST0 = " << std::hex << cst0 << "\n";
+      os << "ORM " << ormId << "\t CONST1 = " << std::hex << cst1 ;
+      EUDAQ_DEBUG( os.str().c_str() );
+      std::cout << os.str().c_str() << std::endl;
       boost::this_thread::sleep( boost::posix_time::milliseconds(1000) );
     }    
 
@@ -274,13 +322,17 @@ private:
     m_state = STATE_GOTORUN;
     m_run = param;
     m_ev = 0;
-    
-    SendEvent( eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run) );
 
-    m_outrootfile = new TFile("../data/time.root","RECREATE");
-    m_hreadouttime = new TH1D("rdoutTime","",10000,0,1);    
-    m_hwritertime = new TH1D("writingTime","",10000,0,1);
+    EUDAQ_INFO("HGCalProducer received start run command");
     
+    m_outrootfile = new TFile("../data/time.root","RECREATE");
+    m_heventtime = new TH1D("eventTime","",10000,0,.1);    
+    m_hreadouttime = new TH1D("readoutTime","",10000,0,.1);
+    m_hwritetime = new TH1D("writingTime","",10000,0,.1);    
+    m_hresettime = new TH1D("resetTime","",10000,0,.1);
+    m_hrdoutdonetime = new TH1D("rdoutDoneTime","",10000,0,.1);    
+    m_hcouttime = new TH1D("coutTime","",10000,0,.1);
+
     char rawFilename[256];
     sprintf(rawFilename, "../raw_data/HexaData_Run%04d.raw", m_run); // The path is relative to eudaq/bin; raw_data is a symbolic link
     m_rawFile.open(rawFilename, std::ios::binary);
@@ -302,24 +354,30 @@ private:
 	  boost::this_thread::sleep( boost::posix_time::microseconds(1) );     
       }
     }
+
     m_triggerThread=boost::thread(startTriggerThread,m_triggerController,&m_run,&m_acqmode);
+
+    SendEvent( eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run) );
 
     m_state = STATE_RUNNING;
     SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
   }
 
   virtual void OnStopRun() {
+    EUDAQ_INFO("HGCalProducer received stop run command");
     try {
+      eudaq::mSleep(100); // To allow for reading out remaining events
       m_triggerController->stopRun();
       eudaq::mSleep(1000);
       m_state = STATE_GOTOSTOP;
-      m_outrootfile->Write();
-      m_outrootfile->Close();
 
       while (m_state == STATE_GOTOSTOP) {
 	eudaq::mSleep(1000); //waiting for EORE being send
       }
 
+      m_outrootfile->Write();
+      m_outrootfile->Close();
+      
       uint32_t trailer=time(0); 
       m_rawFile.write(reinterpret_cast<const char*>(&trailer), sizeof(trailer));
       m_rawFile.close();
@@ -334,6 +392,7 @@ private:
   }
 
   virtual void OnTerminate() {
+    EUDAQ_INFO("HGCalProducer received terminate command");
     m_triggerController->stopRun();
 
     m_state = STATE_GOTOTERM;
@@ -343,12 +402,10 @@ private:
 
   virtual void OnReset() {
     try {
-      std::cout << "Reset : " << std::endl;
+      EUDAQ_INFO("HGCalProducer reset");
       m_triggerController->stopRun();
-      std::cout << "m_triggerController->stopRun()...sleep 100 milliseconds" << std::endl;
       boost::this_thread::sleep( boost::posix_time::milliseconds(100) );
 
-      std::cout << "delete Ipbus controllers...sleep 100 milliseconds" << std::endl;
       for( std::vector<ipbus::IpbusHwController *>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
 	delete (*it);
       }

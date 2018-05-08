@@ -1,8 +1,8 @@
 
-#include <windows.h>
+//#include <windows.h>
 #include <iostream>
 #include <stdio.h>
-#include <conio.h>
+//#include <conio.h>
 #include <time.h>
 #include <string>
 #include "eudaq/OptionParser.hh"
