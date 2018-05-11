@@ -1,6 +1,6 @@
 SET(hgcal_name "HGCalProducer.exe")
 
-SET(sourcefilesHGCalProducer src/IpbusHwController.cc src/TriggerController.cc)
+SET(sourcefilesHGCalProducer src/IpbusHwController.cc src/TriggerController.cc src/HGCalController.cc src/unpacker.cc)
 
 find_package(CACTUS REQUIRED)
 find_package(ROOT REQUIRED)

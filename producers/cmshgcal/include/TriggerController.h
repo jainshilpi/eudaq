@@ -25,8 +25,8 @@ class TriggerController
   TriggerController(std::vector< ipbus::IpbusHwController* > rdout,int throwFirstTrigger );
   ~TriggerController(){;}
   void startrunning( uint32_t runNumber, const ACQ_MODE mode=BEAMTEST );
-  bool checkState( STATES st ) const { return m_state==st; }
-  void stopRun() { m_gotostop=true; std::cout << "receive stop command : gotostop = " << m_gotostop << std::endl; }
+  bool checkState( STATES st ) ;// { return m_state==st; }
+  void stopRun() ;
   void readoutCompleted();
   
   void setAcqMode( const ACQ_MODE mode ){m_acqmode=mode;}
@@ -48,6 +48,7 @@ class TriggerController
   bool m_gotostop;
   bool m_rdoutcompleted;
   int m_throwFirstTrigger;
+  boost::mutex m_mutex;
 };
 
 #endif

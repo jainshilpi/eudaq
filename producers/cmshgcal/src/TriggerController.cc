@@ -14,19 +14,39 @@ TriggerController::TriggerController(std::vector< ipbus::IpbusHwController* > rd
 {;}
 
 void TriggerController::readoutCompleted() 
-{ 
-  m_rdoutcompleted=true; 
+{
+  m_mutex.lock();
+  m_rdoutcompleted=true;
+  m_mutex.unlock();
   //    std::cout << "receive rdoutcompleted command : rdoutcompleted = " << m_rdoutcompleted << std::endl; 
+}
+
+bool TriggerController::checkState( STATES st )
+{
+  m_mutex.lock();
+  bool val= m_state==st ? true : false;
+  m_mutex.unlock();
+  return val;
+}
+
+void TriggerController::stopRun()
+{
+  m_mutex.lock();
+  m_gotostop=true;
+  std::cout << "receive stop command : gotostop = " << m_gotostop << std::endl;
+  m_mutex.unlock();
 }
 
 void TriggerController::startrunning( uint32_t runNumber, const ACQ_MODE mode )
 {
+  m_mutex.lock();
   m_run=runNumber;
   m_evt=0;
   m_state=WAIT;
   m_acqmode=mode;
   m_gotostop=false;
-
+  m_mutex.unlock();
+  
   switch( m_acqmode ){
   case BEAMTEST : run(); break;
   case DEBUG : runDebug(); break;
@@ -67,39 +87,50 @@ void TriggerController::ReadAndThrowFirstTrigger()
 
 void TriggerController::run()
 {
+  m_mutex.lock();
   for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
     (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
   if(m_throwFirstTrigger)
     this->ReadAndThrowFirstTrigger();
+  m_mutex.unlock();
   while(1){
     if( m_state==END_RUN ) break;
-    bool rdout_ready=true;
-    for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-      if( (*it)->ReadRegister("BLOCK_READY")!=1 ) 
-	rdout_ready=false;
-    std::cout << "TriggerController waits for block ready ... " << std::endl;
-    if( !rdout_ready ){
-      boost::this_thread::sleep( boost::posix_time::microseconds(1000) );
-      if( m_gotostop ) m_state=END_RUN;
-      continue;
+    m_mutex.lock();
+    while(1){
+      bool rdout_ready=true;
+      for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+	if( (*it)->ReadRegister("BLOCK_READY")!=1 ) 
+	  rdout_ready=false;
+      std::cout << "TriggerController waits for block ready ; state = " << m_state << " ... " << std::endl;
+      if( !rdout_ready ){
+	boost::this_thread::sleep( boost::posix_time::microseconds(1000) );
+	if( m_gotostop ) m_state=END_RUN;
+	continue;
+      }
+      else break;
     }
-    std::cout << "... TriggerController receives block ready" << std::endl;
+    std::cout << "... TriggerController receives block ready ; state = " << m_state  << std::endl;
     m_rdoutcompleted=false;
     m_evt=m_rdout_orms[0]->ReadRegister("TRIG_COUNT");
     m_state=RDOUT_RDY;
-    std::cout << "TriggerController waits for readout completed ... " << std::endl;
+    std::cout << "TriggerController waits for readout completed  ; state = " << m_state  << " ... " << std::endl;
+    m_mutex.unlock();
     while(1){
       if( m_rdoutcompleted==true ){
+	m_mutex.lock();
+	std::cout << "TriggerController receives readout completed ; state = " << m_state << " ... " << std::endl;
 	m_state=RDOUT_FIN;
+	for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+	  (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC); 
+	m_mutex.unlock();
 	break;
       }
       boost::this_thread::sleep( boost::posix_time::microseconds(1000) );
     }
-    std::cout << "TriggerController receives readout completed ... " << std::endl;
-    for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-      (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC); 
+    m_mutex.lock();
     if( m_gotostop ) m_state=END_RUN;
     else m_state=WAIT;
+    m_mutex.unlock();
   }
   return;
 }

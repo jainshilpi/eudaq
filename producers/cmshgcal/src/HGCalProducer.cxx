@@ -82,13 +82,14 @@ public:
   
   TFile *m_outrootfile;
 
+  TH1D *m_hdaqrate;
   TH1D *m_heventtime;
   TH1D *m_hreadouttime;
   TH1D *m_hwritetime;
   TH1D *m_hresettime;
   TH1D *m_hrdoutdonetime;
   TH1D *m_hcouttime;
-
+  boost::timer::cpu_timer m_daqtimer;
 public:
   bool checkCRC( const std::string & crcNodeName, ipbus::IpbusHwController *ptr )
   {
@@ -141,6 +142,7 @@ public:
 	std::cout << "... HGCalProducer receives RDOUT_RDY" << std::endl;
 	if( m_trigger==m_triggerController->eventNumber() ) continue;	
 	std::cout << "HGCalProducer : event number OK" << std::endl;
+
 	boost::timer::cpu_timer eventTimer;
 	boost::timer::cpu_timer readoutTimer;
 	boost::timer::cpu_timer writeTimer;
@@ -156,7 +158,9 @@ public:
 	boost::thread threadVec[m_rdout_orms.size()];
 
 	readoutTimer.start();
+
 	std::cout << "HGCalProducer : start reading data ..." << std::endl;
+
 	for( int i=0; i<(int)m_rdout_orms.size(); i++)
 	  threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i]);
 	  //threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i],&m_blockSize);
@@ -228,11 +232,14 @@ public:
 	m_hrdoutdonetime->Fill(rdoutDoneTimer.elapsed().wall/1e9);
 	m_hcouttime->Fill(coutTimer.elapsed().wall/1e9);
 	
+	m_daqtimer.stop();
+	m_hdaqrate->Fill(1.0/(m_daqtimer.elapsed().wall/1e9));
+	m_daqtimer.start();
       }
       if (m_state == STATE_GOTOSTOP) {
 	// m_ev++;
-	SendEvent( eudaq::RawDataEvent(EVENT_TYPE,m_run,m_ev) );
-	SendEvent( eudaq::RawDataEvent::EORE(EVENT_TYPE,m_run,++m_ev) );
+	//SendEvent( eudaq::RawDataEvent(EVENT_TYPE,m_run,m_ev) );
+	SendEvent( eudaq::RawDataEvent::EORE(EVENT_TYPE,m_run,m_ev) );
 	eudaq::mSleep(1000);
 	m_state = STATE_CONFED;
 	continue;
@@ -326,11 +333,12 @@ private:
     EUDAQ_INFO("HGCalProducer received start run command");
     
     m_outrootfile = new TFile("../data/time.root","RECREATE");
-    m_heventtime = new TH1D("eventTime","",10000,0,.1);    
+    m_hdaqrate = new TH1D("daqRate","",10000,0,100);
+    m_heventtime = new TH1D("eventTime","",10000,0,.1);
     m_hreadouttime = new TH1D("readoutTime","",10000,0,.1);
-    m_hwritetime = new TH1D("writingTime","",10000,0,.1);    
+    m_hwritetime = new TH1D("writingTime","",10000,0,.1);
     m_hresettime = new TH1D("resetTime","",10000,0,.1);
-    m_hrdoutdonetime = new TH1D("rdoutDoneTime","",10000,0,.1);    
+    m_hrdoutdonetime = new TH1D("rdoutDoneTime","",10000,0,.1);
     m_hcouttime = new TH1D("coutTime","",10000,0,.1);
 
     char rawFilename[256];
@@ -359,6 +367,7 @@ private:
 
     SendEvent( eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run) );
 
+    m_daqtimer.start();
     m_state = STATE_RUNNING;
     SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
   }
