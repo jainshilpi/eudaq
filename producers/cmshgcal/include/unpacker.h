@@ -15,7 +15,7 @@ class unpacker{
   std::vector<uint16_t> m_decoded_raw_data;
   
  private:
-  uint16_t gray_to_binary(const uint16_t gray) const;
+  uint16_t gray_to_binary(uint16_t gray) const;
   int m_nskiroc_per_hexaboard;
 
   static const int MASK_ADC = 0x0FFF;
