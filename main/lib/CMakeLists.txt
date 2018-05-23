@@ -83,10 +83,13 @@ if (PROTOBUF_FOUND AND GEN_proto)
 endif()
 
 if (BUILD_cmshgcal)
-   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc)
+   SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} /opt/cactus/lib/libboost_iostreams.so)
+else (BUILD_cmshgcal)
+   list(REMOVE_ITEM plugins_sources plugins/HexaBoardConverterPlugin.cc)
 endif()
 
 ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} ${plugins_sources})
+
 
 if (PROTOBUF_FOUND AND GEN_proto)
     add_dependencies(${PROJECT_NAME} GEN_PROTO)
@@ -99,7 +102,7 @@ SOURCE_GROUP(TCPIP FILES src\\Serializable.cc src\\Producer.cc src\\SlowProducer
 SOURCE_GROUP(Event .*Event.*cc)
 SOURCE_GROUP(Utilities FILES src\\Utils.cc src\\Time.cc src\\Mutex.cc src\\EudaqThread.cc)
 
-target_link_libraries( ${PROJECT_NAME} ${EUDAQ_THREADS_LIB} ${ADDITIONAL_LIBRARIES})
+target_link_libraries( ${PROJECT_NAME} ${EUDAQ_THREADS_LIB} ${ADDITIONAL_LIBRARIES} )
 
 INSTALL(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
