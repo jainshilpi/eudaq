@@ -28,6 +28,7 @@ int main(int argc, char** argv)
       ("runId", po::value<int>(&runId)->default_value(0), "runId")
       ("nMaxEvent", po::value<int>(&nMaxEvent)->default_value(0), "maximum numver of events before stopping the run")
       ("connectionFile", po::value<std::string>(&hgcConfig.connectionFile)->default_value("file://producers/cmshgcal/etc/connection.xml"), "name of config file")
+      ("rootFilePath", po::value<std::string>(&hgcConfig.rootFilePath)->default_value("data_root"), "path to root timing file")
       ("rdoutMask", po::value<uint16_t>(&hgcConfig.rdoutMask)->default_value(4), "bit mask to set rdout board location")
       ("blockSize", po::value<uint32_t>(&hgcConfig.blockSize)->default_value(30787), "size of ctl orm fifo")
       ("saveRawData", po::value<bool>(&hgcConfig.saveRawData)->default_value(false), "boolean to set to save raw data")
@@ -82,8 +83,9 @@ int main(int argc, char** argv)
       boost::this_thread::sleep( boost::posix_time::microseconds(100) );
       continue;
     }
-    HGCalDataBlock dataBlk=controller->getDequeData()[0];
-    std::cout<<"Running:  skiroc mask="<<std::setw(8)<<std::setfill('0')<<std::hex<<dataBlk.getData()[0]<<"  Size of the data (bytes): "<<std::dec<<dataBlk.getData().size()*4<<std::endl;
+    HGCalDataBlocks dataBlk=controller->getDequeData()[0];
+    for( std::map< int,std::vector<uint32_t> >::iterator it=dataBlk.getData().begin(); it!=dataBlk.getData().end(); ++it )
+      std::cout<<"Running:  skiroc mask="<<std::setw(8)<<std::setfill('0')<<std::hex<<it->second[0]<<"  Size of the data (bytes): "<<std::dec<<it->second.size()*4<<std::endl;
 	  
     controller->getDequeData().pop_front();
     if(ievt>nMaxEvent&&nMaxEvent!=0) break;
@@ -95,8 +97,9 @@ int main(int argc, char** argv)
     if( controller->getDequeData().empty() ){
       break;
     }
-    HGCalDataBlock dataBlk=controller->getDequeData()[0];
-    std::cout<<"Running:  skiroc mask="<<std::setw(8)<<std::setfill('0')<<std::hex<<dataBlk.getData()[0]<<"  Size of the data (bytes): "<<std::dec<<dataBlk.getData().size()*4<<std::endl;
+    HGCalDataBlocks dataBlk=controller->getDequeData()[0];
+    for( std::map< int,std::vector<uint32_t> >::iterator it=dataBlk.getData().begin(); it!=dataBlk.getData().end(); ++it )
+      std::cout<<"Running:  skiroc mask="<<std::setw(8)<<std::setfill('0')<<std::hex<<it->second[0]<<"  Size of the data (bytes): "<<std::dec<<it->second.size()*4<<std::endl;
     controller->getDequeData().pop_front();
   }
   ctrlThread.join();
