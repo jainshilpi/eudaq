@@ -3,9 +3,9 @@
 #include <boost/thread/thread.hpp>
 
 #include "HGCalController.h"
+#include "compressor.h"
 
 #define FORMAT_VERSION 1 //WARNING : be careful when changing this value
-#define MAX_NUMBER_OF_ORM 16
 #define RDOUT_DONE_MAGIC 0xABCD4321
 
 void HGCalController::readFIFOThread( ipbus::IpbusHwController* orm)
@@ -28,8 +28,8 @@ void HGCalController::configure(HGCalConfig config)
   //check if it is needed to empty the ipbus::IpbusHwController vector
   if( m_state==CONFED ){
     m_state==INIT;
-    for( std::vector<ipbus::IpbusHwController *>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-      delete (*it);
+    for( std::map< int,ipbus::IpbusHwController* >::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+      delete it->second;
     m_rdout_orms.clear();
   }
 
@@ -43,29 +43,29 @@ void HGCalController::configure(HGCalConfig config)
     std::cout << "... found in the rdout mask " << std::endl;
     os.str(""); os << "RDOUT_ORM" << iorm;
     ipbus::IpbusHwController *orm = new ipbus::IpbusHwController(m_config.connectionFile,os.str(),m_config.blockSize);
-    m_rdout_orms.push_back( orm );
+    m_rdout_orms.insert( std::pair<int,ipbus::IpbusHwController* >(iorm,orm) );
   }
 
-  for( std::vector<ipbus::IpbusHwController *>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-    std::string ormId=(*it)->getInterface()->id();
+  for( std::map< int,ipbus::IpbusHwController* >::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+    std::string ormId=it->second->getInterface()->id();
     std::cout << "ORM " << ormId << "\n"
-	      << "Check0 = " << std::hex << (*it)->ReadRegister("check0") << "\t"
-	      << "Check1 = " << std::hex << (*it)->ReadRegister("check1") << "\t"
-	      << "Check2 = " << std::hex << (*it)->ReadRegister("check2") << "\t"
-	      << "Check3 = " << std::hex << (*it)->ReadRegister("check3") << "\t"
-	      << "Check4 = " << std::hex << (*it)->ReadRegister("check4") << "\t"
-	      << "Check5 = " << std::hex << (*it)->ReadRegister("check5") << "\t"
-	      << "Check6 = " << std::hex << (*it)->ReadRegister("check6") << "\n"
-	      << "Check31 = " << std::dec << (*it)->ReadRegister("check31") << "\t"
-	      << "Check32 = " << std::dec << (*it)->ReadRegister("check32") << "\t"
-	      << "Check33 = " << std::dec << (*it)->ReadRegister("check33") << "\t"
-	      << "Check34 = " << std::dec << (*it)->ReadRegister("check34") << "\t"
-	      << "Check35 = " << std::dec << (*it)->ReadRegister("check35") << "\t"
-	      << "Check36 = " << std::dec << (*it)->ReadRegister("check36") << std::endl;
+	      << "Check0 = " << std::hex << it->second->ReadRegister("check0") << "\t"
+	      << "Check1 = " << std::hex << it->second->ReadRegister("check1") << "\t"
+	      << "Check2 = " << std::hex << it->second->ReadRegister("check2") << "\t"
+	      << "Check3 = " << std::hex << it->second->ReadRegister("check3") << "\t"
+	      << "Check4 = " << std::hex << it->second->ReadRegister("check4") << "\t"
+	      << "Check5 = " << std::hex << it->second->ReadRegister("check5") << "\t"
+	      << "Check6 = " << std::hex << it->second->ReadRegister("check6") << "\n"
+	      << "Check31 = " << std::dec << it->second->ReadRegister("check31") << "\t"
+	      << "Check32 = " << std::dec << it->second->ReadRegister("check32") << "\t"
+	      << "Check33 = " << std::dec << it->second->ReadRegister("check33") << "\t"
+	      << "Check34 = " << std::dec << it->second->ReadRegister("check34") << "\t"
+	      << "Check35 = " << std::dec << it->second->ReadRegister("check35") << "\t"
+	      << "Check36 = " << std::dec << it->second->ReadRegister("check36") << std::endl;
     
-    const uint32_t mask=(*it)->ReadRegister("SKIROC_MASK");
-    const uint32_t cst0=(*it)->ReadRegister("CONSTANT0");
-    const uint32_t cst1=(*it)->ReadRegister("CONSTANT1");
+    const uint32_t mask=it->second->ReadRegister("SKIROC_MASK");
+    const uint32_t cst0=it->second->ReadRegister("CONSTANT0");
+    const uint32_t cst1=it->second->ReadRegister("CONSTANT1");
     os.str("");
     os << "ORM " << ormId << "\t SKIROC_MASK = " <<std::setw(8)<< std::hex<<mask << "\n";
     os << "ORM " << ormId << "\t CONST0 = " << std::hex << cst0 << "\n";
@@ -83,10 +83,11 @@ void HGCalController::startrun(int runId)
   m_mutex.lock();
   m_runId=runId;
   m_evtId=0;
+  m_triggerId=0;
   m_deqData.clear();
 
   char rfname[256];
-  sprintf(rfname, "data_root/time.root"); // The path is relative to eudaq/bin; data_root could be a symbolic link
+  sprintf(rfname, "%s/%s%d.root",m_config.rootFilePath.c_str(),"timing",int(m_runId)); 
   m_rootfile = new TFile(rfname,"RECREATE");
   m_roottree = new TTree("daq_timing","HGCal daq timing root tree");
   m_roottree->Branch("daqrate",&m_daqrate);
@@ -108,18 +109,18 @@ void HGCalController::startrun(int runId)
   }
 
   //wait for the date_stamp registers
-  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-    (*it)->ResetTheData();
+  for( std::map< int,ipbus::IpbusHwController* >::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+    it->second->ResetTheData();
     while(1){
-      if( (*it)->ReadRegister("DATE_STAMP") )
+      if( it->second->ReadRegister("DATE_STAMP") )
 	break;
       else
 	boost::this_thread::sleep( boost::posix_time::microseconds(10) );
     }
   }
   
-  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-    (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
+  for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+    it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
   if(m_config.throwFirstTrigger){
     this->readAndThrowFirstTrigger();
   }
@@ -143,8 +144,8 @@ void HGCalController::stoprun()
 
 void HGCalController::terminate()
 {
-  for( std::vector<ipbus::IpbusHwController *>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-    delete (*it);
+  for( std::map<int,ipbus::IpbusHwController *>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+    delete it->second;
   m_rdout_orms.clear();
 }
 
@@ -167,8 +168,8 @@ void HGCalController::run()
     rdoutreadyTimer.start();
     while(1){
       bool rdout_ready=true;
-      for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-	if( (*it)->ReadRegister("BLOCK_READY")!=1 ) 
+      for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+	if( it->second->ReadRegister("BLOCK_READY")!=1 ) 
 	  rdout_ready=false;
       if( !rdout_ready ){
 	boost::this_thread::sleep( boost::posix_time::microseconds(10) );
@@ -179,7 +180,7 @@ void HGCalController::run()
     rdoutreadyTimer.stop();
     std::cout << "\t HGCalController received block ready" << std::endl;
 
-    uint32_t trid=m_rdout_orms[0]->ReadRegister("TRIG_COUNT");
+    uint32_t trid=m_rdout_orms.begin()->second->ReadRegister("TRIG_COUNT");
     if( trid<m_triggerId ){
       std::cout << "\t THIS IS A MAJOR ISSUE FROM NON INCREMENTED TRIGGER ID -> PAUSE IN THE DAQ" << std::endl;
       getchar();
@@ -189,31 +190,36 @@ void HGCalController::run()
     m_evtId++;
     
     readoutTimer.start();
-    std::cout << "\t HGCalController starts reading the data" << std::endl;	
-    boost::thread threadVec[m_rdout_orms.size()];
-    for( int i=0; i<(int)m_rdout_orms.size(); i++)
-      threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i]);
-    for( int i=0; i<(int)m_rdout_orms.size(); i++){
-      threadVec[i].join();
-    }
-    HGCalDataBlock datablk;
-    for( int i=0; i<(int)m_rdout_orms.size(); i++){
-      datablk.addORMBlock(m_rdout_orms[i]->getData());
-      uint32_t trailer=i;//8 bits for orm id
-      trailer|=m_triggerId<<8;//24 bits for trigger number
-      datablk.addTrailer(trailer);
-      datablk.addTrailer( m_rdout_orms[i]->ReadRegister("CLK_COUNT0") );
-      datablk.addTrailer( m_rdout_orms[i]->ReadRegister("CLK_COUNT1") );
+    std::cout << "\t HGCalController starts reading the data" << std::endl;
+    boost::thread threadVec[MAX_NUMBER_OF_ORM];
+    for( int i=0; i<MAX_NUMBER_OF_ORM; i++)
+      if( (m_config.rdoutMask>>i)&1 )
+	threadVec[i]=boost::thread(readFIFOThread,m_rdout_orms[i]);
+    for( int i=0; i<MAX_NUMBER_OF_ORM; i++)
+      if( (m_config.rdoutMask>>i)&1 )
+	threadVec[i].join();
+    
+    HGCalDataBlocks datablk;
+    datablk.initBlocks(m_config.rdoutMask,m_config.blockSize+3);
+    for( int i=0; i<MAX_NUMBER_OF_ORM; i++){
+      if( (m_config.rdoutMask>>i)&1 ){
+	datablk.copyDataInBlock(i,m_rdout_orms[i]->getData());
+	uint32_t trailer=i;//8 bits for orm id
+	trailer|=m_triggerId<<8;//24 bits for trigger number
+	datablk.setValueInBlock( i, m_config.blockSize+0, trailer);
+	datablk.setValueInBlock( i, m_config.blockSize+1, m_rdout_orms[i]->ReadRegister("CLK_COUNT0") );
+	datablk.setValueInBlock( i, m_config.blockSize+2, m_rdout_orms[i]->ReadRegister("CLK_COUNT1") );
+      }
     }
     std::cout << "\t HGCalController finished reading the data" << std::endl;	
     readoutTimer.stop();
 
     datestampTimer.start();
     std::cout << "\t HGCalController waits the date_stamp" << std::endl;	
-    for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-      (*it)->ResetTheData();
+    for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+      it->second->ResetTheData();
       while(1){
-	if( (*it)->ReadRegister("DATE_STAMP") )
+	if( it->second->ReadRegister("DATE_STAMP") )
 	  break;
 	else
 	  boost::this_thread::sleep( boost::posix_time::microseconds(10) );
@@ -224,8 +230,8 @@ void HGCalController::run()
     
     rdoutDoneTimer.start();
     std::cout << "\t HGCalController sends readout done magic" << std::endl;	
-    for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-      (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC); 
+    for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+      it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC); 
     std::cout << "\t HGCalController finished readout done magic" << std::endl;	
     rdoutDoneTimer.stop();
     
@@ -246,9 +252,12 @@ void HGCalController::run()
     m_deqData.push_back(datablk);
 
     if( m_config.saveRawData )
-      m_rawFile.write(reinterpret_cast<const char*>(&datablk.getData()[0]), datablk.getData().size()*sizeof(uint32_t));
-    
-    
+      for( int i=0; i<MAX_NUMBER_OF_ORM; i++)
+	if( (m_config.rdoutMask>>i)&1 ){
+	  //m_rawFile.write(reinterpret_cast<const char*>(&datablk.getData()[i][0]), datablk.getData()[i].size()*sizeof(uint32_t));
+	  std::string compressedData=compressor::compress(datablk.getData()[i],5);
+	  m_rawFile.write(reinterpret_cast<const char*>(compressedData.c_str()), compressedData.size());
+	}
   }
 }
 
@@ -257,8 +266,8 @@ void HGCalController::readAndThrowFirstTrigger()
   boost::this_thread::sleep( boost::posix_time::microseconds(2000) );
   while(1){
     bool rdout_ready=true;
-    for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-      if( (*it)->ReadRegister("BLOCK_READY")!=1 ) 
+    for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+      if( it->second->ReadRegister("BLOCK_READY")!=1 ) 
 	rdout_ready=false;
     if( !rdout_ready ){
       boost::this_thread::sleep( boost::posix_time::microseconds(1) );
@@ -266,18 +275,18 @@ void HGCalController::readAndThrowFirstTrigger()
     }
     else break;
   }
-  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-    (*it)->ReadDataBlock("FIFO");
-    (*it)->ResetTheData();
+  for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
+    it->second->ReadDataBlock("FIFO");
+    it->second->ResetTheData();
     while(1){
-      if( (*it)->ReadRegister("DATE_STAMP") )
+      if( it->second->ReadRegister("DATE_STAMP") )
 	break;
       else
 	boost::this_thread::sleep( boost::posix_time::microseconds(1) );     
     }
   }
-  for( std::vector<ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-    (*it)->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
+  for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+    it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
   boost::this_thread::sleep( boost::posix_time::microseconds(2000) );
 }
 
