@@ -5,7 +5,7 @@ In order to start with HGCDAQ part of this code one has to follow the main
 compilation/installation procedures for eudaq (see below).
 
 For this fork of the *eudaq* we took the **v1.7** tag as a starting point. A branch called
-**tb2108** is made the default branch here (instead of *master*).
+**tb2018** is made the default branch here (instead of *master*).
 
 An installation of eudaq is available on daq PC in the lab at b27. One can also install it
 relatevey easily on SLC6 and CC7 systems. Since we use IPBus the installation of the
@@ -20,7 +20,7 @@ Contributing:
  * Checkout *tb2018* branch 
  * Create your own branch from it (e.g. `git branch dev-username`), develop in that branch
  * Commit/push all the changes into your branch
- * Make pull request to *HGCDAQ/tb2016* from your development branch
+ * Make pull request to *HGCDAQ/tb2018* from your development branch
  
 
 eudaq 1.7
