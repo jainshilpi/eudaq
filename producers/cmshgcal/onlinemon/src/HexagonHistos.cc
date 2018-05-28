@@ -25,12 +25,12 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
   char out[1024], out2[1024];
 
   _mon = mon;
-
-  _isPedestalRun = (bool)_mon->mon_configdata.DoPedestal();
-  // std::cout << "HexagonHistos::Sensorname: " << _sensor << " "<< _id<<
-  // std::endl;
-
-  if (_maxX != -1 && _maxY != -1) {
+  
+    _runMode = _mon->mon_configdata.getRunMode();
+    //std::cout << "HexagonHistos::Sensorname: " << _sensor << " "<< _id<< std::endl;
+    //std::cout <<"runMode = "<<_runMode<<std::endl;
+    
+    if (_maxX != -1 && _maxY != -1) {
     sprintf(out, "%s-%i, HA bit Occupancy", _sensor.c_str(), _id);
     sprintf(out2, "h_hexagons_occ_HA_bit_%s_%i", _sensor.c_str(), _id);
     _hexagons_occ_HA_bit = get_th2poly(out2,out);
@@ -213,8 +213,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
   
   int nHit=0, nHot=0, nBad=0;
   
-  // Temporary lets just not fill events with too many channels 
-  if (plane.HitPixels()>250 && !_isPedestalRun)
+  // Temporary let's just not fill events with too many channels 
+  if (plane.HitPixels()>250 && _runMode!=0)
     return;
 
 

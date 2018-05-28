@@ -54,6 +54,7 @@ namespace eudaq {
   }
 
   void Configuration::Load(std::istream &stream, const std::string &section) {
+    // std::cout<<"We are Loading Config file. Section="<<section<<std::endl;
     map_t config;
     section_t *cur_sec = &config[""];
     for (;;) {
@@ -61,6 +62,7 @@ namespace eudaq {
       if (stream.eof())
         break;
       std::getline(stream, line);
+      // std::cout << "Looping.. " << line << std::endl;
       size_t equals = line.find('=');
       if (equals == std::string::npos) {
         line = trim(line);
@@ -69,7 +71,7 @@ namespace eudaq {
         if (line[0] == '[' && line[line.length() - 1] == ']') {
           line = std::string(line, 1, line.length() - 2);
           // TODO: check name is alphanumeric?
-          // std::cerr << "Section " << line << std::endl;
+	  // std::cerr << "Section " << line << std::endl;
           cur_sec = &config[line];
         }
       } else {
@@ -91,6 +93,7 @@ namespace eudaq {
     }
     m_config = config;
     SetSection(section);
+
   }
 
   bool Configuration::SetSection(const std::string &section) const {

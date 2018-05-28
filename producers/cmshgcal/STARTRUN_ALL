@@ -12,7 +12,6 @@ export HOSTIP=192.168.222.1
 export TLUIP=192.168.222.1
 export HOSTNAME=192.168.222.1
 
-
 dt=`date +"%y_%b_%d_%Hh%Mm"`
 echo $dt
 if [ -f './data/runnumber.dat' ]; then

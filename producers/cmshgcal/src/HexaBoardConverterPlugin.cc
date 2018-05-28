@@ -2,10 +2,11 @@
 #include "eudaq/StandardEvent.hh"
 #include "eudaq/Utils.hh"
 #include "eudaq/Logger.hh"
+#include "eudaq/Configuration.hh"
 
 #include <bitset>
 #include <boost/format.hpp>
-
+ 
 // All LCIO-specific parts are put in conditional compilation blocks
 // so that the other parts may still be used if LCIO is not available.
 #if USE_LCIO
@@ -15,27 +16,41 @@
 #include "lcio.h"
 #endif
 
-const size_t RAW_EV_SIZE_32 = 123152;
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/copy.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 
-const size_t nSkiPerBoard[1] = {32};
-const uint32_t skiMask[1] = {0xffffffff};
-const bool runForPedestal = true;
-//const uint32_t skiMask[3] = {0xF0F00000, 0xF0F0F0F0, 0x0000F0F0};
-//const uint32_t skiMask = 0;
-
+const size_t RAW_EV_SIZE_32 = 123160;
 const int nSCA=13;
 
-// For zero suppression:
-//( these are not used anymore, because ZS is done with HA bit )
-//const int ped = 250;  // pedestal. It is now calculated as median from all channels in hexaboard
-//const int noi = 10;   // noise
-//const int thresh = 300; // ZS threshold (above pedestal)
-
-// Size of ZS data ()per channel
+// Size of ZS data (per channel)
 const char hitSizeZS = 31;
 
-
 namespace eudaq {
+
+  class decompressor{
+  public:
+
+    static std::string decompress(const std::vector<unsigned char>& data)
+    {
+      std::cout << "yo man 0" << std::endl;
+      std::stringstream compressed(std::string(data.begin(),data.end()));
+      std::stringstream decompressed;
+
+      std::cout << "yo man 1" << std::endl;
+      boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
+      std::cout << "yo man 2" << std::endl;
+      out.push(boost::iostreams::gzip_decompressor());
+      std::cout << "yo man 3" << std::endl;
+      out.push(compressed);
+      std::cout << "yo man 4" << std::endl;
+      boost::iostreams::copy(out, decompressed);
+      std::cout << "yo man 5" << std::endl;
+
+      return decompressed.str();
+    }
+
+  };
 
   // The event type for which this converter plugin will be registered
   // Modify this to match your actual event type (from the Producer)
@@ -51,9 +66,49 @@ namespace eudaq {
       // and store it in member variables to use during the decoding later.
       virtual void Initialize(const Event &bore, const Configuration &cnf) {
 	m_exampleparam = bore.GetTag("HeXa", 0);
+
 #ifndef WIN32 // some linux Stuff //$$change
 	(void)cnf; // just to suppress a warning about unused parameter cnf
 #endif
+
+	std::cout<<"Config file name in HexaBoard Converter: "<<cnf.Name()<<std::endl;
+
+	cnf.SetSection("RunControl");
+	cnf.Print();
+
+	int test = cnf.Get("RunEventLimit", 123);
+	std::cout<<" test value from config="<<test<<std::endl;
+
+	
+	// ------ HARDCODED -------
+	// -- For running in developement mode (can try different config files):
+	const std::string confFileName = "/scratch/eudaq/producers/cmshgcal/conf/AllInOneProducer.conf";
+	std::ifstream confFile(confFileName.c_str());
+	if (confFile.is_open()) {
+	  Configuration config(confFile, "OnlineMon");
+	  config.Set("Name", confFileName);
+	  config.Print();
+	  
+	  m_runMode = config.Get("runMode", 0);
+	  //std::cout<<" n boards = "<<n_brds<<std::endl;
+	  //config.SetSection("Producer.CMS-HGCAL");
+	  //uint32_t tt = std::stoul(config.Get("Mask_RDB1", "0xFFF00000"), nullptr, 16);
+	  //std::cout<<config.Get("Mask_RDB1", "0xFFF00000")<<"  stoul = "<<std::hex<<tt<<std::endl;
+
+	  m_skiMask[0] = std::stoul(config.Get("Mask_RDB1", "0xFFFFFFFF"), nullptr, 16);
+	  m_skiMask[1] = std::stoul(config.Get("Mask_RDB2", "0xFFFFFFFF"), nullptr, 16);
+	  m_skiMask[2] = std::stoul(config.Get("Mask_RDB3", "0xFFFFFFFF"), nullptr, 16);
+	  m_skiMask[3] = std::stoul(config.Get("Mask_RDB4", "0xFFFFFFFF"), nullptr, 16);
+
+	  //for (int b=0; b < 4; b++){
+	  //std::bitset<32> bits(m_skiMask[b]);
+	  //std::cout<<b<<" board skiMask = "<<std::hex<<m_skiMask[b]<<"  bit count: "<<std::dec<<bits.count()<<std::endl;
+	  //}
+	}
+
+	// -- offline mode end --
+	
+	  
       }
 
       // This should return the trigger ID (as provided by the TLU)
@@ -112,8 +167,8 @@ namespace eudaq {
 	    RDBOARD = brdID[0];
 	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
 
-	    const unsigned nPlanes = nSkiPerBoard[RDBOARD-1]/4;
-	    std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
+	    //const unsigned nPlanes = nSkiPerBoard[RDBOARD-1]/4;
+	    //std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
 
 	    continue;
 	  }
@@ -130,9 +185,16 @@ namespace eudaq {
 	    std::vector<uint32_t> rawData32;
 	    rawData32.resize(bl.size() / sizeof(uint32_t));
 	    std::memcpy(&rawData32[0], &bl[0], bl.size());
-	    
+	    // std::cout << "0000" << std::endl;
+	    // std::string decompressed=decompressor::decompress(bl);
+	    // std::cout << "1111" << std::endl;
+	    // std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
+	    // std::cout << "2222" << std::endl;
+	    // rawData32.resize(decompData.size() / sizeof(uint32_t));
+	    // std::memcpy(&rawData32[0], &decompData[0], decompData.size());
+	    // std::cout << "3333" << std::endl;
 	    const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
-	    
+	    //std::cout << "4444" << std::endl;
 	    // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
 	    const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded, RDBOARD);
 	    
@@ -252,14 +314,15 @@ namespace eudaq {
 
       std::vector<std::array<unsigned int,1924>> decode_raw_32bit(std::vector<uint32_t>& raw, const int board_id) const{
 	
-	const uint32_t ch_mask = skiMask[board_id-1];
+	//const uint32_t ch_mask = m_skiMask[board_id-1];
+	const uint32_t ch_mask = raw[0];
 	
 	//std::cout<<"In decoder"<<std::endl;
 	//printf("\t SkiMask: 0x%08x;   Length of Raw: %d\n", ch_mask, raw.size());
 
 	// Check that an external mask agrees with first 32-bit word in data
-	if (ch_mask!=raw[0])
-	  EUDAQ_DEBUG("You extarnal mask ("+eudaq::to_hex(ch_mask)+") does not agree with the one found in data ("+eudaq::to_hex(raw[0])+")");
+	if (ch_mask!=m_skiMask[board_id-1])
+	  EUDAQ_WARN("You extarnal mask ("+eudaq::to_hex(ch_mask)+") does not agree with the one found in data ("+eudaq::to_hex(raw[0])+")");
 
 
 	//for (int b=0; b<2; b++)
@@ -274,9 +337,9 @@ namespace eudaq {
 	//std::cout<<"ski mask: "<<ski_mask<<std::endl;
 
 	const int mask_count = ski_mask.count();
-	if (mask_count!= nSkiPerBoard[board_id-1]) {
-	  EUDAQ_WARN("The mask does not agree with expected number of SkiRocs. Mask count:"+ eudaq::to_string(mask_count));
-	}
+	//if (mask_count!= nSkiPerBoard[board_id-1]) {
+	//EUDAQ_WARN("The mask does not agree with expected number of SkiRocs. Mask count:"+ eudaq::to_string(mask_count));
+	//}
 
 	std::vector<std::array<unsigned int, 1924>> ev(mask_count, std::array<unsigned int, 1924>());
 
@@ -373,7 +436,9 @@ namespace eudaq {
 	const int nHexa =  nSki/4;
 	if (nSki%4!=0)
 	  EUDAQ_WARN("Number of SkiRocs is not right: "+ eudaq::to_string(nSki));
-	if (nHexa != nSkiPerBoard[board_id-1]/4)
+
+	std::bitset<32> skibits(m_skiMask[board_id-1]);
+	if (nHexa != skibits.count()/4)
 	  EUDAQ_WARN("Number of HexaBoards is not right: "+ eudaq::to_string(nHexa));
 
 	// A vector per HexaBoard of vector of Hits from 4 ski-rocs
@@ -517,12 +582,17 @@ namespace eudaq {
 	    //if ((decoded[ski][chArrPos] & 0x1000) != (decoded[ski][chArrPos + 64] & 0x1000))
 	    //std::cout<<"Warning: HA is not what we think it is..."<<std::endl;
 
-	    if (!runForPedestal){
+	    if (m_runMode==0)
+	      ; // Pass. This is pedestal mode, no zero suppression is needed 
+	    else if (m_runMode==1){
 	      // ZeroSuppress it:
 	      //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
 	      if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
 		continue;
 	    }
+	    else
+	      EUDAQ_WARN("This run-mode is not yet implemented: "+eudaq::to_string(m_runMode));
+
 	    
 	    dataBlockZS[hexa].push_back((ski%4)*100+ch);
 
@@ -620,6 +690,9 @@ namespace eudaq {
       // Information extracted in Initialize() can be stored here:
       unsigned m_exampleparam;
 
+      uint32_t m_skiMask[4];
+
+      int m_runMode;
       // The single instance of this converter plugin
       static HexaBoardConverterPlugin m_instance;
   }; // class HexaBoardConverterPlugin

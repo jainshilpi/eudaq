@@ -84,8 +84,9 @@ endif()
 
 if (BUILD_cmshgcal)
    SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} /opt/cactus/lib/libboost_iostreams.so)
-else (BUILD_cmshgcal)
-   list(REMOVE_ITEM plugins_sources plugins/HexaBoardConverterPlugin.cc)
+#else (BUILD_cmshgcal)
+#   list(REMOVE_ITEM plugins_sources plugins/HexaBoardConverterPlugin.cc)
+list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc) 
 endif()
 
 ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} ${plugins_sources})

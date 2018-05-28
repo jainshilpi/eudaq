@@ -124,11 +124,11 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
       exit(-1);
     }
   
-  hexaCollection->SetPedestalRun((bool)mon_configdata.DoPedestal());
+  hexaCollection->SetRunMode(mon_configdata.getRunMode());
   
   // print the configuration
-  mon_configdata.PrintConfiguration();
-
+  //mon_configdata.PrintConfiguration();
+  
 
   cout << "Datafile: " << datafile << endl;
   if (datafile != "") {

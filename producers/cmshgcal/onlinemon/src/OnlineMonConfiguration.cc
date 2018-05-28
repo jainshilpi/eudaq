@@ -52,6 +52,8 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
     bool is_section_clusterizer = false;
     bool is_section_mimosa26 = false;
 
+    bool is_section_cmshgcal = false;
+
     while (!conffile.eof()) {
 
       conffile.getline(buffer, SIZE_OF_BUFFER); // read the entire line
@@ -66,6 +68,7 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         is_section_hotpixelfinder = false;
         is_section_clusterizer = false;
         is_section_mimosa26 = false;
+        is_section_cmshgcal = false;
         continue;
       } else if (stringbuffer.compare("[Correlations]") == 0) {
         cout << "Correlation settings block found" << endl;
@@ -74,6 +77,7 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         is_section_hotpixelfinder = false;
         is_section_clusterizer = false;
         is_section_mimosa26 = false;
+        is_section_cmshgcal = false;
         continue;
       } else if (stringbuffer.compare("[Clusterizer]") == 0) {
         cout << "Clusterizer settings block found" << endl;
@@ -82,6 +86,7 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         is_section_hotpixelfinder = false;
         is_section_clusterizer = true;
         is_section_mimosa26 = false;
+        is_section_cmshgcal = false;
         continue;
       } else if (stringbuffer.compare("[HotPixelFinder]") == 0) {
         cout << "HotPixelFinder settings block found" << endl;
@@ -90,6 +95,7 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         is_section_hotpixelfinder = true;
         is_section_clusterizer = false;
         is_section_mimosa26 = false;
+        is_section_cmshgcal = false;
         continue;
       } else if (stringbuffer.compare("[Mimosa26]") == 0) {
         cout << "Mimosa26 settings block found" << endl;
@@ -98,6 +104,16 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         is_section_hotpixelfinder = false;
         is_section_clusterizer = false;
         is_section_mimosa26 = true;
+        is_section_cmshgcal = false;
+        continue;
+      } else if (stringbuffer.compare("[CMSHGCAL-OnlineMon]") == 0) {
+        cout << "CMSHGCAL settings block found" << endl;
+        is_section_general = false;
+        is_section_correlations = false;
+        is_section_hotpixelfinder = false;
+        is_section_clusterizer = false;
+        is_section_mimosa26 = false;
+        is_section_cmshgcal = true;
         continue;
       }
 
@@ -114,7 +130,7 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
       string key = stringbuffer.substr(0, pos);
       string value = stringbuffer.substr(pos + 1);
 
-      if (is_section_general) {
+      if (is_section_cmshgcal) {
         if (key.compare("SnapShotDir") == 0) {
           value = remove_this_character(value, '"');
           SnapShotDir = value;
@@ -124,9 +140,9 @@ int OnlineMonConfiguration::ReadConfigurationFile() {
         } else if (key.compare("DqmColorMap") == 0) {
           value = remove_this_character(value, '"');
           DqmColorMap = StringToNumber<int>(value);
-	} else if (key.compare("doPedestal") == 0) {
+	} else if (key.compare("runMode") == 0) {
           value = remove_this_character(value, '"');
-          doPedestal = StringToNumber<int>(value);
+          runMode = StringToNumber<int>(value);
         } else if (key.compare("mainFrameTS") == 0) {
           value = remove_this_character(value, '"');
           mainFrameTS = StringToNumber<int>(value);
@@ -206,7 +222,7 @@ void OnlineMonConfiguration::SetDefaults() {
   SnapShotDir = "../snapshots/";
   SnapShotFormat = ".png";
   DqmColorMap = 54;
-  doPedestal = 0;
+  runMode = 0;
   // mimosa26 settings
   mimosa26_max_sections = 4;
   mimosa26_section_boundary = 288;
@@ -260,8 +276,8 @@ void OnlineMonConfiguration::setSnapShotFormat(string SnapShotFormat) {
 
 int OnlineMonConfiguration::getDqmColorMap() const {
   return DqmColorMap;
-}int OnlineMonConfiguration::DoPedestal() const {
-  return doPedestal;
+}int OnlineMonConfiguration::getRunMode() const {
+  return runMode;
 }
 int OnlineMonConfiguration::getMainFrameTS() const {
   return mainFrameTS;

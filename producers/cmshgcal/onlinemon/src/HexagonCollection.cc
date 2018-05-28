@@ -123,7 +123,9 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
 
-    if (!_isPedestalRun){
+    std::cout<<"Hexa collection runMode="<<_runMode<<std::endl;
+    
+    if (_runMode!=0){
       sprintf(tree, "%s/Module %i/Occ_HA_bit", p.Sensor().c_str(), p.ID());
       _mon->getOnlineMon()->registerTreeItem(tree);
       _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccHAbitHisto(), "COLZ2 TEXT");
@@ -172,7 +174,8 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     sprintf(tree, "%s/Module %i/PedestalHG", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getPedHGHisto());
-    if (_isPedestalRun)
+    
+    if (_runMode=0)
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
     sprintf(tree, "%s/Module %i/LGvsTOTfast", p.Sensor().c_str(), p.ID());
@@ -244,7 +247,9 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
 
     //sprintf(tree, "%s/Waveforms", p.Sensor().c_str());
     //_mon->getOnlineMon()->makeTreeItemSummary(tree);
-
+    
+    //sprintf(tree, "%s", p.Sensor().c_str());
+    //_mon->getOnlineMon()->makeTreeItemSummary(tree);
     
   }
 
