@@ -276,7 +276,8 @@ void OnlineMonConfiguration::setSnapShotFormat(string SnapShotFormat) {
 
 int OnlineMonConfiguration::getDqmColorMap() const {
   return DqmColorMap;
-}int OnlineMonConfiguration::getRunMode() const {
+}
+int OnlineMonConfiguration::getRunMode() const {
   return runMode;
 }
 int OnlineMonConfiguration::getMainFrameTS() const {

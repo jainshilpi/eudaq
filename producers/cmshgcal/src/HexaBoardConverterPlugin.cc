@@ -66,49 +66,42 @@ namespace eudaq {
       // and store it in member variables to use during the decoding later.
       virtual void Initialize(const Event &bore, const Configuration &cnf) {
 	m_exampleparam = bore.GetTag("HeXa", 0);
-
+	m_runMode = 0;
+	
 #ifndef WIN32 // some linux Stuff //$$change
 	(void)cnf; // just to suppress a warning about unused parameter cnf
 #endif
+
 
 	std::cout<<"Config file name in HexaBoard Converter: "<<cnf.Name()<<std::endl;
 
 	cnf.SetSection("RunControl");
 	cnf.Print();
 
-	int test = cnf.Get("RunEventLimit", 123);
-	std::cout<<" test value from config="<<test<<std::endl;
+	cnf.SetSection("CMSHGCAL-OnlineMon");
+	cnf.Print();
 
-	
+      	m_runMode = cnf.Get("runMode", 0);
+
+	m_skiMask[0] = std::stoul(cnf.Get("Mask_RDB1", "0xFFFFFFFF"), nullptr, 16);
+	m_skiMask[1] = std::stoul(cnf.Get("Mask_RDB2", "0xFFFFFFFF"), nullptr, 16);
+	m_skiMask[2] = std::stoul(cnf.Get("Mask_RDB3", "0xFFFFFFFF"), nullptr, 16);
+	m_skiMask[3] = std::stoul(cnf.Get("Mask_RDB4", "0xFFFFFFFF"), nullptr, 16);
+	m_skiMask[4] = std::stoul(cnf.Get("Mask_RDB4", "0xFFFFFFFF"), nullptr, 16);
+
+	/*
 	// ------ HARDCODED -------
 	// -- For running in developement mode (can try different config files):
 	const std::string confFileName = "/scratch/eudaq/producers/cmshgcal/conf/AllInOneProducer.conf";
 	std::ifstream confFile(confFileName.c_str());
 	if (confFile.is_open()) {
-	  Configuration config(confFile, "OnlineMon");
+	  Configuration config(confFile, "CMSHGCAL-OnlineMon");
 	  config.Set("Name", confFileName);
 	  config.Print();
-	  
-	  m_runMode = config.Get("runMode", 0);
-	  //std::cout<<" n boards = "<<n_brds<<std::endl;
-	  //config.SetSection("Producer.CMS-HGCAL");
-	  //uint32_t tt = std::stoul(config.Get("Mask_RDB1", "0xFFF00000"), nullptr, 16);
-	  //std::cout<<config.Get("Mask_RDB1", "0xFFF00000")<<"  stoul = "<<std::hex<<tt<<std::endl;
-
-	  m_skiMask[0] = std::stoul(config.Get("Mask_RDB1", "0xFFFFFFFF"), nullptr, 16);
-	  m_skiMask[1] = std::stoul(config.Get("Mask_RDB2", "0xFFFFFFFF"), nullptr, 16);
-	  m_skiMask[2] = std::stoul(config.Get("Mask_RDB3", "0xFFFFFFFF"), nullptr, 16);
-	  m_skiMask[3] = std::stoul(config.Get("Mask_RDB4", "0xFFFFFFFF"), nullptr, 16);
-
-	  //for (int b=0; b < 4; b++){
-	  //std::bitset<32> bits(m_skiMask[b]);
-	  //std::cout<<b<<" board skiMask = "<<std::hex<<m_skiMask[b]<<"  bit count: "<<std::dec<<bits.count()<<std::endl;
-	  //}
 	}
-
 	// -- offline mode end --
+	*/
 	
-	  
       }
 
       // This should return the trigger ID (as provided by the TLU)
@@ -690,7 +683,7 @@ namespace eudaq {
       // Information extracted in Initialize() can be stored here:
       unsigned m_exampleparam;
 
-      uint32_t m_skiMask[4];
+      uint32_t m_skiMask[5];
 
       int m_runMode;
       // The single instance of this converter plugin

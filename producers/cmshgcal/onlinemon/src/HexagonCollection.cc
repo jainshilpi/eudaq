@@ -123,7 +123,7 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
 
-    std::cout<<"Hexa collection runMode="<<_runMode<<std::endl;
+    //std::cout<<"Hexa collection runMode="<<_runMode<<std::endl;
     
     if (_runMode!=0){
       sprintf(tree, "%s/Module %i/Occ_HA_bit", p.Sensor().c_str(), p.ID());
@@ -175,7 +175,7 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getPedHGHisto());
     
-    if (_runMode=0)
+    if (_runMode==0)
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
     sprintf(tree, "%s/Module %i/LGvsTOTfast", p.Sensor().c_str(), p.ID());
