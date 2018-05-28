@@ -1,3 +1,28 @@
+Intoroduction 
+=============
+
+In order to start with HGCDAQ part of this code one has to follow the main
+compilation/installation procedures for eudaq (see below).
+
+For this fork of the *eudaq* we took the **v1.7** tag as a starting point. A branch called
+**tb2108** is made the default branch here (instead of *master*).
+
+An installation of eudaq is available on daq PC in the lab at b27. One can also install it
+relatevey easily on SLC6 and CC7 systems. Since we use IPBus the installation of the
+*cactus* software is required in order to compile *cmshgcal* producer directory.
+
+Quick commands (for details follow eudaq instructions below):
+ * On SLC6 machines with AFS setup, run `source setup_eudaq_cmshgcal.sh` in order to link **CMake** and **Qt** libraries.
+ * To create make file: from *build* directory: `cmake -D BUILD_sandbox=ON  ..`
+ * To compile `make install -j6` in the build directory
+
+Contributing:
+ * Checkout *tb2018* branch 
+ * Create your own branch from it (e.g. `git branch dev-username`), develop in that branch
+ * Commit/push all the changes into your branch
+ * Make pull request to *HGCDAQ/tb2016* from your development branch
+ 
+
 eudaq 1.7
 =======
 
