@@ -20,7 +20,7 @@
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
-const size_t RAW_EV_SIZE_32 = 123160;
+const size_t RAW_EV_SIZE_32 = 123152;
 const int nSCA=13;
 
 // Size of ZS data (per channel)
@@ -78,6 +78,9 @@ namespace eudaq {
 	cnf.SetSection("RunControl");
 	cnf.Print();
 
+	cnf.SetSection("Producer.CMS-HGCAL");
+	m_compressed = cnf.Get("DoCompression", true);
+	
 	cnf.SetSection("CMSHGCAL-OnlineMon");
 	cnf.Print();
 
@@ -165,27 +168,50 @@ namespace eudaq {
 
 	    continue;
 	  }
-	  else if (blo%1==1 && bl.size()!=RAW_EV_SIZE_32) {
-	    EUDAQ_WARN("There is something wrong with the data. Size= "+eudaq::to_string(bl.size()));
-	    return true;
-	  }
 
 	  else {
-	    // This block contains the data
-
-	    std::cout<<" We are in the data block. blo="<<blo<<std::endl;
 	    
+	    // This block contains the data
+	    std::cout<<" We are in the data block. blo="<<blo<<std::endl;
+	    // We will put the data inside that vector:
+	    // ----------------->>>>>>
 	    std::vector<uint32_t> rawData32;
-	    rawData32.resize(bl.size() / sizeof(uint32_t));
-	    std::memcpy(&rawData32[0], &bl[0], bl.size());
-	    // std::cout << "0000" << std::endl;
-	    // std::string decompressed=decompressor::decompress(bl);
-	    // std::cout << "1111" << std::endl;
-	    // std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
-	    // std::cout << "2222" << std::endl;
-	    // rawData32.resize(decompData.size() / sizeof(uint32_t));
-	    // std::memcpy(&rawData32[0], &decompData[0], decompData.size());
-	    // std::cout << "3333" << std::endl;
+	    // <<<<<<<-----------------
+	    
+	    if (bl.size()!=RAW_EV_SIZE_32 && !m_compressed){
+	      EUDAQ_WARN("There is something wrong with the data. Size= "+eudaq::to_string(bl.size()));
+	      std::cout<<" Bad data size in block "<<blo<<"   size: "<<bl.size()<<std::endl;
+	      return true;
+	    }
+	    else if (bl.size()!=RAW_EV_SIZE_32 && m_compressed){
+	      std::cout<<" This data are compressed! Data size in block "<<blo<<"   size: "<<bl.size()<<std::endl;
+	      // Let's decompress it!
+
+	      // std::cout << "0000" << std::endl;
+	      // std::string decompressed=decompressor::decompress(bl);
+	      // std::cout << "1111" << std::endl;
+	      // std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
+	      // std::cout << "2222" << std::endl;
+	      // rawData32.resize(decompData.size() / sizeof(uint32_t));
+	      // std::memcpy(&rawData32[0], &decompData[0], decompData.size());
+	      // std::cout << "3333" << std::endl;
+
+	      return true;
+	    }
+	    else if (bl.size()==RAW_EV_SIZE_32 && m_compressed){
+	      std::cout<<"Hmmm. You says that the data are compressed, but the data size says otherwisse..\n"
+		       <<"Who is right? Machine is always right. Human is wrong.\n"
+		       <<"Data size in block "<<blo<<"   size: "<<bl.size()<<std::endl;
+	      return true;
+	    }
+	    else if (bl.size()==RAW_EV_SIZE_32 && !m_compressed){
+	      // This is the simplest case, data are not compressed. Just mem-copy them:
+	      rawData32.resize(bl.size() / sizeof(uint32_t));
+	      std::memcpy(&rawData32[0], &bl[0], bl.size());
+	    }
+
+
+	    
 	    const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
 	    //std::cout << "4444" << std::endl;
 	    // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
@@ -686,6 +712,8 @@ namespace eudaq {
       uint32_t m_skiMask[5];
 
       int m_runMode;
+      bool m_compressed;
+      
       // The single instance of this converter plugin
       static HexaBoardConverterPlugin m_instance;
   }; // class HexaBoardConverterPlugin

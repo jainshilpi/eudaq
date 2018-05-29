@@ -78,9 +78,10 @@ int main(int argc, char** argv) {
     size_t nblocks = rev.NumBlocks() ;
     uint32_t firstWord[nblocks][5];
     for( int iblo=0; iblo<nblocks; iblo++ ){
-      if( iblo%2==0 ) continue;
       const RawDataEvent::data_t & block = rev.GetBlock(iblo);
-      //std::cout << "size of block = " << std::dec << block.size() << std::endl;
+      std::cout << "size of block " <<iblo<< " is "<< std::dec << block.size() << std::endl;
+      if( iblo%2==0 ) continue; // This block supposed to endode the Readout board ID
+      
       std::vector<uint32_t> rawData32;
       if( compressedData==true ){
 	std::string decompressed=compressor::decompress(block);
