@@ -171,13 +171,6 @@ IF(BUILD_offlinemon)
 ENDIF()
 
 
-# # build OnlineMon executable
-# option(BUILD_cmshgcal_onlinemon "Compile cmshgcal Online Monitor executable (requires ROOT)?" OFF)
-# IF(BUILD_cmshgcal_onlinemon)
-#   add_subdirectory(monitors/cmshgcal_onlinemon)
-# ENDIF()
-
-
 # build Runsplitter
 option(BUILD_runsplitter "Compile Runsplitter executable?" ON)
 IF(BUILD_runsplitter)

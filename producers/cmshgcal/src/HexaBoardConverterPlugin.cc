@@ -16,9 +16,7 @@
 #include "lcio.h"
 #endif
 
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
+#include "../include/compressor.h"
 
 const size_t RAW_EV_SIZE_32 = 123152;
 const int nSCA=13;
@@ -27,31 +25,7 @@ const int nSCA=13;
 const char hitSizeZS = 31;
 
 namespace eudaq {
-
-  class decompressor{
-  public:
-
-    static std::string decompress(const std::vector<unsigned char>& data)
-    {
-      std::cout << "yo man 0" << std::endl;
-      std::stringstream compressed(std::string(data.begin(),data.end()));
-      std::stringstream decompressed;
-
-      std::cout << "yo man 1" << std::endl;
-      boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
-      std::cout << "yo man 2" << std::endl;
-      out.push(boost::iostreams::gzip_decompressor());
-      std::cout << "yo man 3" << std::endl;
-      out.push(compressed);
-      std::cout << "yo man 4" << std::endl;
-      boost::iostreams::copy(out, decompressed);
-      std::cout << "yo man 5" << std::endl;
-
-      return decompressed.str();
-    }
-
-  };
-
+  
   // The event type for which this converter plugin will be registered
   // Modify this to match your actual event type (from the Producer)
   //static const char *EVENT_TYPE = "RPI";
@@ -158,8 +132,9 @@ namespace eudaq {
 	  if (blo%2==0){
 	    // This block contains a string with
 	    std::vector<int> brdID;
-	    brdID.resize(bl.size() / sizeof(int));
-	    std::memcpy(&brdID[0], &bl[0], bl.size());
+	    brdID.push_back(0); // Temporary set the id for otehr debugging to work
+	    // brdID.resize(bl.size() / sizeof(int));
+	    //std::memcpy(&brdID[0], &bl[0], bl.size());
 	    RDBOARD = brdID[0];
 	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
 
@@ -186,17 +161,18 @@ namespace eudaq {
 	    else if (bl.size()!=RAW_EV_SIZE_32 && m_compressed){
 	      std::cout<<" This data are compressed! Data size in block "<<blo<<"   size: "<<bl.size()<<std::endl;
 	      // Let's decompress it!
-
-	      // std::cout << "0000" << std::endl;
-	      // std::string decompressed=decompressor::decompress(bl);
-	      // std::cout << "1111" << std::endl;
-	      // std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
-	      // std::cout << "2222" << std::endl;
-	      // rawData32.resize(decompData.size() / sizeof(uint32_t));
-	      // std::memcpy(&rawData32[0], &decompData[0], decompData.size());
-	      // std::cout << "3333" << std::endl;
-
-	      return true;
+	      //std::string decompressed=decompressor::decompress(bl); // Taking the function from this class
+	      std::string decompressed=compressor::decompress(bl); // Taking the function from compressor.h
+	      
+	      std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
+	      rawData32.resize(decompData.size() / sizeof(uint32_t));
+	      std::memcpy(&rawData32[0], &decompData[0], decompData.size());
+	      
+	      if (rawData32.size()*4 != RAW_EV_SIZE_32+8){
+		std::cout << "Size of raw data after decompression is wong!: "<<rawData32.size()*4<<"bytes"<<std::endl;
+		return true;
+	      }
+	      
 	    }
 	    else if (bl.size()==RAW_EV_SIZE_32 && m_compressed){
 	      std::cout<<"Hmmm. You says that the data are compressed, but the data size says otherwisse..\n"
@@ -209,7 +185,6 @@ namespace eudaq {
 	      rawData32.resize(bl.size() / sizeof(uint32_t));
 	      std::memcpy(&rawData32[0], &bl[0], bl.size());
 	    }
-
 
 	    
 	    const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);

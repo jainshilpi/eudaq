@@ -51,6 +51,8 @@ ROOT_GENERATE_DICTIONARY_OLD("${HgcOnlineMon_HEADERS}" "${HgcOnlineMon_DICTIONAR
 
 add_executable(HgcOnlineMon.exe ${HgcOnlineMon_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/HgcOnlineMonDict.cxx)
 
+#set(BOOST_LIB boost_timer boost_thread boost_filesystem boost_regex boost_system boost_thread boost_program_options boost_iostreams)
+
 target_link_libraries(HgcOnlineMon.exe EUDAQ ${EUDAQ_THREADS_LIB} ${ROOT_LIBRARIES} ${ADDITIONAL_LIBRARIES})
 
 INSTALL(TARGETS HgcOnlineMon.exe

@@ -83,10 +83,25 @@ if (PROTOBUF_FOUND AND GEN_proto)
 endif()
 
 if (BUILD_cmshgcal)
-   SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} /opt/cactus/lib/libboost_iostreams.so)
-#else (BUILD_cmshgcal)
-#   list(REMOVE_ITEM plugins_sources plugins/HexaBoardConverterPlugin.cc)
-list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc) 
+
+   #find_package(CACTUS REQUIRED)
+   #INCLUDE_DIRECTORIES( ${UHAL_UHAL_INCLUDE_PREFIX} )
+   #LINK_DIRECTORIES( ${UHAL_UHAL_LIB_PREFIX} )
+   #message("UHAL include prefix = ${UHAL_UHAL_INCLUDE_PREFIX}")
+   #message("UHAL lib prefix = ${UHAL_UHAL_LIB_PREFIX}")
+   #set(BOOST_LIB boost_timer boost_thread boost_filesystem boost_regex boost_system boost_thread boost_program_options boost_iostreams)
+
+   #set(Boost_INCLUDE_DIR /)
+   #set(Boost_LIBRARY_DIR /)
+
+   find_package(Boost COMPONENTS iostreams REQUIRED)
+   include_directories(${Boost_INCLUDE_DIR})
+   link_directories(${Boost_LIBRARY_DIR})
+
+   SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} ${Boost_LIBRARIES} )
+
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc) 
+
 endif()
 
 ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} ${plugins_sources})
