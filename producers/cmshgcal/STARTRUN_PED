@@ -122,7 +122,7 @@ if [ -f "HgcOnlineMon.exe" ]
 then
     printf '\033[22;33m\t  HGC Online Monitor  \033[0m \n'
     flog="../logs/Run${NEWRUNNUM}_HgcOnlineMon_$dt.log"
-    config_file="../producers/cmshgcal/conf/OnlineMon.conf"
+    config_file="../producers/cmshgcal/conf/AllInOneProducer.conf"
     nohup ./HgcOnlineMon.exe -u 500 -rf -rs -sc 0 -c $config_file -tc 0 -r tcp://$HOSTIP:$RCPORT > $flog 2>&1 &
     #xterm -sb -sl 1000 -geom 80x10-480-700 -fn fixed -T "HgcOnlineMon" -e './HgcOnlineMon.exe -r tcp://$HOSTIP:$RCPORT' &
     printf "The logs from the Online Monitor are in $flog file. \n"
