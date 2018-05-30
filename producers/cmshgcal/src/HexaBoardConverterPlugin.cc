@@ -148,7 +148,8 @@ namespace eudaq {
 	    
 	    // This block contains the data
 	    std::cout<<" We are in the data block. blo="<<blo<<std::endl;
-	    // We will put the data inside that vector:
+	    
+	    // We will put the data in this vector:
 	    // ----------------->>>>>>
 	    std::vector<uint32_t> rawData32;
 	    // <<<<<<<-----------------
@@ -159,12 +160,12 @@ namespace eudaq {
 	      return true;
 	    }
 	    else if (bl.size()!=RAW_EV_SIZE_32 && m_compressed){
-	      std::cout<<" This data are compressed! Data size in block "<<blo<<"   size: "<<bl.size()<<std::endl;
+	      // std::cout<<" This data are compressed! Data size in block "<<blo<<"   size: "<<bl.size()<<std::endl;
 	      // Let's decompress it!
 	      //std::string decompressed=decompressor::decompress(bl); // Taking the function from this class
 	      std::string decompressed=compressor::decompress(bl); // Taking the function from compressor.h
 	      
-	      std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
+	      const std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
 	      rawData32.resize(decompData.size() / sizeof(uint32_t));
 	      std::memcpy(&rawData32[0], &decompData[0], decompData.size());
 	      
