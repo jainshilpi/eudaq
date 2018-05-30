@@ -132,7 +132,7 @@ namespace eudaq {
 	  if (blo%2==0){
 	    // This block contains a string with
 	    std::vector<int> brdID;
-	    brdID.push_back(0); // Temporary set the id for otehr debugging to work
+	    brdID.push_back(0); // Temporary set the id for some debugging to work
 	    // brdID.resize(bl.size() / sizeof(int));
 	    //std::memcpy(&brdID[0], &bl[0], bl.size());
 	    RDBOARD = brdID[0];
@@ -169,7 +169,7 @@ namespace eudaq {
 	      std::memcpy(&rawData32[0], &decompData[0], decompData.size());
 	      
 	      if (rawData32.size()*4 != RAW_EV_SIZE_32+8){
-		std::cout << "Size of raw data after decompression is wong!: "<<rawData32.size()*4<<"bytes"<<std::endl;
+		std::cout << "Size of raw data after decompression is wong! size = "<<rawData32.size()*4<<" bytes"<<std::endl;
 		return true;
 	      }
 	      
