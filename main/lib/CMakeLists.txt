@@ -83,10 +83,15 @@ if (PROTOBUF_FOUND AND GEN_proto)
 endif()
 
 if (BUILD_cmshgcal)
-   SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} /opt/cactus/lib/libboost_iostreams.so)
-#else (BUILD_cmshgcal)
-#   list(REMOVE_ITEM plugins_sources plugins/HexaBoardConverterPlugin.cc)
-list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc) 
+
+   find_package(Boost COMPONENTS iostreams REQUIRED)
+   include_directories(${Boost_INCLUDE_DIR})
+   link_directories(${Boost_LIBRARY_DIR})
+
+   SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} ${Boost_LIBRARIES} )
+
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc) 
+
 endif()
 
 ADD_LIBRARY( ${PROJECT_NAME} SHARED ${library_sources} ${plugins_sources})

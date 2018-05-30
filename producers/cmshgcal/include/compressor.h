@@ -31,6 +31,7 @@ class compressor{
 
   static std::string decompress(const std::string& data)
   {
+    //std::cout<<"Doing decompress(string)"<<std::endl;
 
     std::stringstream compressed(data);
     std::stringstream decompressed;
@@ -45,16 +46,8 @@ class compressor{
 
   static std::string decompress(const std::vector<unsigned char>& data)
   {
-
-    std::stringstream compressed(std::string(data.begin(),data.end()));
-    std::stringstream decompressed;
-
-    boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
-    out.push(boost::iostreams::gzip_decompressor());
-    out.push(compressed);
-    boost::iostreams::copy(out, decompressed);
-
-    return decompressed.str();
+    // std::cout<<"Doing decompress(vector of char)"<<std::endl;    
+    return decompress(std::string(data.begin(),data.end()));
   }
 
 };
