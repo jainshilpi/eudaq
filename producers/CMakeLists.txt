@@ -36,3 +36,4 @@ optional_add_subdirectory(calice)
 
 # directory for CMS-HGCal
 optional_add_subdirectory(cmshgcal)
+optional_add_subdirectory(cmshgcal_dwc)

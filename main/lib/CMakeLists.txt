@@ -91,6 +91,7 @@ if (BUILD_cmshgcal)
    SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} ${Boost_LIBRARIES} )
 
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc) 
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
 
 endif()
 
