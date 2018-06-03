@@ -132,9 +132,9 @@ namespace eudaq {
 	  if (blo%2==0){
 	    // This block contains a string with
 	    std::vector<int> brdID;
-	    brdID.push_back(0); // Temporary set the id for some debugging to work
-	    // brdID.resize(bl.size() / sizeof(int));
-	    //std::memcpy(&brdID[0], &bl[0], bl.size());
+	    //brdID.push_back(0); // Temporary set the id for some debugging to work
+	    brdID.resize(bl.size() / sizeof(int));
+	    std::memcpy(&brdID[0], &bl[0], bl.size());
 	    RDBOARD = brdID[0];
 	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
 
