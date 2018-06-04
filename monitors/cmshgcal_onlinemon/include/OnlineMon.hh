@@ -36,7 +36,7 @@
 #include "HitmapCollection.hh"
 #include "CorrelationCollection.hh"
 #include "DATURAToHGCALCorrelationCollection.hh"
-#include "DATURAToHGCALCorrelationHistos.hh"
+#include "DWCToHGCALCorrelationCollection.hh"
 
 #include "OnlineMonWindow.hh"
 #include "SimpleStandardEvent.hh"
@@ -105,6 +105,7 @@ public:
   HitmapCollection *beamTelescopeHitCollection;
   CorrelationCollection *beamTelescopeCorrCollection;
   DATURAToHGCALCorrelationCollection *daturaToHGCALCorrelationCollection;
+  DWCToHGCALCorrelationCollection *dwcToHGCALCorrelationCollection;
 
   virtual void StartIdleing() {}
   OnlineMonWindow *getOnlineMon() { return onlinemon; }
