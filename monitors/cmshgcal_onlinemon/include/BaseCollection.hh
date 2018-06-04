@@ -24,7 +24,7 @@ const unsigned int EUDAQMONITOR_COLLECTION_TYPE = 4;
 const unsigned int HEXAGON_COLLECTION_TYPE = 5;
 const unsigned int AHCAL_COLLECTION_TYPE = 6;
 const unsigned int WIRECHAMBER_COLLECTION_TYPE = 7;
-const unsigned int CROSSCORRELATION_COLLECTION_TYPE = 8;
+const unsigned int DATURATOHGCAL_COLLECTION_TYPE = 8;
 const unsigned int UNKNOWN_COLLECTION_TYPE = 9999;
 
 //!BaseCollection class

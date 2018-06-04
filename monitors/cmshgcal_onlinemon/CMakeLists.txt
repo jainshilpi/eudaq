@@ -14,8 +14,8 @@ SET (HgcOnlineMon_SOURCES
   src/HitmapHistos.cc
   src/CorrelationCollection.cc
   src/CorrelationHistos.cc
-  src/CrossCorrelationCollection.cc
-  src/CrossCorrelationHistos.cc
+  src/DATURAToHGCALCorrelationCollection.cc
+  src/DATURAToHGCALCorrelationHistos.cc
   src/WireChamberCollection.cc
   src/WireChamberHistos.cc
   src/CheckEOF.cc
