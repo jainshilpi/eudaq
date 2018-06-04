@@ -18,6 +18,8 @@ SET (HgcOnlineMon_SOURCES
   src/DATURAToHGCALCorrelationHistos.cc
   src/WireChamberCollection.cc
   src/WireChamberHistos.cc
+  src/WireChamberCorrelationCollection.cc
+  src/WireChamberCorrelationHistos.cc  
   src/CheckEOF.cc
   src/EUDAQMonitorCollection.cc
   src/EUDAQMonitorHistos.cc

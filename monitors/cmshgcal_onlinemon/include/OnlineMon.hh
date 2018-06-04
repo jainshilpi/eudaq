@@ -32,6 +32,7 @@
 #include "HexagonCollection.hh"
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
+#include "WireChamberCorrelationCollection.hh"
 #include "HitmapCollection.hh"
 #include "CorrelationCollection.hh"
 #include "DATURAToHGCALCorrelationCollection.hh"
@@ -100,6 +101,7 @@ public:
   HexagonCollection *hexaCollection;
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
+  WireChamberCorrelationCollection *wccorrCollection;
   HitmapCollection *beamTelescopeHitCollection;
   CorrelationCollection *beamTelescopeCorrCollection;
   DATURAToHGCALCorrelationCollection *daturaToHGCALCorrelationCollection;
