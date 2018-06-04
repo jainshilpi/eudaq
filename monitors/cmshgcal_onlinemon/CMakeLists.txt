@@ -53,11 +53,11 @@ SET(MY_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/monitors/cmshgcal_onlinemon/inc
 set(HgcOnlineMon_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/HgcOnlineMonDict.cxx) 
 ROOT_GENERATE_DICTIONARY_OLD("${HgcOnlineMon_HEADERS}" "${HgcOnlineMon_DICTIONARY}" "${MY_INCLUDE_DIRECTORIES}")
 
-add_executable(HgcOnlineMon2.exe ${HgcOnlineMon_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/HgcOnlineMonDict.cxx)
+add_executable(HgcOnlineMon.exe ${HgcOnlineMon_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/HgcOnlineMonDict.cxx)
 
-target_link_libraries(HgcOnlineMon2.exe EUDAQ ${EUDAQ_THREADS_LIB} ${ROOT_LIBRARIES} ${ADDITIONAL_LIBRARIES})
+target_link_libraries(HgcOnlineMon.exe EUDAQ ${EUDAQ_THREADS_LIB} ${ROOT_LIBRARIES} ${ADDITIONAL_LIBRARIES})
 
-INSTALL(TARGETS HgcOnlineMon2.exe
+INSTALL(TARGETS HgcOnlineMon.exe
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
