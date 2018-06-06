@@ -210,7 +210,7 @@ void OnlineMonWindow::ExecuteEvent(Int_t event, Int_t /*px*/, Int_t /*py*/,
 }
 
 void OnlineMonWindow::Write() {
-  TFile *f = new TFile(("/eos/cms/store/group/dpg_hgcal/tb_hgcal/desy_march2018/onlineDQM/"+_rootfilename).c_str(), "RECREATE");
+  TFile *f = new TFile(_rootfilename.c_str(), "RECREATE");
   
   std::cout<<"--> Doing OnlineMonWindow::Write() "<<std::endl;
   std::cout<<" _rootfilename =  "<<_rootfilename<<std::endl;
@@ -372,33 +372,33 @@ void OnlineMonWindow::autoUpdate() {
     TCanvas *fCanvas = ECvs_right->GetCanvas();
     for (unsigned int i = 0; i < activeHistoSize; ++i) {
       if(activeHistoSize ==1){
-  fCanvas->cd();
-  fCanvas->Clear();
+	fCanvas->cd();
+	fCanvas->Clear();
       }
       else{
-  fCanvas->GetPad(i+1)->Clear();
-  fCanvas->cd(i + 1);
+	fCanvas->GetPad(i+1)->Clear();
+	fCanvas->cd(i + 1);
       }
       std::string tree = _activeHistos.at(i);
       TNamed *hg = _hitmapMap[tree];
       if(hg) {
-  TH1 *h = dynamic_cast<TH1 *> (hg);
-  std::mutex mu_dummy;
-  std::mutex *mu = &mu_dummy;
-  auto it = _mutexMap.find(tree);
-  if(it != _mutexMap.end())
-    mu=it->second;
-  if(h){
-    std::lock_guard<std::mutex> lck(*mu);
-    h->Draw(_hitmapOptions[tree].c_str());
-    gPad->Update();
-  }
-  TGraph *g = dynamic_cast<TGraph *> (hg);
-  if(g){
-    std::lock_guard<std::mutex> lck(*mu);
-    g->Draw(_hitmapOptions[tree].c_str());
-    gPad->Update();
-  }
+	TH1 *h = dynamic_cast<TH1 *> (hg);
+	std::mutex mu_dummy;
+	std::mutex *mu = &mu_dummy;
+	auto it = _mutexMap.find(tree);
+	if(it != _mutexMap.end())
+	  mu=it->second;
+	if(h){
+	  std::lock_guard<std::mutex> lck(*mu);
+	  h->Draw(_hitmapOptions[tree].c_str());
+	  gPad->Update();
+	}
+	TGraph *g = dynamic_cast<TGraph *> (hg);
+	if(g){
+	  std::lock_guard<std::mutex> lck(*mu);
+	  g->Draw(_hitmapOptions[tree].c_str());
+	  gPad->Update();
+	}
       }
     }
     UpdateEventNumber(_eventnum);
