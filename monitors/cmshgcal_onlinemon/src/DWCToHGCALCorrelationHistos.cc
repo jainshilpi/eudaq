@@ -75,16 +75,17 @@ int DWCToHGCALCorrelationHistos::zero_plane_array() {
 
 void DWCToHGCALCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plDWC0) {
   
-  float xl = plane.GetPixel(0);
-  float xr = plane.GetPixel(1);
-  float yu = plane.GetPixel(2);
-  float yd = plane.GetPixel(3);
+  float xl = plDWC0.GetPixel(0);
+  float xr = plDWC0.GetPixel(1);
+  float yu = plDWC0.GetPixel(2);
+  float yd = plDWC0.GetPixel(3);
 
   if ((xl<=0) || (xr<=0) || (yu<=0) || (yd<=0)) return;     //need reconstructed DWC point to fill correlation
-
+  
   
   float dwc_x = (xr-xl)/40*0.2; //one time unit of the tdc corresponds to 25ps, 1. conversion into nm, 
   float dwc_y = (yd-yu)/40*0.2; //conversion from nm to mm via the default calibration factor from the DWC manual
+
 
   //reconstruct energy and perform simple selection signal
   for (unsigned int pix = 0; pix < plane.HitPixels(); pix++) {

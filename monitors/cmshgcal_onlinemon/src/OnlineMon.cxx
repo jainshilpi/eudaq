@@ -63,6 +63,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   }
 
   hexaCollection = new HexagonCollection();
+  hexaCorrelationCollection = new HexagonCorrelationCollection();
   ahcalCollection = new AhcalCollection();
   wcCollection = new WireChamberCollection();
   wccorrCollection = new WireChamberCorrelationCollection();
@@ -75,6 +76,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
 
   // put collections into the vector
   _colls.push_back(hexaCollection);
+  _colls.push_back(hexaCorrelationCollection);
   _colls.push_back(ahcalCollection);
   _colls.push_back(wcCollection);
   _colls.push_back(wccorrCollection);
@@ -86,6 +88,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   // set the root Monitor
   if (_offline <= 0) {
     hexaCollection->setRootMonitor(this);
+    hexaCorrelationCollection->setRootMonitor(this);
     ahcalCollection->setRootMonitor(this);
     wcCollection->setRootMonitor(this);
     wccorrCollection->setRootMonitor(this);
@@ -117,7 +120,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
     {
       gStyle->SetPalette(mon_configdata.getDqmColorMap());
       gStyle->SetNumberContours(50);
-      gStyle->SetOptStat(1);
+      gStyle->SetOptStat(0);
       //gStyle->SetStatH(static_cast<Float_t>(0.15));
     }
   else

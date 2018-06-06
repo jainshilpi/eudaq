@@ -102,6 +102,8 @@ void WireChamberCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, cons
   float yu1 = plane1.GetPixel(2);
   float yd1 = plane1.GetPixel(3);
   
+  if ((xl1<=0) || (xr1<=0) || (yu1<=0) || (yd1<=0)) return;
+
   float x1 = (xr1-xl1)/40*0.2; //one time unit of the tdc corresponds to 25ps, 1. conversion into nm, 
   float y1 = (yd1-yu1)/40*0.2; //2. conversion from nm to mm via the default calibration factor from the DWC manual
   
@@ -111,6 +113,8 @@ void WireChamberCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, cons
   float xr2 = plane2.GetPixel(1);
   float yu2 = plane2.GetPixel(2);
   float yd2 = plane2.GetPixel(3);
+
+  if ((xl2<=0) || (xr2<=0) || (yu2<=0) || (yd2<=0)) return;
   
   float x2 = (xr2-xl2)/40*0.2; //one time unit of the tdc corresponds to 25ps, 1. conversion into nm, 
   float y2 = (yd2-yu2)/40*0.2; //2. conversion from nm to mm via the default calibration factor from the DWC manual

@@ -220,6 +220,8 @@ void OnlineMonWindow::Write() {
       _colls.at(i)->Write(f);
     }
     f->Close();
+    std::cout<<"Wrote successefully  "<<std::endl;
+    
   } else {
     cerr << "ERR: Can't open root file" << endl;
     std::cout<<" COUT: Can't open root file"<<std::endl;
