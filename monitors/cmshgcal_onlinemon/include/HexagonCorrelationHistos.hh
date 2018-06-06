@@ -27,7 +27,8 @@ protected:
   int _maxY;
   bool _wait;
   
-  std::map<int, TH2F *> _correlationSignalHGSum;    //example 06 June 2018: HG Signal sum
+  std::map<int, TH2I *> _correlationSignalHGSum;    //example 06 June 2018: HG Signal sum
+  std::map<int, TH2I *> _correlationTOA;    
   
 public:
   HexagonCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon);
@@ -38,7 +39,8 @@ public:
   void Calculate(const int currentEventNum);
   void Write();
   
-  TH2F *getCorrelationSignalHGSum(int ref_planeIndex) { return _correlationSignalHGSum[ref_planeIndex]; }  
+  TH2I *getCorrelationSignalHGSum(int ref_planeIndex) { return _correlationSignalHGSum[ref_planeIndex]; }  
+  TH2I *getCorrelationTOA(int ref_planeIndex) { return _correlationTOA[ref_planeIndex]; }  
 
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
 

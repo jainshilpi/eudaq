@@ -120,7 +120,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
     {
       gStyle->SetPalette(mon_configdata.getDqmColorMap());
       gStyle->SetNumberContours(50);
-      gStyle->SetOptStat(1);
+      gStyle->SetOptStat(0);
       //gStyle->SetStatH(static_cast<Float_t>(0.15));
     }
   else

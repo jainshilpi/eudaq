@@ -23,13 +23,21 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
       if (_id >= _ID) continue;
 
-      sprintf(out, "%i vs. %i XX ", _id, _ID);
+      sprintf(out, "%i vs. %i HG ", _id, _ID);
       sprintf(out2, "h_SignalHGSum_%i_%i", _id, _ID);
-      _correlationSignalHGSum[_ID] = new TH2F(out2, out, 100, 0., 100., 100, 0., 100.);
-      
+      _correlationSignalHGSum[_ID] = new TH2I(out2, out, 100, 0., 100., 100, 0., 100.);
+
       sprintf(out3, "HG TS3 Sum_{%i} (ADC)", _id);
       sprintf(out4, "HG TS3 SUM_{%i} (ADC)", _ID);
       SetHistoAxisLabels(_correlationSignalHGSum[_ID], out3, out4);  
+
+      sprintf(out, "%i vs. %i TOA", _id, _ID);
+      sprintf(out2, "h_corrTOA_%i_%i", _id, _ID);
+      _correlationTOA[_ID] = new TH2I(out2, out, 100, 0., 2000., 100, 0., 2000.);
+      sprintf(out3, "AVG TOA Module %i (ADC)", _id);
+      sprintf(out4, "AVG TOA Module %i (ADC)", _ID);
+      SetHistoAxisLabels(_correlationTOA[_ID], out3, out4);  
+
     }
     
 
@@ -70,8 +78,8 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
 
 
   //example: sum of HG in TS3 - TS0
-  float sumHGTS3_1 = 0.;
-  float sumHGTS3_2 = 0.;
+  unsigned int sumHGTS3_1 = 0.;
+  unsigned int sumHGTS3_2 = 0.;
 
   for (unsigned int pix = 0; pix < plane1.HitPixels(); pix++) {
     sumHGTS3_1 += (plane1.GetPixel(pix, 3+13) - plane1.GetPixel(pix, 0+13))/50.;
@@ -81,6 +89,12 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
   }  
   _correlationSignalHGSum[_ID]->Fill(sumHGTS3_1, sumHGTS3_2);
 
+  if (plane1.HitPixels() > 0 && plane2.HitPixels() > 0){
+    const unsigned int avgTOA_1 = 500 + std::rand()%20;// plane1.GetPixel(0, 29);
+    const unsigned int avgTOA_2 = 600 + std::rand()%10; //plane2.GetPixel(0, 29);
+
+    _correlationTOA[_ID]->Fill(avgTOA_1, avgTOA_2);
+  }
 
   //histograms to be filled here
 
@@ -91,6 +105,7 @@ void HexagonCorrelationHistos::Reset() {
   for (int _ID=0; _ID<NHEXAGONS_PER_SENSOR; _ID++) {
     if (_correlationSignalHGSum.find(_ID)==_correlationSignalHGSum.end()) continue;
     _correlationSignalHGSum[_ID]->Reset();
+    _correlationTOA[_ID]->Reset();
   }
     
   // we have to reset the aux array as well
@@ -106,6 +121,7 @@ void HexagonCorrelationHistos::Write() {
   for (int _ID=0; _ID<NHEXAGONS_PER_SENSOR; _ID++) {
     if (_correlationSignalHGSum.find(_ID)==_correlationSignalHGSum.end()) continue;
     _correlationSignalHGSum[_ID]->Write();
+    _correlationTOA[_ID]->Write();
 
   }
     
