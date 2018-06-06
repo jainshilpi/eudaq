@@ -652,7 +652,7 @@ namespace eudaq {
 
 	    // This frame is reserved to hold per-module variables.
 	    // (which are set outside of this loop):
-	    dataBlockZS[hexa].push_back(-1);
+	    dataBlockZS[hexa].push_back(0);
 
 	    
 	    /* Let's not save this for the moment (no need)
