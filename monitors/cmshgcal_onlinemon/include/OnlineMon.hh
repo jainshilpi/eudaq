@@ -30,6 +30,7 @@
 #include "HitmapHistos.hh"
 
 #include "HexagonCollection.hh"
+#include "HexagonCorrelationCollection.hh"
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
 #include "WireChamberCorrelationCollection.hh"
@@ -99,6 +100,7 @@ public:
   void registerSensorInGUI(std::string name, int id);
 
   HexagonCollection *hexaCollection;
+  HexagonCorrelationCollection *hexaCorrelationCollection;
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
   WireChamberCorrelationCollection *wccorrCollection;

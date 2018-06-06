@@ -8,6 +8,8 @@ SET (HgcOnlineMon_SOURCES
   src/BaseCollection.cc
   src/HexagonCollection.cc
   src/HexagonHistos.cc
+  src/HexagonCorrelationCollection.cc
+  src/HexagonCorrelationHistos.cc  
   src/AhcalCollection.cc
   src/AhcalHistos.cc
   src/HitmapCollection.cc
