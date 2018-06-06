@@ -25,4 +25,3 @@ INSTALL(TARGETS  ${hgcal_name} ${hgcal_standalone_daq} ${hgcal_unpacker}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
   
-add_subdirectory(onlinemon)

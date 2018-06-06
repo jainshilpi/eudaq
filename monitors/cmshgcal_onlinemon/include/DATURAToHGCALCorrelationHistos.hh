@@ -3,8 +3,8 @@
 //author: Thorben Quast, thorben.quast@cern.ch
 //26 March 2018
 
-#ifndef CROSSCORRELATIONHISTOS_HH_
-#define CROSSCORRELATIONHISTOS_HH_
+#ifndef DATURATOHGCALCORRELATIONHISTOS_H
+#define DATURATOHGCALCORRELATIONHISTOS_H
 
 #include <TH2F.h>
 #include <TFile.h>
@@ -21,7 +21,7 @@ class RootMonitor;
 
 
 
-class CrossCorrelationHistos {
+class DATURAToHGCALCorrelationHistos {
 protected:
   string _sensor;
   int _id;
@@ -35,7 +35,7 @@ protected:
   TH2I* Occupancy_ForChannel;
   
 public:
-  CrossCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon);
+  DATURAToHGCALCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon);
 
   void findClusters(std::vector<std::pair<int, int> >& entities, std::vector<std::pair<float, float> >& clusters );
 
@@ -73,7 +73,7 @@ private:
 
 
 #ifdef __CINT__
-#pragma link C++ class CrossCorrelationHistos - ;
+#pragma link C++ class DATURAToHGCALCorrelationHistos - ;
 #endif
 
 #endif /* CROSSCORRELATIONHISTOS_HH_ */

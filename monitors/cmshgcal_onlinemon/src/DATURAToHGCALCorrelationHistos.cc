@@ -4,7 +4,7 @@
 //26 March 2018
 
 #include <TROOT.h>
-#include "CrossCorrelationHistos.hh"
+#include "DATURAToHGCALCorrelationHistos.hh"
 #include "HexagonHistos.hh"   //for the channel mapping
 #include "OnlineMon.hh"
 #include "TCanvas.h"
@@ -16,7 +16,7 @@ double MAXCLUSTERRADIUS2 = 9.0;
 float pixelGap_MIMOSA26 = 0.0184; //mm
 
 //some simple clustering
-void CrossCorrelationHistos::findClusters(std::vector<std::pair<int, int> >& entities, std::vector<std::pair<float, float> >& clusters ) {
+void DATURAToHGCALCorrelationHistos::findClusters(std::vector<std::pair<int, int> >& entities, std::vector<std::pair<float, float> >& clusters ) {
   std::vector<bool> used;
   for (size_t i=0; i<entities.size(); i++) used.push_back(false);
 
@@ -43,7 +43,7 @@ void CrossCorrelationHistos::findClusters(std::vector<std::pair<int, int> >& ent
 
 
 
-CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon)
+DATURAToHGCALCorrelationHistos::DATURAToHGCALCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon)
   :_sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false){
     
   char out[1024], out2[1024];
@@ -81,7 +81,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
       for (int j = 0; j < _maxX; j++) {
         plane_map_array[j] = new int[_maxY];
         if (plane_map_array[j] == NULL) {
-          cout << "CrossCorrelationHistos :Error in memory allocation" << endl;
+          cout << "DATURAToHGCALCorrelationHistos :Error in memory allocation" << endl;
           exit(-1);
         }
       }
@@ -94,7 +94,7 @@ CrossCorrelationHistos::CrossCorrelationHistos(eudaq::StandardPlane p, RootMonit
 
 }
 
-int CrossCorrelationHistos::zero_plane_array() {
+int DATURAToHGCALCorrelationHistos::zero_plane_array() {
   for (int i = 0; i < _maxX; i++) {
     for (int j = 0; j < _maxY; j++) {
       plane_map_array[i][j] = 0;
@@ -104,7 +104,7 @@ int CrossCorrelationHistos::zero_plane_array() {
 }
 
 
-void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA2, const eudaq::StandardPlane &plMIMOSA3) {
+void DATURAToHGCALCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plMIMOSA2, const eudaq::StandardPlane &plMIMOSA3) {
   clusterEntitites.clear();
   clusters2.clear();
   good_cluster2.clear();
@@ -166,7 +166,7 @@ void CrossCorrelationHistos::Fill(const eudaq::StandardPlane &plane, const eudaq
 
 }
 
-void CrossCorrelationHistos::Reset() {
+void DATURAToHGCALCorrelationHistos::Reset() {
   Occupancy_ForChannel->Reset();
   for (int ski=0; ski<4; ski++) for (int ch=0; ch<=64; ch+=2)
     _MIMOSA_map_ForChannel[1000*ski+ch]->Reset();
@@ -175,34 +175,34 @@ void CrossCorrelationHistos::Reset() {
   zero_plane_array();
 }
 
-void CrossCorrelationHistos::Calculate(const int currentEventNum) {
+void DATURAToHGCALCorrelationHistos::Calculate(const int currentEventNum) {
   _wait = true;
 
   _wait = false;
 }
 
-void CrossCorrelationHistos::Write() {
+void DATURAToHGCALCorrelationHistos::Write() {
   Occupancy_ForChannel->Write();
   for (int ski=0; ski<4; ski++) for (int ch=0; ch<=64; ch+=2) 
     _MIMOSA_map_ForChannel[1000*ski+ch]->Write();
 
 }
 
-int CrossCorrelationHistos::SetHistoAxisLabelx(TH1 *histo, string xlabel) {
+int DATURAToHGCALCorrelationHistos::SetHistoAxisLabelx(TH1 *histo, string xlabel) {
   if (histo != NULL) {
     histo->GetXaxis()->SetTitle(xlabel.c_str());
   }
   return 0;
 }
 
-int CrossCorrelationHistos::SetHistoAxisLabels(TH1 *histo, string xlabel, string ylabel) {
+int DATURAToHGCALCorrelationHistos::SetHistoAxisLabels(TH1 *histo, string xlabel, string ylabel) {
   SetHistoAxisLabelx(histo, xlabel);
   SetHistoAxisLabely(histo, ylabel);
 
   return 0;
 }
 
-int CrossCorrelationHistos::SetHistoAxisLabely(TH1 *histo, string ylabel) {
+int DATURAToHGCALCorrelationHistos::SetHistoAxisLabely(TH1 *histo, string ylabel) {
   if (histo != NULL) {
     histo->GetYaxis()->SetTitle(ylabel.c_str());
   }

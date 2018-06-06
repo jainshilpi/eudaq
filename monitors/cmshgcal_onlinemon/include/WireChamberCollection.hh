@@ -1,3 +1,6 @@
+//Thorben Quast, thorben.quast@cern.ch
+//June 2017
+
 // -*- mode: c -*-
 
 #ifndef WIRECHAMBERCOLLECTION_HH_

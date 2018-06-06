@@ -1,15 +1,17 @@
 // -*- mode: c -*-
 
-#ifndef WIRECHAMBERHISTOS_HH_
-#define WIRECHAMBERHISTOS_HH_
+//author: Thorben Quast, thorben.quast@cern.ch
+//26 March 2018
+
+#ifndef DWCTOHGCALCORRELATIONHISTOS_H
+#define DWCTOHGCALCORRELATIONHISTOS_H
 
 #include <TH2F.h>
-#include <TH2I.h>
-#include <TH1F.h>
-#include <TH2Poly.h>
 #include <TFile.h>
+#include "HexagonHistos.hh"   //for the sc map
 
 #include <map>
+#include <cstdlib>
 
 #include "eudaq/StandardEvent.hh"
 
@@ -17,7 +19,9 @@ using namespace std;
 
 class RootMonitor;
 
-class WireChamberHistos {
+
+
+class DWCToHGCALCorrelationHistos {
 protected:
   string _sensor;
   int _id;
@@ -25,28 +29,23 @@ protected:
   int _maxY;
   bool _wait;
 
-  TH2I *_goodX;
-  TH2I *_goodY;
-  TH1F *_recoX;
-  TH1F *_recoY;
-  TH1I *_goodAll;
-  TH2F *_XYmap;
+  map < pair < int,int >, int > _ski_to_ch_map; //channel mapping, just a placeholder, not implemented
+  
+  std::map<int, TH2F *> _DWC_map_ForChannel;
+  TH2I* Occupancy_ForChannel;
   
 public:
-  WireChamberHistos(eudaq::StandardPlane p, RootMonitor *mon);
+  DWCToHGCALCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon);
 
-  void Fill(const eudaq::StandardPlane &plane);
+
+  void Fill(const eudaq::StandardPlane &plane, const eudaq::StandardPlane &plDWC0);
   void Reset();
 
   void Calculate(const int currentEventNum);
   void Write();
 
-  TH2I *getGoodXHisto() { return _goodX; }
-  TH2I *getGoodYHisto() { return _goodY; }
-  TH1I *getGoodAllHisto() { return _goodAll; }
-  TH1F *getRecoXHisto() { return _recoX; }
-  TH1F *getRecoYHisto() { return _recoY; }
-  TH2F *getXYmapHisto() { return _XYmap; }
+  TH2F *getDWC_map_ForChannel(int channel) { return _DWC_map_ForChannel[channel]; }
+  TH2I *getOccupancy_ForChannel() { return Occupancy_ForChannel; }
 
   
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
@@ -62,12 +61,11 @@ private:
   
   RootMonitor *_mon;
 
-  bool is_WIRECHAMBER;
 };
 
 
 #ifdef __CINT__
-#pragma link C++ class WireChamberHistos - ;
+#pragma link C++ class DWCToHGCALCorrelationHistos - ;
 #endif
 
-#endif /* WIRECHAMBERHISTOS_HH_ */
+#endif /* CROSSCORRELATIONHISTOS_HH_ */

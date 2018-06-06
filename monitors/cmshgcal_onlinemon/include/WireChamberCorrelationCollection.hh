@@ -1,7 +1,10 @@
+//Thorben Quast, thorben.quast@cern.ch
+//June 2018
+
 // -*- mode: c -*-
 
-#ifndef AHCALCOLLECTION_HH_
-#define AHCALCOLLECTION_HH_
+#ifndef WIRECHAMBERCORRELATIONCOLLECTION_HH_
+#define WIRECHAMBERCORRELATIONCOLLECTION_HH_
 // ROOT Includes
 #include <RQ_OBJECT.h>
 #include <TH2I.h>
@@ -18,36 +21,36 @@
 
 // Project Includes
 #include "SimpleStandardEvent.hh"
-#include "AhcalHistos.hh"
+#include "WireChamberCorrelationHistos.hh"
 #include "BaseCollection.hh"
 
-class AhcalCollection : public BaseCollection {
-  RQ_OBJECT("AhcalCollection")
+class WireChamberCorrelationCollection : public BaseCollection {
+  RQ_OBJECT("WireChamberCorrelationCollection")
 protected:
   bool isOnePlaneRegistered;
-  std::map<eudaq::StandardPlane, AhcalHistos *> _map;
+  std::map<eudaq::StandardPlane, WireChamberCorrelationHistos *> _map;
   bool isPlaneRegistered(eudaq::StandardPlane p);
-  void fillHistograms(const eudaq::StandardPlane &plane);
+  void fillHistograms(const eudaq::StandardPlane &plane1, const eudaq::StandardPlane &plane2);
     
 public:
   void registerPlane(const eudaq::StandardPlane &p);
   void bookHistograms(const eudaq::StandardEvent &ev);
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
-  AhcalCollection() : BaseCollection() {
-    std::cout << " Initialising Ahcal Collection" << std::endl;
+  WireChamberCorrelationCollection() : BaseCollection() {
+    std::cout << " Initialising WireChamberCorrelation Collection" << std::endl;
     isOnePlaneRegistered = false;
-    CollectionType = AHCAL_COLLECTION_TYPE;
+    CollectionType = WIRECHAMBER_CORRELATION_COLLECTION_TYPE;
   }
   void Fill(const SimpleStandardEvent &simpev) { ; };
   void Fill(const eudaq::StandardEvent &ev, int evNumber=-1);
-  AhcalHistos *getAhcalHistos(std::string sensor, int id);
+  WireChamberCorrelationHistos *getWireChamberCorrelationHistos(std::string sensor, int id);
   void Reset();
   virtual void Write(TFile *file);
   virtual void Calculate(const unsigned int currentEventNumber);
 };
 
 #ifdef __CINT__
-#pragma link C++ class AhcalCollection - ;
+#pragma link C++ class WireChamberCorrelationCollection - ;
 #endif
 
-#endif /* AHCALCOLLECTION_HH_ */
+#endif /* WIRECHAMBERCORRELATIONCOLLECTION_HH_ */

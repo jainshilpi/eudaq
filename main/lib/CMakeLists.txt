@@ -82,15 +82,14 @@ if (PROTOBUF_FOUND AND GEN_proto)
 
 endif()
 
-if (BUILD_cmshgcal)
+
+if (BUILD_cmshgcal_onlinemon)
+   # These boost libraries are needed for gzip decompression to work in HexaBoardConverterPlugin
    find_package(Boost COMPONENTS iostreams REQUIRED)
    include_directories(${Boost_INCLUDE_DIR})
    link_directories(${Boost_LIBRARY_DIR})
-
    SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} ${Boost_LIBRARIES} )
-endif()
-
-if (BUILD_cmshgcal_onlinemon)
+   
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/pi/src/PIConverterPlugin.cc)
