@@ -22,7 +22,7 @@ const size_t RAW_EV_SIZE_32 = 123160;
 const int nSCA=13;
 
 // Size of ZS data (per channel)
-const char hitSizeZS = 31;
+const char hitSizeZS = 32;
 
 namespace eudaq {
   
@@ -39,8 +39,6 @@ namespace eudaq {
       // You may extract information from the BORE and/or configuration
       // and store it in member variables to use during the decoding later.
       virtual void Initialize(const Event &bore, const Configuration &cnf) {
-	m_exampleparam = bore.GetTag("HeXa", 0);
-	m_runMode = 0;
 	
 #ifndef WIN32 // some linux Stuff //$$change
 	(void)cnf; // just to suppress a warning about unused parameter cnf
@@ -422,11 +420,11 @@ namespace eudaq {
 	return roll;
 	}
       */
-
-    std::vector<std::vector<unsigned short>> GetZSdata(const std::vector<std::array<unsigned int,1924>> &decoded, const int board_id) const{
-
+      
+      std::vector<std::vector<unsigned short>> GetZSdata(const std::vector<std::array<unsigned int,1924>> &decoded, const int board_id) const {
+	
 	//std::cout<<"In GetZSdata() method"<<std::endl;
-
+	
 	const int nSki  =  decoded.size();
 	const int nHexa =  nSki/4;
 	if (nSki%4!=0)
@@ -439,6 +437,9 @@ namespace eudaq {
 	// A vector per HexaBoard of vector of Hits from 4 ski-rocs
 	std::vector<std::vector<unsigned short>> dataBlockZS(nHexa);
 
+	unsigned int toa_sum = 0;
+	unsigned int n_toa_fired = 0;
+	      
 	for (int ski = 0; ski < nSki; ski++ ){
 	  const int hexa = ski/4;
 
@@ -629,6 +630,11 @@ namespace eudaq {
 	    if (adc==0) adc=4096;
 	    dataBlockZS[hexa].push_back(adc);
 
+	    // Summing all TOA values of the pixels which fire it (to do average later)
+	    if (adc!=4){
+	      toa_sum += adc;
+	      n_toa_fired += 1;
+	    }
 	    // Filling TOA (stop rising clock)
 	    adc = gray_to_brady(decoded[ski][1664 + 64 + chArrPos] & 0x0FFF);
 	    if (adc==0) adc=4096;
@@ -644,8 +650,11 @@ namespace eudaq {
 	    if (adc==0) adc=4096;
 	    dataBlockZS[hexa].push_back(adc);
 
+	    // This frame is reserved to hold per-module variables.
+	    // (which are set outside of this loop):
+	    dataBlockZS[hexa].push_back(0);
 
-
+	    
 	    /* Let's not save this for the moment (no need)
 
 	    // Global TS 14 MSB (it's gray encoded?). Not decoded here!
@@ -662,7 +671,16 @@ namespace eudaq {
 
 	  }
 
+	  if (ski%4==3 && toa_sum > 0 && n_toa_fired > 0){
+	    // Put here the average TOA value of the hexaboard
+	    dataBlockZS[hexa][31] = toa_sum/n_toa_fired;
+	    // Reset them:
+	    toa_sum = 0;
+	    n_toa_fired = 0;
+	  }
+
 	}
+	
 	return dataBlockZS;
 
       }
@@ -680,11 +698,9 @@ namespace eudaq {
       // in order to register this converter for the corresponding conversions
       // Member variables should also be initialized to default values here.
       HexaBoardConverterPlugin()
-	: DataConverterPlugin(EVENT_TYPE), m_exampleparam(0) {}
+	: DataConverterPlugin(EVENT_TYPE) {}
 
       // Information extracted in Initialize() can be stored here:
-      unsigned m_exampleparam;
-
       uint32_t m_skiMask[5];
 
       int m_runMode;

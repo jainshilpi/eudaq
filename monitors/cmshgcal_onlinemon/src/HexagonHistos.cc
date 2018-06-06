@@ -322,6 +322,8 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 	sig_HG[ts] = plane.GetPixel(pix, ts+nSCA);
       }
 
+      //std::cout<<"Average TOA of the board ("<<_sensor<<","<<_id<<") is "<< plane.GetPixel(0, 30) << std::endl;
+
       // Suppress noizy Time Samples:
       sig_LG[9]  /= 10;
       sig_LG[10] /= 10;
