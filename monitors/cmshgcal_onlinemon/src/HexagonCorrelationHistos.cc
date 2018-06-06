@@ -90,8 +90,11 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
   _correlationSignalHGSum[_ID]->Fill(sumHGTS3_1, sumHGTS3_2);
 
   if (plane1.HitPixels() > 0 && plane2.HitPixels() > 0){
-    const unsigned int avgTOA_1 = 500 + std::rand()%20;// plane1.GetPixel(0, 29);
-    const unsigned int avgTOA_2 = 600 + std::rand()%10; //plane2.GetPixel(0, 29);
+    //const unsigned int avgTOA_1 = 500 + std::rand()%20;
+    //const unsigned int avgTOA_2 = 600 + std::rand()%10;
+
+    const unsigned int avgTOA_1 = plane1.GetPixel(0, 30);
+    const unsigned int avgTOA_2 = plane2.GetPixel(0, 30);
 
     _correlationTOA[_ID]->Fill(avgTOA_1, avgTOA_2);
   }
