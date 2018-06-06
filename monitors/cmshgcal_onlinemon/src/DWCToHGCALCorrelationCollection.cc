@@ -101,13 +101,10 @@ void DWCToHGCALCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int e
 
       int plane_dwc0_idx=-1;
       for (int plane_idx = 0; plane_idx < ev.NumPlanes(); plane_idx++) {
-        const eudaq::StandardPlane &Plane = ev.GetPlane(plane_idx);
-        if (Plane.Sensor().find("WireChamber")==std::string::npos) continue;
-        if (Plane.ID()==0) plane_dwc0_idx=plane_idx;
+        const eudaq::StandardPlane &Plane2 = ev.GetPlane(plane_idx);
+        if (Plane2.Sensor().find("WireChamber")==std::string::npos) continue;
+        fillHistograms(Plane, Plane2);
       }
-      if ((plane_dwc0_idx==-1)) continue;
-      const eudaq::StandardPlane &Plane2 = ev.GetPlane(plane_dwc0_idx);
-      fillHistograms(Plane, Plane2);
     }
   }
 }
@@ -136,7 +133,7 @@ void DWCToHGCALCorrelationCollection::registerPlane(const eudaq::StandardPlane &
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
 
-    sprintf(tree, "XCorrelation/%s/Module %i/ChannelOccupancy", p.Sensor().c_str(), p.ID());      
+    sprintf(tree, "DWCToHGCal/%s/Module %i/ChannelOccupancy", p.Sensor().c_str(), p.ID());      
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getDWCToHGCALCorrelationHistos(p.Sensor(), p.ID())->getOccupancy_ForChannel(), "", 0);    
 
@@ -144,7 +141,7 @@ void DWCToHGCALCorrelationCollection::registerPlane(const eudaq::StandardPlane &
       for (int ch=0; ch<=64; ch++) {
         if (ch%2==1) continue;
         int key = ski*1000+ch;
-        sprintf(tree, "XCorrelation/%s/Module %i/Skiroc_%i/Ch_%iCorrelationToMIMOSA3", p.Sensor().c_str(), p.ID(), ski, ch);      
+        sprintf(tree, "DWCToHGCal/%s/Module %i/Skiroc_%i/Ch_%iCorrelationToMIMOSA3", p.Sensor().c_str(), p.ID(), ski, ch);      
         _mon->getOnlineMon()->registerTreeItem(tree);
         _mon->getOnlineMon()->registerHisto(tree, getDWCToHGCALCorrelationHistos(p.Sensor(), p.ID())->getDWC_map_ForChannel(key), "", 0);
         
