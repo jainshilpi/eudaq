@@ -27,7 +27,7 @@ protected:
   int _maxY;
   bool _wait;
   
-  std::map<int, TH2I *> _correlationSignalHGSum;    //example 06 June 2018: HG Signal sum
+  std::map<int, TH2I *> _correlationSignalLGSum;    //example 06 June 2018: HG Signal sum
   std::map<int, TH2I *> _correlationTOA;    
   
 public:
@@ -39,7 +39,7 @@ public:
   void Calculate(const int currentEventNum);
   void Write();
   
-  TH2I *getCorrelationSignalHGSum(int ref_planeIndex) { return _correlationSignalHGSum[ref_planeIndex]; }  
+  TH2I *getCorrelationSignalLGSum(int ref_planeIndex) { return _correlationSignalLGSum[ref_planeIndex]; }  
   TH2I *getCorrelationTOA(int ref_planeIndex) { return _correlationTOA[ref_planeIndex]; }  
 
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }

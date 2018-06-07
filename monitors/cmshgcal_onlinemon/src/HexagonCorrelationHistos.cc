@@ -24,12 +24,12 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
       if (_id >= _ID) continue;
 
       sprintf(out, "%i vs. %i HG ", _id, _ID);
-      sprintf(out2, "h_SignalHGSum_%i_%i", _id, _ID);
-      _correlationSignalHGSum[_ID] = new TH2I(out2, out, 100, 0., 100., 100, 0., 100.);
+      sprintf(out2, "h_SignalLGSum_%i_%i", _id, _ID);
+      _correlationSignalLGSum[_ID] = new TH2I(out2, out, 50, 0., 8*1200., 50, 0., 8*1200.);   //TB 2017: Energy sum in a layer of the EE part for 90 GeV electrons barely reaches 1000 MIPs. Also, 1 MIP ~ 8 LG ADC //Thorben Quast, 07 June 2018
 
-      sprintf(out3, "HG TS3 Sum_{%i} (ADC)", _id);
-      sprintf(out4, "HG TS3 SUM_{%i} (ADC)", _ID);
-      SetHistoAxisLabels(_correlationSignalHGSum[_ID], out3, out4);  
+      sprintf(out3, "LG TS3 - TS0 Sum_{%i} (ADC)", _id);
+      sprintf(out4, "LG TS3 - TS0 SUM_{%i} (ADC)", _ID);
+      SetHistoAxisLabels(_correlationSignalLGSum[_ID], out3, out4);  
 
       sprintf(out, "%i vs. %i TOA", _id, _ID);
       sprintf(out2, "h_corrTOA_%i_%i", _id, _ID);
@@ -78,21 +78,14 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
 
 
   //example: sum of HG in TS3 - TS0
-  unsigned int sumHGTS3_1 = 0.;
-  unsigned int sumHGTS3_2 = 0.;
+  const unsigned int sumLGTS3_1 = plane1.GetPixel(1, 30);
+  const unsigned int sumHLTS3_2 = plane2.GetPixel(1, 30);
 
-  for (unsigned int pix = 0; pix < plane1.HitPixels(); pix++) {
-    sumHGTS3_1 += (plane1.GetPixel(pix, 3+13) - plane1.GetPixel(pix, 0+13))/50.;
-  }
-  for (unsigned int pix = 0; pix < plane2.HitPixels(); pix++) {
-    sumHGTS3_2 += (plane2.GetPixel(pix, 3+13) - plane2.GetPixel(pix, 0+13))/50.;
-  }  
-  _correlationSignalHGSum[_ID]->Fill(sumHGTS3_1, sumHGTS3_2);
+  _correlationSignalLGSum[_ID]->Fill(sumLGTS3_1, sumHLTS3_2);
+
+
 
   if (plane1.HitPixels() > 0 && plane2.HitPixels() > 0){
-    //const unsigned int avgTOA_1 = 500 + std::rand()%20;
-    //const unsigned int avgTOA_2 = 600 + std::rand()%10;
-
     const unsigned int avgTOA_1 = plane1.GetPixel(0, 30);
     const unsigned int avgTOA_2 = plane2.GetPixel(0, 30);
 
@@ -106,8 +99,8 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
 void HexagonCorrelationHistos::Reset() {
 
   for (int _ID=0; _ID<NHEXAGONS_PER_SENSOR; _ID++) {
-    if (_correlationSignalHGSum.find(_ID)==_correlationSignalHGSum.end()) continue;
-    _correlationSignalHGSum[_ID]->Reset();
+    if (_correlationSignalLGSum.find(_ID)==_correlationSignalLGSum.end()) continue;
+    _correlationSignalLGSum[_ID]->Reset();
     _correlationTOA[_ID]->Reset();
   }
     
@@ -122,8 +115,8 @@ void HexagonCorrelationHistos::Calculate(const int currentEventNum) {
 void HexagonCorrelationHistos::Write() {
   
   for (int _ID=0; _ID<NHEXAGONS_PER_SENSOR; _ID++) {
-    if (_correlationSignalHGSum.find(_ID)==_correlationSignalHGSum.end()) continue;
-    _correlationSignalHGSum[_ID]->Write();
+    if (_correlationSignalLGSum.find(_ID)==_correlationSignalLGSum.end()) continue;
+    _correlationSignalLGSum[_ID]->Write();
     _correlationTOA[_ID]->Write();
 
   }

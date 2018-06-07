@@ -134,9 +134,9 @@ void HexagonCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) 
     
     for (int _ID=0; _ID<NHEXAGONS_PER_SENSOR; _ID++) {   //maximum eight hexagons per readout board
       if (p.ID() >= _ID ) continue;
-      sprintf(tree, "HexagonCorrelation/%s/Module %i/SignalADC_HG_vs_Module %i", p.Sensor().c_str(), p.ID(), _ID);
+      sprintf(tree, "HexagonCorrelation/%s/Module %i/SignalADC_LG_vs_Module %i", p.Sensor().c_str(), p.ID(), _ID);
       _mon->getOnlineMon()->registerTreeItem(tree);
-      _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationSignalHGSum(_ID), "COLZ2", 0);
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationSignalLGSum(_ID), "COLZ2", 0);
       
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
       
