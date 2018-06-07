@@ -27,6 +27,7 @@ struct HGCalConfig
 {
   std::string connectionFile;
   std::string rootFilePath;
+  std::vector<std::string> listOfRdoutBoards;
   uint16_t rdoutMask;
   uint32_t blockSize;
   int logLevel;
@@ -35,6 +36,7 @@ struct HGCalConfig
   bool saveRawData;
   bool checkCRC;
   bool throwFirstTrigger;
+  bool saveRootFile;
 };
 
 class HGCalDataBlocks

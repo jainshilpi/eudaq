@@ -21,6 +21,7 @@
 #include <boost/timer/timer.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/format.hpp>
+#include <boost/tokenizer.hpp>
 
 #include <TFile.h>
 #include <TH1D.h>
@@ -181,9 +182,17 @@ private:
     hgcConfig.saveRawData = config.Get("saveRawData", false);
     hgcConfig.checkCRC = config.Get("checkCRC", false);
     hgcConfig.throwFirstTrigger = config.Get("throwFirstTrigger", true);
+    hgcConfig.saveRootFile = config.Get("SaveRootFile", true);
+
+    std::string listOfRdoutBoards = config.Get("RDoutBoards", "RDOUT_ORM0");
+    hgcConfig.listOfRdoutBoards.clear();
+    typedef boost::tokenizer<boost::escaped_list_separator<char> > tokenizer;
+    tokenizer tok(listOfRdoutBoards);
+    for (tokenizer::iterator it=tok.begin(); it!=tok.end(); ++it)
+      hgcConfig.listOfRdoutBoards.push_back(*it) ;
     
     m_hgcController->configure(hgcConfig);
-    
+
     m_state=STATE_CONFED;
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
   }
@@ -223,13 +232,15 @@ private:
 
   virtual void OnTerminate() {
     EUDAQ_INFO("HGCalProducer received terminate command");
-    m_hgcController->stoprun();
-    eudaq::mSleep(1000);
-    m_state = STATE_GOTOSTOP;
-    while (m_state == STATE_GOTOSTOP) {
-      eudaq::mSleep(1000); //waiting for EORE being send
+    if(NULL!=m_hgcController){
+      m_hgcController->stoprun();
+      eudaq::mSleep(1000);
+      m_state = STATE_GOTOSTOP;
+      while (m_state == STATE_GOTOSTOP) {
+	eudaq::mSleep(1000); //waiting for EORE being send
+      }
+      m_hgcController->terminate();
     }
-    m_hgcController->terminate();
     m_state = STATE_GOTOTERM;
   }
 

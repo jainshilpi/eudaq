@@ -25,6 +25,9 @@ void HGCalController::configure(HGCalConfig config)
   m_mutex.lock();
   m_config=config;
 
+  for(std::vector<std::string>::iterator it=m_config.listOfRdoutBoards.begin(); it!=m_config.listOfRdoutBoards.end(); ++it)
+    std::cout << (*it) << std::endl;
+
   //check if it is needed to empty the ipbus::IpbusHwController vector
   if( m_state==CONFED ){
     m_state==INIT;
@@ -86,17 +89,18 @@ void HGCalController::startrun(int runId)
   m_triggerId=0;
   m_deqData.clear();
 
-  char rfname[256];
-  sprintf(rfname, "%s/%s%d.root",m_config.rootFilePath.c_str(),"timing",int(m_runId)); 
-  m_rootfile = new TFile(rfname,"RECREATE");
-  m_roottree = new TTree("daq_timing","HGCal daq timing root tree");
-  m_roottree->Branch("daqrate",&m_daqrate);
-  m_roottree->Branch("eventtime",&m_eventtime);
-  m_roottree->Branch("rdoutreadytime",&m_rdoutreadytime);
-  m_roottree->Branch("readouttime",&m_readouttime);
-  m_roottree->Branch("datestamptime",&m_datestamptime);
-  m_roottree->Branch("rdoutdonetime",&m_rdoutdonetime);
-
+  if(m_config.saveRootFile ){
+    char rfname[256];
+    sprintf(rfname, "%s/%s%d.root",m_config.rootFilePath.c_str(),"timing",int(m_runId)); 
+    m_rootfile = new TFile(rfname,"RECREATE");
+    m_roottree = new TTree("daq_timing","HGCal daq timing root tree");
+    m_roottree->Branch("daqrate",&m_daqrate);
+    m_roottree->Branch("eventtime",&m_eventtime);
+    m_roottree->Branch("rdoutreadytime",&m_rdoutreadytime);
+    m_roottree->Branch("readouttime",&m_readouttime);
+    m_roottree->Branch("datestamptime",&m_datestamptime);
+    m_roottree->Branch("rdoutdonetime",&m_rdoutdonetime);
+  }
   if( m_config.saveRawData ){
     char name[256];
     sprintf(name, "raw_data/rawdata.raw"); // The path is relative to eudaq/bin; raw_data could be a symbolic link
@@ -134,11 +138,13 @@ void HGCalController::stoprun()
 {
   m_mutex.lock();
   m_state=CONFED;
-  m_mutex.unlock();
-  boost::this_thread::sleep( boost::posix_time::microseconds(m_config.timeToWaitAtEndOfRun) ); //wait sometime until run thread is done
-  m_mutex.lock();
-  m_rootfile->Write();
-  m_rootfile->Close();
+  //m_mutex.unlock();
+  //boost::this_thread::sleep( boost::posix_time::microseconds(m_config.timeToWaitAtEndOfRun) ); //wait sometime until run thread is done
+  //m_mutex.lock();
+  if(m_config.saveRootFile ){
+    m_rootfile->Write();
+    m_rootfile->Close();
+  }
   m_mutex.unlock();
 }
 
@@ -245,7 +251,8 @@ void HGCalController::run()
 
     m_daqrate = 1.0/m_eventtime;
 
-    m_roottree->Fill();
+    if(m_config.saveRootFile )
+      m_roottree->Fill();
     m_mutex.unlock();
 
     //rdout done magic already sent, HW and FW shoud be able to deal with new event
