@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <map>
 
 class unpacker{
  public:
@@ -11,8 +12,14 @@ class unpacker{
   void unpack_and_fill(std::vector<uint32_t> &raw_data);
   void printDecodedRawData();
   void rawDataSanityCheck();
+  void checkTimingSync();
+  uint64_t lastTimeStamp(){return m_lastTimeStamp;}
+  int lastTriggerId(){return m_lastTriggerId;}
  private:
   std::vector<uint16_t> m_decoded_raw_data;
+  std::map< uint32_t,uint64_t > m_timestampmap;
+  uint64_t m_lastTimeStamp;
+  int m_lastTriggerId;
   
  private:
   uint16_t gray_to_binary(uint16_t gray) const;
