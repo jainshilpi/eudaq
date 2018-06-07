@@ -22,7 +22,7 @@ const size_t RAW_EV_SIZE_32 = 123160;
 const int nSCA=13;
 
 // Size of ZS data (per channel)
-const char hitSizeZS = 32;
+const char hitSizeZS = 33;
 
 namespace eudaq {
   
@@ -439,6 +439,7 @@ namespace eudaq {
 
 	unsigned int toa_sum = 0;
 	unsigned int n_toa_fired = 0;
+	unsigned int lg_sum = 0;
 	      
 	for (int ski = 0; ski < nSki; ski++ ){
 	  const int hexa = ski/4;
@@ -594,13 +595,24 @@ namespace eudaq {
 
 	    // Low gain (save nSCA time-slices after track):
 	    //std::cout<<"\t Roll positions:"<<std::endl;
+	    unsigned int LG_TS3 = 0;
+	    unsigned int LG_TS0 = 0;
+
 	    for (int ts=0; ts<nSCA; ts++){
 	      const int t = 12-(TS0+ts)%13; // subtract from 12 (nSCA-1) because the data in SkiRock memory is saved backwards
 	      adc = gray_to_brady(decoded[ski][t*128 + chArrPos] & 0x0FFF);
 	      if (adc==0) adc=4096;
 	      dataBlockZS[hexa].push_back(adc);
+	    
+	    	if (t==0) LG_TS0 = adc;
+	    	if (t==3) LG_TS3 = adc;
+
 	      //std::cout<<"  ts:"<<ts<<" adc="<<adc;
 	    }
+	    
+	    if (LG_TS3 - LG_TS0 > 3)		//5 LG ADC ~ 1 MIP
+	      lg_sum += LG_TS3-LG_TS0;
+	    
 	    //std::cout<<std::endl;
 
 	    /*
@@ -671,12 +683,17 @@ namespace eudaq {
 
 	  }
 
-	  if (ski%4==3 && toa_sum > 0 && n_toa_fired > 0){
-	    // Put here the average TOA value of the hexaboard
-	    dataBlockZS[hexa][31] = toa_sum/n_toa_fired;
-	    // Reset them:
-	    toa_sum = 0;
-	    n_toa_fired = 0;
+	  if (ski%4==3){
+	    if (toa_sum > 0 && n_toa_fired > 0){
+	      // Put here the average TOA value of the hexaboard
+	      dataBlockZS[hexa][31] = toa_sum/n_toa_fired;
+	      // Reset them:
+	      toa_sum = 0;
+	      n_toa_fired = 0;
+	    }
+	    // Put the sum of LG values  
+	    dataBlockZS[hexa][32] = lg_sum;
+	    lg_sum = 0;
 	  }
 
 	}
