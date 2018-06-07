@@ -26,7 +26,10 @@ void unpacker::unpack_and_fill(std::vector<uint32_t> &raw_data)
   }
   for( std::vector< std::array<uint16_t, 1924> >::iterator it=skirocs.begin(); it!=skirocs.end(); ++it )
     m_decoded_raw_data.insert(m_decoded_raw_data.end(),(*it).begin(),(*it).end());
-  //std::cout << "m_decoded_raw_data.size() = " << std::dec << m_decoded_raw_data.size() << std::endl;
+
+  m_lastTimeStamp = ((uint64_t)raw_data[ raw_data.size()-1 ]<<32) | (uint64_t)raw_data[ raw_data.size()-2 ]  ;
+  m_lastTriggerId = raw_data[raw_data.size()-3]>>8;
+  m_timestampmap.insert( std::pair<uint32_t,uint64_t>(raw_data[raw_data.size()-3],m_lastTimeStamp) );
 }
 
 void unpacker::rawDataSanityCheck()
@@ -44,20 +47,29 @@ void unpacker::rawDataSanityCheck()
       if(head[ichan]!=8&&head[ichan]!=9)
 	std::cout << "ISSUE in chip,chan " << std::dec<<chipIndex <<","<<ichan << " : we expected 8(1000) or 9(1001) for the adc header and I find " << std::bitset<4>(head[ichan]) << std::endl;
     }
+    bool lgflag(false),hgflag(false);
     for( int ichan=0; ichan<64; ichan++ ){
       for(int isca=0; isca<NUMBER_OF_SCA-1; isca++){
     	uint16_t new_head=( m_decoded_raw_data.at(offset+ichan+ADCLOW_SHIFT+SCA_SHIFT*isca) & MASK_HEAD )>>12;
-    	if( new_head!=head[ichan] )
-    	  std::cout << "\n We have a major issue in chip,chan " << std::dec<<chipIndex<<","<<ichan << " : (LG)-> " << std::bitset<4>(new_head) << " should be the same as " << std::bitset<4>(head[ichan]) << std::endl;
+    	if( new_head!=head[ichan] ){
+	  lgflag=true;
+	  //std::cout << "We have a major issue in chip,chan " << std::dec<<chipIndex<<","<<ichan << " : (LG)-> " << std::bitset<4>(new_head) << " should be the same as " << std::bitset<4>(head[ichan]) << std::endl;
+	}
       }
     }
     for( int ichan=0; ichan<64; ichan++ ){
       for(int isca=0; isca<NUMBER_OF_SCA-1; isca++){
     	uint16_t new_head=( m_decoded_raw_data.at(offset+ichan+ADCHIGH_SHIFT+SCA_SHIFT*isca) & MASK_HEAD )>>12;
-    	if( new_head!=head[ichan] )
-    	  std::cout << "\n We have a major issue in chip,chan " << std::dec<<chipIndex<<","<<ichan << " : (LG)-> " << std::bitset<4>(new_head) << " should be the same as " << std::bitset<4>(head[ichan]) << std::endl;
+    	if( new_head!=head[ichan] ){
+	  hgflag=true;
+	  //std::cout << "We have a major issue in chip,chan " << std::dec<<chipIndex<<","<<ichan << " : (HG)-> " << std::bitset<4>(new_head) << " should be the same as " << std::bitset<4>(head[ichan]) << std::endl;
+	}
       }
     }
+    if( lgflag )
+      std::cout << "Major issue in ADC headers of chip " << std::dec<<chipIndex<<" (LG)" << std::endl;
+    if( hgflag )
+      std::cout << "Major issue in ADC headers of chip " << std::dec<<chipIndex<<" (HG)" << std::endl;
     chipIndex++;
     offset=chipIndex*1924;
     if( offset>=m_decoded_raw_data.size() )
@@ -100,4 +112,43 @@ uint16_t unpacker::gray_to_binary(uint16_t gray) const
   gray ^= (gray >> 2);
   gray ^= (gray >> 1);
   return gray;
+}
+
+
+void unpacker::checkTimingSync()
+{
+  std::map<int,uint64_t> prevTime;
+  std::map<int,int> prevTrig;
+  std::map<int,uint64_t> diffTime;
+  int firstTrig=(m_timestampmap.begin()->first>>8);
+  int maxOrmId=0;
+  //std::cout << "first trigger of the run : " << std::dec<<firstTrig << ";\t first time stamps = ";
+  for( std::map< uint32_t,uint64_t>::iterator it=m_timestampmap.begin(); it!=m_timestampmap.end(); ++it ){
+    if( (it->first>>8) != firstTrig )
+      break;
+    else{
+      int ormid=it->first&0xff;
+      prevTime.insert( std::pair<int,uint64_t>(ormid,it->second) );
+      prevTrig.insert( std::pair<int,int>(ormid,it->first>>8) );
+      prevTrig.insert( std::pair<int,int>(ormid,0) );
+      //std::cout << std::dec << it->second << " ";
+      if( maxOrmId < ormid ) maxOrmId=ormid;
+    }
+  }
+  //std::cout << std::endl;
+  
+  for( std::map< uint32_t,uint64_t>::iterator it=m_timestampmap.begin(); it!=m_timestampmap.end(); ++it ){
+    int trigId=(it->first)>>8;
+    int ormId=(it->first)&0xff;
+    diffTime[ormId]=it->second-prevTime[ormId];
+    //std::cout << std::dec << "trigger id = " << trigId << "\t orm id = " << ormId << "\t trigger diff = " << trigId-prevTrig[ormId] << "\t time diff = " << diffTime[ormId] << std::endl;
+    prevTrig[ormId]=trigId;
+    prevTime[ormId]=it->second;
+
+    if( ormId==maxOrmId )
+      for( std::map<int,uint64_t>::iterator it=diffTime.begin(); it!=diffTime.end(); ++it ){
+	if( it->second-diffTime.begin()->second != 0 )
+	  std::cout << "There is a timing issue, trigger id = " << trigId << std::endl;
+      }
+  }
 }
