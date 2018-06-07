@@ -1,0 +1,8 @@
+dirID=$1
+
+
+rm data logs data_root unpacker_output
+ln -s /disk${dirID}_2TB/June2018/raw data
+ln -s /disk${dirID}_2TB/June2018/logs logs
+ln -s /disk${dirID}_2TB/June2018/onlineMon data_root
+ln -s /disk${dirID}_2TB/June2018/unpacked unpacker_output
