@@ -23,9 +23,11 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
       if (_id >= _ID) continue;
 
-      sprintf(out, "%i vs. %i HG ", _id, _ID);
+      sprintf(out, "%i vs. %i LG ", _id, _ID);
       sprintf(out2, "h_SignalLGSum_%i_%i", _id, _ID);
-      _correlationSignalLGSum[_ID] = new TH2I(out2, out, 50, 0., 8*1200., 50, 0., 8*1200.);   //TB 2017: Energy sum in a layer of the EE part for 90 GeV electrons barely reaches 1000 MIPs. Also, 1 MIP ~ 8 LG ADC //Thorben Quast, 07 June 2018
+      _correlationSignalLGSum[_ID] = new TH2I(out2, out, 50, 0., 8*1200., 50, 0., 8*1200.);
+      //TB 2017: Energy sum in a layer of the EE part for 90 GeV electrons barely reaches 1000 MIPs.
+      // Also, 1 MIP ~ 5 LG ADC //Thorben Quast, 07 June 2018
 
       sprintf(out3, "LG TS3 - TS0 Sum_{%i} (ADC)", _id);
       sprintf(out4, "LG TS3 - TS0 SUM_{%i} (ADC)", _ID);

@@ -22,7 +22,7 @@ const size_t RAW_EV_SIZE_32 = 123160;
 const int nSCA=13;
 
 // Size of ZS data (per channel)
-const char hitSizeZS = 32;
+const char hitSizeZS = 33;
 
 namespace eudaq {
   
@@ -610,8 +610,8 @@ namespace eudaq {
 	      //std::cout<<"  ts:"<<ts<<" adc="<<adc;
 	    }
 	    
-	    if (LG_TS3 - LG_TS0 > 10)		//5 LG ADC ~ 1 MIP
-	    	lg_sum += LG_TS3-LG_TS0;
+	    if (LG_TS3 - LG_TS0 > 3)		//5 LG ADC ~ 1 MIP
+	      lg_sum += LG_TS3-LG_TS0;
 	    
 	    //std::cout<<std::endl;
 
@@ -683,14 +683,16 @@ namespace eudaq {
 
 	  }
 
-	  if (ski%4==3 && toa_sum > 0 && n_toa_fired > 0){
-	    // Put here the average TOA value of the hexaboard
-	    dataBlockZS[hexa][31+0*hitSizeZS] = toa_sum/n_toa_fired;
-	    // Reset them:
-	    toa_sum = 0;
-	    n_toa_fired = 0;
-
-	    dataBlockZS[hexa][31+1*hitSizeZS] = lg_sum;
+	  if (ski%4==3){
+	    if (toa_sum > 0 && n_toa_fired > 0){
+	      // Put here the average TOA value of the hexaboard
+	      dataBlockZS[hexa][31] = toa_sum/n_toa_fired;
+	      // Reset them:
+	      toa_sum = 0;
+	      n_toa_fired = 0;
+	    }
+	    // Put the sum of LG values  
+	    dataBlockZS[hexa][32] = lg_sum;
 	    lg_sum = 0;
 	  }
 
