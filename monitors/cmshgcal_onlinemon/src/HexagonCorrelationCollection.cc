@@ -141,7 +141,13 @@ void HexagonCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) 
       _mon->getOnlineMon()->registerTreeItem(tree);
       _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationTOA(_ID), "COL2");
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
-      
+
+      // Put the TOA correlation plots in the summary
+      sprintf(folder, "HexagonCorrelation/%s", p.Sensor().c_str());
+      _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+      if (p.ID() == 0)
+	_mon->getOnlineMon()->addTreeItemSummary("HexagonCorrelation", tree);
+
 
       sprintf(folder, "HexagonCorrelation/%s/Module_%i_LGcorr", p.Sensor().c_str(), p.ID());
       sprintf(tree, "%s/vs_Module_%i", folder, _ID);
@@ -149,9 +155,6 @@ void HexagonCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) 
       _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationSignalLGSum(_ID), "COLZ2", 0);
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
             
-
-      //if (p.ID() == 0)
-      //_mon->getOnlineMon()->addTreeItemSummary("HexagonCorrelation", tree);
 
     }
     

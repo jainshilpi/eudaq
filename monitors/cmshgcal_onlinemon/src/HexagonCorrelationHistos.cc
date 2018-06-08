@@ -15,8 +15,7 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
   _mon = mon;
 
-  // std::cout << "HexagonCorrelationHistos::Sensorname: " << _sensor << " "<< _id<<
-  // std::endl;
+  // std::cout << "HexagonCorrelationHistos::Sensorname: " << _sensor << " "<< _id<<std::endl;
 
   for (int _ID=0; _ID<NHEXAGONS_PER_SENSOR; _ID++) {
 
