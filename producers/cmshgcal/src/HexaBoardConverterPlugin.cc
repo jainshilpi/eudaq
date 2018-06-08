@@ -18,7 +18,7 @@
 
 #include "../include/compressor.h"
 
-const size_t RAW_EV_SIZE_32 = 123152;
+const size_t RAW_EV_SIZE_32 = 123160;
 const int nSCA=13;
 
 // Size of ZS data (per channel)
