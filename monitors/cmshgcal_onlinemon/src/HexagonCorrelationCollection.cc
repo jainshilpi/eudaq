@@ -11,7 +11,7 @@ bool HexagonCorrelationCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 }
 
 void HexagonCorrelationCollection::fillHistograms(const eudaq::StandardPlane &pl1, const eudaq::StandardPlane &pl2) {
-  //std::cout<<"In HexagonCorrelationCollection::fillHistograms(StandardPlane)"<<std::endl;
+  // std::cout<<"In HexagonCorrelationCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (pl1.Sensor().find("HexaBoard")==std::string::npos)
     return;
@@ -92,7 +92,9 @@ void HexagonCorrelationCollection::Reset() {
 
 void HexagonCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   //std::cout<<"In HexagonCorrelationCollection::Fill(StandardEvent)"<<std::endl;
-
+  //std::cout<<"[HexagonCorrelationCollection::Fill]  Num planes: "<<ev.NumPlanes()<<std::endl;
+  //if (ev.NumPlanes()==0) return;
+  
   for (int plane1 = 0; plane1 < ev.NumPlanes(); plane1++) {
     const eudaq::StandardPlane &Plane1 = ev.GetPlane(plane1);
     
@@ -139,7 +141,13 @@ void HexagonCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) 
       _mon->getOnlineMon()->registerTreeItem(tree);
       _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationTOA(_ID), "COL2");
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
-      
+
+      // Put the TOA correlation plots in the summary
+      sprintf(folder, "HexagonCorrelation/%s", p.Sensor().c_str());
+      _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+      if (p.ID() == 0)
+	_mon->getOnlineMon()->addTreeItemSummary("HexagonCorrelation", tree);
+
 
       sprintf(folder, "HexagonCorrelation/%s/Module_%i_LGcorr", p.Sensor().c_str(), p.ID());
       sprintf(tree, "%s/vs_Module_%i", folder, _ID);
@@ -147,9 +155,6 @@ void HexagonCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) 
       _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationSignalLGSum(_ID), "COLZ2", 0);
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
             
-
-      //if (p.ID() == 0)
-      //_mon->getOnlineMon()->addTreeItemSummary("HexagonCorrelation", tree);
 
     }
     

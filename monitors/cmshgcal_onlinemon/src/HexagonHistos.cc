@@ -1,4 +1,3 @@
-
 // -*- mode: c -*-
 
 #include <TROOT.h>
@@ -26,11 +25,10 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   _mon = mon;
   
-    _runMode = _mon->mon_configdata.getRunMode();
-    //std::cout << "HexagonHistos::Sensorname: " << _sensor << " "<< _id<< std::endl;
-    //std::cout <<"runMode = "<<_runMode<<std::endl;
+  _runMode = _mon->mon_configdata.getRunMode();
+  //std::cout << "HexagonHistos::Sensorname: " << _sensor << " "<< _id<< std::endl;
+  //std::cout <<"runMode = "<<_runMode<<std::endl;
     
-    if (_maxX != -1 && _maxY != -1) {
     sprintf(out, "%s-%i, HA bit Occupancy", _sensor.c_str(), _id);
     sprintf(out2, "h_hexagons_occ_HA_bit_%s_%i", _sensor.c_str(), _id);
     _hexagons_occ_HA_bit = get_th2poly(out2,out);
@@ -52,11 +50,6 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     sprintf(out2, "h_hexagons_charge_%s_%i", _sensor.c_str(), _id);
     _hexagons_charge = get_th2poly(out2,out);
 
-    sprintf(out, "%s-%i, Raw Hitmap", _sensor.c_str(), _id);
-    sprintf(out2, "h_hit2Dmap_%s_%i", _sensor.c_str(), _id);
-    _hit2Dmap = new TH2I(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
-    SetHistoAxisLabels(_hit2Dmap, "SkiRoc ID", "Channel ID");
-    // std::cout << "Created Histogram " << out2 << std::endl;
 
     sprintf(out, "%s-%i, 1D Hit occupancy", _sensor.c_str(), _id);
     sprintf(out2, "h_hit1Docc_%s_%i", _sensor.c_str(), _id);
@@ -84,12 +77,18 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     sprintf(out2, "h_pedHG_%s_%i", _sensor.c_str(), _id);
     _pedHG = new TH1I(out2, out, 100, 0, 400);
     SetHistoAxisLabelx(_pedHG, "HG ADC counts");
-
-    sprintf(out, "%s-%i, Suspicious Pixels", _sensor.c_str(), _id);
-    sprintf(out2, "h_badpixelmap_%s_%i", _sensor.c_str(), _id);
-    _BadPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
-    SetHistoAxisLabels(_BadPixelMap, "SkiRoc ID", "Channel ID");
-
+    
+    if (_maxX != -1 && _maxY != -1) {
+      sprintf(out, "%s-%i, Raw Hitmap", _sensor.c_str(), _id);
+      sprintf(out2, "h_hit2Dmap_%s_%i", _sensor.c_str(), _id);
+      _hit2Dmap = new TH2I(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
+      SetHistoAxisLabels(_hit2Dmap, "SkiRoc ID", "Channel ID");
+      
+      sprintf(out, "%s-%i, Suspicious Pixels", _sensor.c_str(), _id);
+      sprintf(out2, "h_badpixelmap_%s_%i", _sensor.c_str(), _id);
+      _BadPixelMap = new TH2D(out2, out, _maxX + 1, 0, _maxX, _maxY + 1, 0, _maxY);
+      SetHistoAxisLabels(_BadPixelMap, "SkiRoc ID", "Channel ID");
+    }
 
     sprintf(out, "%s-%i, Number of Hits", _sensor.c_str(), _id);
     sprintf(out2, "h_raw_nHits_%s_%i", _sensor.c_str(), _id);
@@ -164,24 +163,6 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
     _TOAvsChId = new TH2I(out2, out, 256, 0, 256, 60, 1000, 3000);
     SetHistoAxisLabels(_TOAvsChId, "(SkiRoc ID * 64 ) + ChID", "TOA (fall), ADC");
 
-    // make a plane array for calculating e..g hotpixels and occupancy
-
-    plane_map_array = new int *[_maxX];
-
-    if (plane_map_array != NULL) {
-      for (int j = 0; j < _maxX; j++) {
-        plane_map_array[j] = new int[_maxY];
-        if (plane_map_array[j] == NULL) {
-          cout << "HexagonHistos :Error in memory allocation" << endl;
-          exit(-1);
-        }
-      }
-      zero_plane_array();
-    }
-
-  } else {
-    std::cout << "No max sensorsize known!" << std::endl;
-  }
 
 
 
@@ -196,15 +177,6 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   
   Set_SkiToHexaboard_ChannelMap();
-}
-
-int HexagonHistos::zero_plane_array() {
-  for (int i = 0; i < _maxX; i++) {
-    for (int j = 0; j < _maxY; j++) {
-      plane_map_array[i][j] = 0;
-    }
-  }
-  return 0;
 }
 
 
@@ -377,7 +349,7 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
       if (_waveformHG!=NULL && _waveformLG!=NULL &&_waveformNormHG!=NULL && _waveformNormLG!=NULL){
 	
-	// Onle fill these if maximum is above some threshold (ie, it is signal)
+	// Only fill these if maximum is above some threshold (ie, it is signal)
 	if ( (*max_LG) - ped_LG > thresh_LG) {
 	  for (int ts=0; ts<nSCA; ts++){
 	    _waveformLG->Fill(ts, plane.GetPixel(pix, ts));
@@ -512,8 +484,6 @@ void HexagonHistos::Reset() {
   _HGvsLG->Reset();
   _TOAvsChId->Reset();
   
-  // we have to reset the aux array as well
-  zero_plane_array();
 }
 
 void HexagonHistos::Calculate(const int currentEventNum) {
@@ -527,7 +497,6 @@ void HexagonHistos::Write() {
   _hexagons_occ_adc->Write();
   _hexagons_occ_tot->Write();
   _hexagons_occ_toa->Write();
-  //_hexagons_charge->Write();
   _hit2Dmap->Write();
   _hit1Docc->Write();
 

@@ -18,59 +18,28 @@ WireChamberHistos::WireChamberHistos(eudaq::StandardPlane p, RootMonitor *mon)
   // std::cout << "WireChamberHistos::Sensorname: " << _sensor << " "<< _id<<
   // std::endl;
 
-  if (_maxX != -1 && _maxY != -1) {
 
-    sprintf(out, "%s %i good All", _sensor.c_str(), _id);
-    sprintf(out2, "h_goodAll_%s_%i", _sensor.c_str(), _id);
-    _goodAll = new TH1I(out2, out, 2, 0, 2);
-    SetHistoAxisLabels(_goodAll, "measurement ok ?", "N");
-
-    sprintf(out, "%s %i reco X", _sensor.c_str(), _id);
-    sprintf(out2, "h_recoX_%s_%i", _sensor.c_str(), _id);
-    _recoX = new TH1F(out2, out, 100, -50., 50.);
-    SetHistoAxisLabels(_recoX, "X (mm)", "N");
-
-    sprintf(out, "%s %i reco Y", _sensor.c_str(), _id);
-    sprintf(out2, "h_recoY_%s_%i", _sensor.c_str(), _id);
-    _recoY = new TH1F(out2, out, 100, -50., 50.);
-    SetHistoAxisLabels(_recoY, "Y (mm)", "N");
-
-    sprintf(out, "%s %i XY map", _sensor.c_str(), _id);
-    sprintf(out2, "h_XYmap_%s_%i", _sensor.c_str(), _id);
-    _XYmap = new TH2F(out2, out, 100, -50., 50., 100, -50., 50.);
-    SetHistoAxisLabels(_XYmap, "X (mm)", "Y (mm)");
-    
-
-    // make a plane array for calculating e..g hotpixels and occupancy
-    plane_map_array = new int *[_maxX];
-
-    if (plane_map_array != NULL) {
-      for (int j = 0; j < _maxX; j++) {
-        plane_map_array[j] = new int[_maxY];
-        if (plane_map_array[j] == NULL) {
-          cout << "WireChamberHistos :Error in memory allocation" << endl;
-          exit(-1);
-        }
-      }
-      zero_plane_array();
-    }
-
-  } else {
-    std::cout << "No max sensorsize known!" << std::endl;
-  }
-
+  sprintf(out, "%s %i good All", _sensor.c_str(), _id);
+  sprintf(out2, "h_goodAll_%s_%i", _sensor.c_str(), _id);
+  _goodAll = new TH1I(out2, out, 2, 0, 2);
+  SetHistoAxisLabels(_goodAll, "measurement ok ?", "N");
+  
+  sprintf(out, "%s %i reco X", _sensor.c_str(), _id);
+  sprintf(out2, "h_recoX_%s_%i", _sensor.c_str(), _id);
+  _recoX = new TH1F(out2, out, 100, -50., 50.);
+  SetHistoAxisLabels(_recoX, "X (mm)", "N");
+  
+  sprintf(out, "%s %i reco Y", _sensor.c_str(), _id);
+  sprintf(out2, "h_recoY_%s_%i", _sensor.c_str(), _id);
+  _recoY = new TH1F(out2, out, 100, -50., 50.);
+  SetHistoAxisLabels(_recoY, "Y (mm)", "N");
+  
+  sprintf(out, "%s %i XY map", _sensor.c_str(), _id);
+  sprintf(out2, "h_XYmap_%s_%i", _sensor.c_str(), _id);
+  _XYmap = new TH2F(out2, out, 100, -50., 50., 100, -50., 50.);
+  SetHistoAxisLabels(_XYmap, "X (mm)", "Y (mm)");
 
 }
-
-int WireChamberHistos::zero_plane_array() {
-  for (int i = 0; i < _maxX; i++) {
-    for (int j = 0; j < _maxY; j++) {
-      plane_map_array[i][j] = 0;
-    }
-  }
-  return 0;
-}
-
 
 void WireChamberHistos::Fill(const eudaq::StandardPlane &plane) {
   // std::cout<< "FILL with a plane." << std::endl;
@@ -117,8 +86,6 @@ void WireChamberHistos::Reset() {
   _recoY->Reset();
   _goodAll->Reset();
     
-  // we have to reset the aux array as well
-  zero_plane_array();
 }
 
 void WireChamberHistos::Calculate(const int currentEventNum) {

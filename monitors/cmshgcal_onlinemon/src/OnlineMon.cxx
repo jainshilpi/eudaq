@@ -44,9 +44,9 @@
 
 using namespace std;
 // Enable this for debug options:
-#ifndef DEBUG
-#define DEBUG
-#endif
+//#ifndef DEBUG
+//#define DEBUG
+//#endif
 
 RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & datafile, int /*x*/, int /*y*/, int /*w*/,
 			 int /*h*/, int argc, int offline, const unsigned lim, const unsigned skip_, const unsigned int skip_with_counter, const std::string & conffile)
@@ -77,12 +77,12 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   // put collections into the vector
   _colls.push_back(hexaCollection);
   _colls.push_back(hexaCorrelationCollection);
-  _colls.push_back(ahcalCollection);
+  //_colls.push_back(ahcalCollection);
   _colls.push_back(wcCollection);
   _colls.push_back(wccorrCollection);
-  _colls.push_back(beamTelescopeHitCollection);
-  _colls.push_back(beamTelescopeCorrCollection);
-  _colls.push_back(daturaToHGCALCorrelationCollection);
+  //_colls.push_back(beamTelescopeHitCollection);
+  //_colls.push_back(beamTelescopeCorrCollection);
+  //_colls.push_back(daturaToHGCALCorrelationCollection);
   _colls.push_back(dwcToHGCALCorrelationCollection);
   
   // set the root Monitor
@@ -201,7 +201,7 @@ void RootMonitor::setReduce(const unsigned int red) {
 
 void RootMonitor::OnEvent(const eudaq::StandardEvent & ev) {
   cout << "\t Called RootMonitor::onEvent " << ev.GetEventNumber()<< endl;
-  //cout << "Number of Planes " << ev.NumPlanes()<< endl;
+  cout << "Number of Planes " << ev.NumPlanes()<< endl;
 
   //start timing to measure processing time
   my_event_processing_time.Start(true);
@@ -414,7 +414,7 @@ void RootMonitor::OnStartRun(unsigned param) {
   std::cout << "\n In RootMonitor::OnStartRun(): Called on start run  RUN=" << param <<std::endl;
   onlinemon->UpdateStatus("Starting run..");
   char out[255];
-  sprintf(out, "../data_root/run%d.root",param);
+  sprintf(out, "../data_root/dqm_run%06d.root",param);
   rootfilename = std::string(out);
   runnumber = param;
 

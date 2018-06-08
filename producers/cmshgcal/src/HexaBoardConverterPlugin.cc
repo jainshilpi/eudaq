@@ -6,7 +6,7 @@
 
 #include <bitset>
 #include <boost/format.hpp>
- 
+
 // All LCIO-specific parts are put in conditional compilation blocks
 // so that the other parts may still be used if LCIO is not available.
 #if USE_LCIO
@@ -25,7 +25,7 @@ const int nSCA=13;
 const char hitSizeZS = 33;
 
 namespace eudaq {
-  
+
   // The event type for which this converter plugin will be registered
   // Modify this to match your actual event type (from the Producer)
   //static const char *EVENT_TYPE = "RPI";
@@ -39,7 +39,7 @@ namespace eudaq {
       // You may extract information from the BORE and/or configuration
       // and store it in member variables to use during the decoding later.
       virtual void Initialize(const Event &bore, const Configuration &cnf) {
-	
+
 #ifndef WIN32 // some linux Stuff //$$change
 	(void)cnf; // just to suppress a warning about unused parameter cnf
 #endif
@@ -51,12 +51,12 @@ namespace eudaq {
 	cnf.Print();
 
 	cnf.SetSection("Producer.CMS-HGCAL");
-	m_compressed = cnf.Get("DoCompression", true);
-	
+	m_compressed = cnf.Get("DoCompression", false);
+
 	cnf.SetSection("CMSHGCAL-OnlineMon");
 	cnf.Print();
 
-      	m_runMode = cnf.Get("runMode", 0);
+      	m_runMode = cnf.Get("runMode", 1);
 
 	m_skiMask[0] = std::stoul(cnf.Get("Mask_RDB1", "0xFFFFFFFF"), nullptr, 16);
 	m_skiMask[1] = std::stoul(cnf.Get("Mask_RDB2", "0xFFFFFFFF"), nullptr, 16);
@@ -76,7 +76,7 @@ namespace eudaq {
 	}
 	// -- offline mode end --
 	*/
-	
+
       }
 
       // This should return the trigger ID (as provided by the TLU)
@@ -107,21 +107,20 @@ namespace eudaq {
 	// they can be differentiated here
 	const std::string sensortype = "HexaBoard";
 
-	std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
+	// std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
 
 	const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
 
 	//rev->Print(std::cout);
 
 	const unsigned nBlocks = rev->NumBlocks();
-	std::cout<<"Number of Raw Data Blocks: "<<nBlocks<<std::endl;
+	// std::cout<<"Number of Raw Data Blocks: "<<nBlocks<<std::endl;
 
 	int RDBOARD = 0;
 
 	for (unsigned blo=0; blo<nBlocks; blo++){
 
-	  std::cout<<"Block = "<<blo<<"  Raw GetID = "<<rev->GetID(blo)<<std::endl;
-
+	  std::cout<<"Hexa Block = "<<blo<<"  Raw GetID = "<<rev->GetID(blo)<<std::endl;
 
 	  const RawDataEvent::data_t & bl = rev->GetBlock(blo);
 
@@ -134,7 +133,7 @@ namespace eudaq {
 	    brdID.resize(bl.size() / sizeof(int));
 	    std::memcpy(&brdID[0], &bl[0], bl.size());
 	    RDBOARD = brdID[0];
-	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
+	    // std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
 
 	    //const unsigned nPlanes = nSkiPerBoard[RDBOARD-1]/4;
 	    //std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
@@ -143,15 +142,15 @@ namespace eudaq {
 	  }
 
 	  else {
-	    
+
 	    // This block contains the data
-	    std::cout<<" We are in the data block. blo="<<blo<<std::endl;
-	    
+	    // std::cout<<" We are in the data block. blo="<<blo<<std::endl;
+
 	    // We will put the data in this vector:
 	    // ----------------->>>>>>
 	    std::vector<uint32_t> rawData32;
 	    // <<<<<<<-----------------
-	    
+
 	    if (bl.size()!=RAW_EV_SIZE_32 && !m_compressed){
 	      EUDAQ_WARN("There is something wrong with the data. Size= "+eudaq::to_string(bl.size()));
 	      std::cout<<" Bad data size in block "<<blo<<"   size: "<<bl.size()<<std::endl;
@@ -162,16 +161,16 @@ namespace eudaq {
 	      // Let's decompress it!
 	      //std::string decompressed=decompressor::decompress(bl); // Taking the function from this class
 	      std::string decompressed=compressor::decompress(bl); // Taking the function from compressor.h
-	      
+
 	      const std::vector<uint8_t> decompData( decompressed.begin(), decompressed.end() );
 	      rawData32.resize(decompData.size() / sizeof(uint32_t));
 	      std::memcpy(&rawData32[0], &decompData[0], decompData.size());
-	      
+
 	      if (rawData32.size()*4 != RAW_EV_SIZE_32){
 		std::cout << "Size of raw data after decompression is wong! size = "<<rawData32.size()*4<<" bytes"<<std::endl;
 		return true;
 	      }
-	      
+
 	    }
 	    else if (bl.size()==RAW_EV_SIZE_32 && m_compressed){
 	      std::cout<<"Hmmm. You says that the data are compressed, but the data size says otherwisse..\n"
@@ -185,76 +184,77 @@ namespace eudaq {
 	      std::memcpy(&rawData32[0], &bl[0], bl.size());
 	    }
 
-	    
+
 	    const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
-	    //std::cout << "4444" << std::endl;
+	  
 	    // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
 	    const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded, RDBOARD);
+	    //std::cout << "DBG 4444" << std::endl;
 	    
 	    for (unsigned h = 0; h < dataBlockZS.size(); h++){
-	      
-	      //std::cout<<"Hexa plane = "<<h<<std::endl;
-	      
+
+	      // std::cout<<"Hexa plane = "<<h<<std::endl;
+
 	      std::ostringstream oss;
 	      oss << sensortype <<"-RDB" << RDBOARD;
 	      StandardPlane plane(h, EVENT_TYPE, oss.str());
 	      //StandardPlane plane(blo*8+h, EVENT_TYPE, sensortype);
-	      
+
 	      // -------------
 	      // Now we can use the data to fill the euDAQ Planes
 	      // -------------
 	      const unsigned nHits  = dataBlockZS[h].size()/hitSizeZS;
-	      
+
 	      //std::cout<<"Number of Hits (above ZS threshold): "<<nHits<<std::endl;
-	      
+
 	      plane.SetSizeZS(4, 64, nHits, hitSizeZS-1);
-	      
+
 	      for (int ind=0; ind<nHits; ind++){
-		
+
 		// APZ DBG. Test the monitoring:
 		//for (int ts=0; ts<16; ts++)
 		//plane.SetPixel(ind, 2, 32+ind, 500-10*ind, false, ts);
-		
-		
+
+
 		const unsigned skiID_1 = dataBlockZS[h][hitSizeZS*ind]/100;
 		// This should give us a number between 0 and 3:
 		const unsigned skiID_2 = 3 - (skiID_1)%4;
-		
+
 		if (skiID_2 > 3){
 		  std::cout<<" ERROR in ski. It is "<<skiID_2<<std::endl;
 		  EUDAQ_WARN("There is another error with encoding. ski="+eudaq::to_string(skiID_2));
 		}
 		else {
 		  const unsigned pix = dataBlockZS[h][hitSizeZS*ind]-skiID_1*100;
-		  
+
 		  //if (skiID==0 && pix==0)
 		  //std::cout<<" Zero-Zero problem. ind = "<<ind<<"  ID:"<<data[hitSizeZS*ind]<<std::endl;
-		  
+
 		  for (int ts=0; ts<hitSizeZS-1; ts++)
 		    plane.SetPixel(ind, skiID_2, pix, dataBlockZS[h][hitSizeZS*ind+1 + ts], false, ts);
 		}
-		
+
 	      }
-	      
+
 	      // Set the trigger ID
 	      plane.SetTLUEvent(ev.GetEventNumber());
 	      // Add the plane to the StandardEvent
 	      sev.AddPlane(plane);
 	      //eudaq::mSleep(10);
-	      
-	      
+
+
 	      /* APZ DBG
 	      // These are just to test the planes in onlinemonitor:
 	      if (bl.size()>3000){
 	      plane.SetSizeZS(4, 64, 5, 2);
-	      
+
 	      plane.SetPixel(0, 2, 32, 500, false, 0);
 	      plane.SetPixel(1, 2, 33, 400, false, 0);
 	      plane.SetPixel(2, 2, 31, 400, false, 0);
 	      plane.SetPixel(3, 1, 32, 400, false, 0);
 	      plane.SetPixel(4, 3, 32, 400, false, 0);
-	      
-	      
+
+
 	      plane.SetPixel(0, 2, 32, 300, false, 1);
 	      plane.SetPixel(1, 2, 33, 100, false, 1);
 	      plane.SetPixel(2, 2, 31, 100, false, 1);
@@ -263,29 +263,29 @@ namespace eudaq {
 	      }
 	      else {
 	      plane.SetSizeZS(4, 64, 3, 2);
-	      
+
 	      plane.SetPixel(0, 1, 15, 500, false, 0);
 	      plane.SetPixel(1, 1, 16, 400, false, 0);
 	      plane.SetPixel(2, 1, 14, 400, false, 0);
-	      
-	      
+
+
 	      plane.SetPixel(0, 1, 15, 300, false, 1);
 	      plane.SetPixel(1, 1, 16, 100, false, 1);
 	      plane.SetPixel(2, 1, 14, 100, false, 1);
 	      }
 	      */
-	      
+
 	    }
 	  }
-	  
+
 	}
 
-	std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
-	
+	std::cout<<"Hexa St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
+
 	// Indicate that data was successfully converted
 	return true;
       }
-      
+
       unsigned int gray_to_brady(unsigned int gray) const{
 	// Code from:
 	//https://github.com/CMS-HGCAL/TestBeam/blob/826083b3bbc0d9d78b7d706198a9aee6b9711210/RawToDigi/plugins/HGCalTBRawToDigi.cc#L154-L170
@@ -306,10 +306,10 @@ namespace eudaq {
 
 
       std::vector<std::array<unsigned int,1924>> decode_raw_32bit(std::vector<uint32_t>& raw, const int board_id) const{
-	
+
 	//const uint32_t ch_mask = m_skiMask[board_id-1];
 	const uint32_t ch_mask = raw[0];
-	
+
 	//std::cout<<"In decoder"<<std::endl;
 	//printf("\t SkiMask: 0x%08x;   Length of Raw: %d\n", ch_mask, raw.size());
 
@@ -420,11 +420,11 @@ namespace eudaq {
 	return roll;
 	}
       */
-      
+
       std::vector<std::vector<unsigned short>> GetZSdata(const std::vector<std::array<unsigned int,1924>> &decoded, const int board_id) const {
-	
-	//std::cout<<"In GetZSdata() method"<<std::endl;
-	
+
+	// std::cout<<"In GetZSdata() method"<<std::endl;
+
 	const int nSki  =  decoded.size();
 	const int nHexa =  nSki/4;
 	if (nSki%4!=0)
@@ -440,12 +440,12 @@ namespace eudaq {
 	unsigned int toa_sum = 0;
 	unsigned int n_toa_fired = 0;
 	unsigned int lg_sum = 0;
-	      
+
 	for (int ski = 0; ski < nSki; ski++ ){
 	  const int hexa = ski/4;
 
-	  //fprintf(fout, "Event %d Chip %d RollMask 0x%08x \n", m_ev, ski, decoded[ski][1920]);
-
+	  //std::cout<<"Chip "<<ski<<" RollMask is "<<std::hex<<decoded[ski][1920]<<std::endl;
+	  
 	  // ----------
 	  // -- Based on the rollmask, lets determine which time-slices (frames) to add
 	  //
@@ -548,7 +548,7 @@ namespace eudaq {
 	      */
 
 	    unsigned short adc = 0;
-	    
+
 	    /*
 	    const int TS2 = (TS0+2)%13;
 	    const int TS3 = (TS0+3)%13;
@@ -564,9 +564,9 @@ namespace eudaq {
 	    chargeHG_avg_in3TS += adc;
 
 	    chargeHG_avg_in3TS = chargeHG_avg_in3TS/3;
-	    
+
 	    */
-	    
+
 	    //adc = gray_to_brady(decoded[ski][mainFrame*128 + chArrPos] & 0x0FFF);
 	    //if (adc==0) adc=4096;
 
@@ -576,21 +576,23 @@ namespace eudaq {
 	    //<<"ped + noi = "<<ped+noi<<"   charge-(ped+noi) = "<<chargeLG - (ped+noi)<<std::endl;
 
 	    // Check that all Ha hits are the same for a given channel
-	    //if ((decoded[ski][chArrPos] & 0x1000) != (decoded[ski][chArrPos + 64] & 0x1000))
-	    //std::cout<<"Warning: HA is not what we think it is..."<<std::endl;
+	    if ((decoded[ski][chArrPos] & 0x1000) != (decoded[ski][chArrPos + 64] & 0x1000))
+	      std::cout<<"Warning: HA is not what we think it is..."<<std::endl;
 
 	    if (m_runMode==0)
-	      ; // Pass. This is pedestal mode, no zero suppression is needed 
+	      ; // Pass. This is pedestal mode, no zero suppression is needed
 	    else if (m_runMode==1){
+	      //std::cout<<"DBG ski="<<ski<<"  ch pos = "<<chArrPos<<"  HA bit: "<<(decoded[ski][chArrPos] & 0x1000)<<std::endl;
+
 	      // ZeroSuppress it:
 	      //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
-	      if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
+	      	      if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
 		continue;
 	    }
 	    else
 	      EUDAQ_WARN("This run-mode is not yet implemented: "+eudaq::to_string(m_runMode));
 
-	    
+
 	    dataBlockZS[hexa].push_back((ski%4)*100+ch);
 
 	    // Low gain (save nSCA time-slices after track):
@@ -603,16 +605,16 @@ namespace eudaq {
 	      adc = gray_to_brady(decoded[ski][t*128 + chArrPos] & 0x0FFF);
 	      if (adc==0) adc=4096;
 	      dataBlockZS[hexa].push_back(adc);
-	    
+
 	    	if (t==0) LG_TS0 = adc;
 	    	if (t==3) LG_TS3 = adc;
 
 	      //std::cout<<"  ts:"<<ts<<" adc="<<adc;
 	    }
-	    
+
 	    if (LG_TS3 - LG_TS0 > 3)		//5 LG ADC ~ 1 MIP
 	      lg_sum += LG_TS3-LG_TS0;
-	    
+
 	    //std::cout<<std::endl;
 
 	    /*
@@ -665,6 +667,7 @@ namespace eudaq {
 	    // This frame is reserved to hold per-module variables.
 	    // (which are set outside of this loop):
 	    dataBlockZS[hexa].push_back(0);
+	    dataBlockZS[hexa].push_back(0);
 
 	    
 	    /* Let's not save this for the moment (no need)
@@ -683,7 +686,7 @@ namespace eudaq {
 
 	  }
 
-	  if (ski%4==3){
+	  if (ski%4==3 && dataBlockZS[hexa].size()!=0){
 	    if (toa_sum > 0 && n_toa_fired > 0){
 	      // Put here the average TOA value of the hexaboard
 	      dataBlockZS[hexa][31] = toa_sum/n_toa_fired;
@@ -691,13 +694,13 @@ namespace eudaq {
 	      toa_sum = 0;
 	      n_toa_fired = 0;
 	    }
-	    // Put the sum of LG values  
+	    // Put the sum of LG values
 	    dataBlockZS[hexa][32] = lg_sum;
 	    lg_sum = 0;
 	  }
 
 	}
-	
+
 	return dataBlockZS;
 
       }
@@ -722,7 +725,7 @@ namespace eudaq {
 
       int m_runMode;
       bool m_compressed;
-      
+
       // The single instance of this converter plugin
       static HexaBoardConverterPlugin m_instance;
   }; // class HexaBoardConverterPlugin
