@@ -24,7 +24,7 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
     sprintf(out, "TOA Correlation: module %i vs. %i", _id, _ID);
     sprintf(out2, "h_corrTOA_%s_%ivs%i", _sensor.c_str(), _id, _ID);
-    _correlationTOA[_ID] = new TH2I(out2, out, 50, 0., 2000., 50, 0., 2000.);
+    _correlationTOA[_ID] = new TH2I(out2, out, 50, 0., 3000., 50, 0., 3000.);
     sprintf(out3, "AVG TOA, Module %i (ADC)", _id);
     sprintf(out4, "AVG TOA, Module %i (ADC)", _ID);
     SetHistoAxisLabels(_correlationTOA[_ID], out3, out4);
@@ -46,6 +46,8 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
 void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eudaq::StandardPlane &plane2) {
 
+  // std::cout<<"[HexagonCorrelationHistos::Fill]"<<std::endl;
+  
   int _ID = plane2.ID();
 
   // TOA
@@ -54,14 +56,13 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
     const unsigned int avgTOA_2 = plane2.GetPixel(0, 30);
 
     _correlationTOA[_ID]->Fill(avgTOA_1, avgTOA_2);
+
+    //sum of HG in TS3 - TS0
+    const unsigned int sumLG_TS3_1 = plane1.GetPixel(0, 31);
+    const unsigned int sumLG_TS3_2 = plane2.GetPixel(0, 31);
+    
+    _correlationSignalLGSum[_ID]->Fill(sumLG_TS3_1, sumLG_TS3_2);
   }
-
-  //sum of HG in TS3 - TS0
-  const unsigned int sumLG_TS3_1 = plane1.GetPixel(0, 31);
-  const unsigned int sumLG_TS3_2 = plane2.GetPixel(0, 31);
-
-  _correlationSignalLGSum[_ID]->Fill(sumLG_TS3_1, sumLG_TS3_2);
-
 
 }
 

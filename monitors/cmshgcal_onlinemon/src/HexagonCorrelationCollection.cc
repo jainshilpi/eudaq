@@ -11,7 +11,7 @@ bool HexagonCorrelationCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 }
 
 void HexagonCorrelationCollection::fillHistograms(const eudaq::StandardPlane &pl1, const eudaq::StandardPlane &pl2) {
-  //std::cout<<"In HexagonCorrelationCollection::fillHistograms(StandardPlane)"<<std::endl;
+  // std::cout<<"In HexagonCorrelationCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (pl1.Sensor().find("HexaBoard")==std::string::npos)
     return;
@@ -92,7 +92,9 @@ void HexagonCorrelationCollection::Reset() {
 
 void HexagonCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   //std::cout<<"In HexagonCorrelationCollection::Fill(StandardEvent)"<<std::endl;
-
+  //std::cout<<"[HexagonCorrelationCollection::Fill]  Num planes: "<<ev.NumPlanes()<<std::endl;
+  //if (ev.NumPlanes()==0) return;
+  
   for (int plane1 = 0; plane1 < ev.NumPlanes(); plane1++) {
     const eudaq::StandardPlane &Plane1 = ev.GetPlane(plane1);
     
