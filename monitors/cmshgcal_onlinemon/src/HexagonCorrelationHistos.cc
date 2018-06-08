@@ -8,7 +8,7 @@
 #include <sstream>
 
 HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon)
-  : _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false){
+: _sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false){
 
     
   char out[1024], out2[1024], out3[1024], out4[1024];
@@ -23,22 +23,23 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
       if (_id >= _ID) continue;
 
-      sprintf(out, "%i vs. %i LG ", _id, _ID);
-      sprintf(out2, "h_SignalLGSum_%i_%i", _id, _ID);
+      sprintf(out, "TOA Correlation: module %i vs. %i", _id, _ID);
+      sprintf(out2, "h_corrTOA_%s_%ivs%i", _sensor.c_str(), _id, _ID);
+      _correlationTOA[_ID] = new TH2I(out2, out, 100, 0., 2000., 100, 0., 2000.);
+      sprintf(out3, "AVG TOA, Module %i (ADC)", _id);
+      sprintf(out4, "AVG TOA, Module %i (ADC)", _ID);
+      SetHistoAxisLabels(_correlationTOA[_ID], out3, out4);  
+
+
+      sprintf(out, "LG Correlation: module %i vs. %i", _id, _ID);
+      sprintf(out2, "h_SignalLGSum_%s_%ivs%i", _sensor.c_str(), _id, _ID);
       _correlationSignalLGSum[_ID] = new TH2I(out2, out, 50, 0., 8*1200., 50, 0., 8*1200.);
       //TB 2017: Energy sum in a layer of the EE part for 90 GeV electrons barely reaches 1000 MIPs.
-      // Also, 1 MIP ~ 5 LG ADC //Thorben Quast, 07 June 2018
+      // Also, 1 MIP ~ 5 LG ADC //Thorben Quast, 07 June 2018
 
-      sprintf(out3, "LG TS3 - TS0 Sum_{%i} (ADC)", _id);
-      sprintf(out4, "LG TS3 - TS0 SUM_{%i} (ADC)", _ID);
+      sprintf(out3, "LG Sum of (TS3 - TS0), Module %i (ADC)", _id);
+      sprintf(out4, "LG Sum of (TS3 - TS0), Module %i (ADC)", _ID);
       SetHistoAxisLabels(_correlationSignalLGSum[_ID], out3, out4);  
-
-      sprintf(out, "%i vs. %i TOA", _id, _ID);
-      sprintf(out2, "h_corrTOA_%i_%i", _id, _ID);
-      _correlationTOA[_ID] = new TH2I(out2, out, 100, 0., 2000., 100, 0., 2000.);
-      sprintf(out3, "AVG TOA Module %i (ADC)", _id);
-      sprintf(out4, "AVG TOA Module %i (ADC)", _ID);
-      SetHistoAxisLabels(_correlationTOA[_ID], out3, out4);  
 
     }
     
@@ -75,18 +76,10 @@ int HexagonCorrelationHistos::zero_plane_array() {
 
 
 void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eudaq::StandardPlane &plane2) {
-  // std::cout<< "FILL with a plane." << std::endl;
+
   int _ID = plane2.ID();
 
-
-  //example: sum of HG in TS3 - TS0
-  const unsigned int sumLGTS3_1 = plane1.GetPixel(1, 30);
-  const unsigned int sumHLTS3_2 = plane2.GetPixel(1, 30);
-
-  _correlationSignalLGSum[_ID]->Fill(sumLGTS3_1, sumHLTS3_2);
-
-
-
+  // TOA
   if (plane1.HitPixels() > 0 && plane2.HitPixels() > 0){
     const unsigned int avgTOA_1 = plane1.GetPixel(0, 30);
     const unsigned int avgTOA_2 = plane2.GetPixel(0, 30);
@@ -94,7 +87,12 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
     _correlationTOA[_ID]->Fill(avgTOA_1, avgTOA_2);
   }
 
-  //histograms to be filled here
+  //sum of HG in TS3 - TS0
+  const unsigned int sumLG_TS3_1 = plane1.GetPixel(0, 31);
+  const unsigned int sumLG_TS3_2 = plane2.GetPixel(0, 31);
+
+  _correlationSignalLGSum[_ID]->Fill(sumLG_TS3_1, sumLG_TS3_2);
+
 
 }
 
