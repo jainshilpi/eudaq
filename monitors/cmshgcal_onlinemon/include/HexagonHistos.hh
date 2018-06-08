@@ -33,11 +33,9 @@ protected:
   TH2I *_hit2Dmap;
   TH1I *_hit1Docc;
 
-  //std::vector<*TH2Poly> _EventDisplays;
   TList *ev_display_list = new TList;
 
   TH2D *_BadPixelMap;
-  //TH1F *_hitOcc;
   TH1I *_nHits;
   TH1I *_nbadHits;
   TH1I *_nHotPixels;
@@ -69,12 +67,7 @@ public:
   TH1I *getHit1DoccHisto() { return _hit1Docc; }
   TH2D *getBadPixelMapHisto() { return _BadPixelMap; }
 
-  //TH1F *getHitOccHisto() {
-  //if (_wait)
-  //  return NULL;
-  //else
-  //  return _hitOcc;
-  //}
+
   TH1I *getNHitsHisto() { return _nHits; }
   TH1I *getNbadHitsHisto() { return _nbadHits; }
 
@@ -101,8 +94,6 @@ public:
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
 
 private:
-  int **plane_map_array; // store an array representing the map
-  int zero_plane_array(); // fill array with zeros;
   int SetHistoAxisLabelx(TH1 *histo, string xlabel);
   int SetHistoAxisLabely(TH1 *histo, string ylabel);
   int SetHistoAxisLabels(TH1 *histo, string xlabel, string ylabel);

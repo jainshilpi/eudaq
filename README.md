@@ -13,7 +13,8 @@ relatevey easily on SLC6 and CC7 systems. Since we use IPBus the installation of
 
 Quick commands (for details follow eudaq instructions below):
  * On SLC6 machines with AFS setup, run `source setup_eudaq_cmshgcal.sh` in order to link **CMake** and **Qt** libraries.
- * To create make file: from *build* directory: `cmake -DBUILD_cmshgcal=ON -DBUILD_cmshgcal_dwc=ON -DBUILD_cmshgcal_onlinemon=ON ..`
+ * To create make file: from *build* directory:  
+ `cmake -DBUILD_cmshgcal=ON -DBUILD_cmshgcal_dwc=ON -DBUILD_cmshgcal_onlinemon=ON ..`
  * To compile `make install -j6` in the build directory
 
 Contributing:

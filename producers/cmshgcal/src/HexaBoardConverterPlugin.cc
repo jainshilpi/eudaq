@@ -107,25 +107,25 @@ namespace eudaq {
 	// they can be differentiated here
 	const std::string sensortype = "HexaBoard";
 
-	std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
+	// std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
 
 	const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
 
 	//rev->Print(std::cout);
 
 	const unsigned nBlocks = rev->NumBlocks();
-	std::cout<<"Number of Raw Data Blocks: "<<nBlocks<<std::endl;
+	// std::cout<<"Number of Raw Data Blocks: "<<nBlocks<<std::endl;
 
 	int RDBOARD = 0;
 
 	for (unsigned blo=0; blo<nBlocks; blo++){
 
-	  std::cout<<"Block = "<<blo<<"  Raw GetID = "<<rev->GetID(blo)<<std::endl;
+	  // std::cout<<"Block = "<<blo<<"  Raw GetID = "<<rev->GetID(blo)<<std::endl;
 
 
 	  const RawDataEvent::data_t & bl = rev->GetBlock(blo);
 
-	  std::cout<<"size of block: "<<bl.size()<<std::endl;
+	  // std::cout<<"size of block: "<<bl.size()<<std::endl;
 
 	  if (blo%2==0){
 	    // This block contains a string with
@@ -134,7 +134,7 @@ namespace eudaq {
 	    brdID.resize(bl.size() / sizeof(int));
 	    std::memcpy(&brdID[0], &bl[0], bl.size());
 	    RDBOARD = brdID[0];
-	    std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
+	    // std::cout<<"RDBRD ID = "<<RDBOARD<<std::endl;
 
 	    //const unsigned nPlanes = nSkiPerBoard[RDBOARD-1]/4;
 	    //std::cout<<"Number of Planes: "<<nPlanes<<std::endl;
@@ -145,7 +145,7 @@ namespace eudaq {
 	  else {
 	    
 	    // This block contains the data
-	    std::cout<<" We are in the data block. blo="<<blo<<std::endl;
+	    // std::cout<<" We are in the data block. blo="<<blo<<std::endl;
 	    
 	    // We will put the data in this vector:
 	    // ----------------->>>>>>
@@ -280,7 +280,7 @@ namespace eudaq {
 	  
 	}
 
-	std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
+	// std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
 	
 	// Indicate that data was successfully converted
 	return true;
@@ -664,6 +664,7 @@ namespace eudaq {
 
 	    // This frame is reserved to hold per-module variables.
 	    // (which are set outside of this loop):
+	    dataBlockZS[hexa].push_back(0);
 	    dataBlockZS[hexa].push_back(0);
 
 	    
