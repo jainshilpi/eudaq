@@ -130,30 +130,30 @@ void HexagonCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) 
     // cout << "HexagonCorrelationCollection:: Monitor running in online-mode" << endl;
     char tree[1024], folder[1024];
     
-    sprintf(folder, "HexagonCorrelation/%s/Module %i", p.Sensor().c_str(), p.ID());
     
     for (int _ID=0; _ID<NHEXAGONS_PER_SENSOR; _ID++) {   //maximum eight hexagons per readout board
       if (p.ID() >= _ID ) continue;
-      sprintf(tree, "HexagonCorrelation/%s/Module %i/SignalADC_LG_vs_Module %i", p.Sensor().c_str(), p.ID(), _ID);
-      _mon->getOnlineMon()->registerTreeItem(tree);
-      _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationSignalLGSum(_ID), "COLZ2", 0);
-            
-      sprintf(tree, "HexagonCorrelation/%s/Module %i/TOA_corr_Module %i", p.Sensor().c_str(), p.ID(), _ID);
+
+      sprintf(folder, "HexagonCorrelation/%s/Module_%i_TOAcorr", p.Sensor().c_str(), p.ID());
+      sprintf(tree, "%s/vs_Module_%i", folder, _ID);
       _mon->getOnlineMon()->registerTreeItem(tree);
       _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationTOA(_ID), "COL2");
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
       
 
-      if (p.ID() == 0)
-	_mon->getOnlineMon()->addTreeItemSummary("HexagonCorrelation", tree);
+      sprintf(folder, "HexagonCorrelation/%s/Module_%i_LGcorr", p.Sensor().c_str(), p.ID());
+      sprintf(tree, "%s/vs_Module_%i", folder, _ID);
+      _mon->getOnlineMon()->registerTreeItem(tree);
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonCorrelationHistos(p.Sensor(), p.ID())->getCorrelationSignalLGSum(_ID), "COLZ2", 0);
+      _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+            
+
+      //if (p.ID() == 0)
+      //_mon->getOnlineMon()->addTreeItemSummary("HexagonCorrelation", tree);
 
     }
     
        
-    ///
-    
-    //sprintf(tree, "%s/Chamber %i", p.Sensor().c_str(), p.ID());
-
     
     _mon->getOnlineMon()->makeTreeItemSummary(tree);
 
