@@ -25,7 +25,7 @@ protected:
   int _maxY;
   bool _wait;
 
-  TH2Poly *_hexagons_occ_HA_bit;
+  TH2Poly *_hexagons_occ_selection;
   TH2Poly *_hexagons_occ_adc;
   TH2Poly *_hexagons_occ_tot;
   TH2Poly *_hexagons_occ_toa;
@@ -58,7 +58,7 @@ public:
   void Calculate(const int currentEventNum);
   void Write();
 
-  TH2Poly *getHexagonsOccHAbitHisto() { return _hexagons_occ_HA_bit; }
+  TH2Poly *getHexagonsOccSelectHisto() { return _hexagons_occ_selection; }
   TH2Poly *getHexagonsOccAdcHisto() { return _hexagons_occ_adc; }
   TH2Poly *getHexagonsOccTotHisto() { return _hexagons_occ_tot; }
   TH2Poly *getHexagonsOccToaHisto() { return _hexagons_occ_toa; }
@@ -238,24 +238,24 @@ static const  char sc_to_ch_map[381] = { //381 = 127*3
   106,2,20,
   107,2,6,
   108,2,10,
-  109,1,42,
-  110,1,44,
+  109,1,44,
+  110,1,46,
   111,1,58,
-  112,1,54,
+  112,1,56,
   113,1,6,
   114,2,22,
   115,2,24,
   116,2,12,
   117,2,30,
-  118,1,46,
-  119,1,50,
-  120,1,56,
+  118,1,48,
+  119,1,52,
+  120,1,60,
   121,1,62,
   122,2,26,
   123,2,28,
   124,2,32,
-  125,1,48,
-  126,1,52,
+  125,1,50,
+  126,1,54,
   127,2,34
  };
 
