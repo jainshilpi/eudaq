@@ -30,12 +30,12 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
   //std::cout <<"runMode = "<<_runMode<<std::endl;
 
   std::string sel("");
-  if (_runmode==0) sel="PED";
-  else if (_runmode==0) sel="TOA";
-  else if (_runmode==0) sel="MIP";
+  if (_runMode==0) sel="PED";
+  else if (_runMode==0) sel="TOA";
+  else if (_runMode==0) sel="MIP";
   else sel="???";
   
-  sprintf(out, "%s-%i, Occupancy based on %s", _sensor.c_str(), _id, sel);
+  sprintf(out, "%s-%i, Occupancy based on %s", _sensor.c_str(), _id, sel.c_str());
   sprintf(out2, "h_hexagons_occ_selection_%s_%i", _sensor.c_str(), _id);
   _hexagons_occ_selection = get_th2poly(out2,out);
   
