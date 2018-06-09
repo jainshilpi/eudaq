@@ -24,6 +24,9 @@ const int nSCA=13;
 // Size of ZS data (per channel)
 const char hitSizeZS = 33;
 
+const int thresh_HGTS3over0 = 20;
+const int thresh_HGTS3over5 = 20;
+
 namespace eudaq {
 
   // The event type for which this converter plugin will be registered
@@ -549,23 +552,19 @@ namespace eudaq {
 
 	    unsigned short adc = 0;
 
-	    /*
-	    const int TS2 = (TS0+2)%13;
-	    const int TS3 = (TS0+3)%13;
-	    const int TS4 = (TS0+4)%13;
+	    // Signal-like selection based on HG
+	    //ts = 12-(TS0+ts)%13    
+	    const int TS3 = 12 - (TS0+3)%13;
+	    const int TS5 = 12 - (TS0+5)%13;
+	    const int TS7 = 12 - (TS0+7)%13;
 
-	    int chargeHG_avg_in3TS = 0;
+	    int hg_TS0 = gray_to_brady(decoded[ski][TS0*128 + 64 + chArrPos] & 0x0FFF);
+	    int hg_TS3 = gray_to_brady(decoded[ski][TS3*128 + 64 + chArrPos] & 0x0FFF);
+	    int hg_TS5 = gray_to_brady(decoded[ski][TS5*128 + 64 + chArrPos] & 0x0FFF);
+	    int hg_TS7 = gray_to_brady(decoded[ski][TS7*128 + 64 + chArrPos] & 0x0FFF);
 
-	    adc = gray_to_brady(decoded[ski][TS2*128 + 64 + chArrPos] & 0x0FFF);
-	    chargeHG_avg_in3TS += adc;
-	    adc = gray_to_brady(decoded[ski][TS3*128 + 64 + chArrPos] & 0x0FFF);
-	    chargeHG_avg_in3TS += adc;
-	    adc = gray_to_brady(decoded[ski][TS4*128 + 64 + chArrPos] & 0x0FFF);
-	    chargeHG_avg_in3TS += adc;
-
-	    chargeHG_avg_in3TS = chargeHG_avg_in3TS/3;
-
-	    */
+	    int hg_TS3over0 = hg_TS3 - hg_TS0;
+	    int hg_TS3over5 = hg_TS3 - hg_TS5;
 
 	    //adc = gray_to_brady(decoded[ski][mainFrame*128 + chArrPos] & 0x0FFF);
 	    //if (adc==0) adc=4096;
@@ -586,7 +585,14 @@ namespace eudaq {
 
 	      // ZeroSuppress it:
 	      //if (chargeHG_avg_in3TS < thresh)  // - Based on ADC in LG/HG
-	      	      if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
+	      if (! (decoded[ski][chArrPos] & 0x1000)) // - Based on HA bit (TOA hit)
+		continue;
+	    }
+	    else if (m_runMode==2){
+	      if (! (hg_TS3over0 > thresh_HGTS3over0
+		     && hg_TS3over5 > thresh_HGTS3over5
+		     && hg_TS7 - hg_TS0 < 0
+		     ) )
 		continue;
 	    }
 	    else
@@ -612,7 +618,7 @@ namespace eudaq {
 	      //std::cout<<"  ts:"<<ts<<" adc="<<adc;
 	    }
 
-	    if (LG_TS3 - LG_TS0 > 3)		//5 LG ADC ~ 1 MIP
+	    if (LG_TS3 - LG_TS0 > 4)		//5 LG ADC ~ 1 MIP
 	      lg_sum += LG_TS3-LG_TS0;
 
 	    //std::cout<<std::endl;
