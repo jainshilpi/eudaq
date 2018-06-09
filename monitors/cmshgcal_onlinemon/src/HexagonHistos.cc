@@ -65,7 +65,7 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   sprintf(out, "%s-%i, Signal at LG", _sensor.c_str(), _id);
   sprintf(out2, "h_sigAdcLG_TS3_%s_%i", _sensor.c_str(), _id);
-  _sigAdcLG = new TH1I(out2, out, 100, -100, 700);
+  _sigAdcLG = new TH1I(out2, out, 100, -50, 500);
   SetHistoAxisLabelx(_sigAdcLG, "LG (peak) - PED, ADC counts");
 
   sprintf(out, "%s-%i, Signal at HG", _sensor.c_str(), _id);
@@ -98,7 +98,7 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   sprintf(out, "%s-%i, Number of Hits", _sensor.c_str(), _id);
   sprintf(out2, "h_raw_nHits_%s_%i", _sensor.c_str(), _id);
-  _nHits = new TH1I(out2, out, 40, 0, 40);
+  _nHits = new TH1I(out2, out, 50, 0, 50);
   SetHistoAxisLabelx(_nHits, "Number of Hits above ZS");
   //_nHits->SetStats(1);
 
