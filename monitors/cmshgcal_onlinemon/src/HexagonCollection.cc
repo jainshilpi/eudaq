@@ -126,9 +126,9 @@ void HexagonCollection::registerPlane(const eudaq::StandardPlane &p) {
     //std::cout<<"Hexa collection runMode="<<_runMode<<std::endl;
     
     if (_runMode!=0){
-      sprintf(tree, "%s/Module %i/Occ_HA_bit", p.Sensor().c_str(), p.ID());
+      sprintf(tree, "%s/Module %i/Occ_Full_Selection", p.Sensor().c_str(), p.ID());
       _mon->getOnlineMon()->registerTreeItem(tree);
-      _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccHAbitHisto(), "COLZ2 TEXT");
+      _mon->getOnlineMon()->registerHisto(tree, getHexagonHistos(p.Sensor(), p.ID())->getHexagonsOccSelectHisto(), "COLZ2 TEXT");
       _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
       
       sprintf(tree, "%s/Module %i/Occ_ADC_HG", p.Sensor().c_str(), p.ID());

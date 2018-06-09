@@ -25,7 +25,7 @@ protected:
   int _maxY;
   bool _wait;
 
-  TH2Poly *_hexagons_occ_HA_bit;
+  TH2Poly *_hexagons_occ_selection;
   TH2Poly *_hexagons_occ_adc;
   TH2Poly *_hexagons_occ_tot;
   TH2Poly *_hexagons_occ_toa;
@@ -58,7 +58,7 @@ public:
   void Calculate(const int currentEventNum);
   void Write();
 
-  TH2Poly *getHexagonsOccHAbitHisto() { return _hexagons_occ_HA_bit; }
+  TH2Poly *getHexagonsOccSelectHisto() { return _hexagons_occ_selection; }
   TH2Poly *getHexagonsOccAdcHisto() { return _hexagons_occ_adc; }
   TH2Poly *getHexagonsOccTotHisto() { return _hexagons_occ_tot; }
   TH2Poly *getHexagonsOccToaHisto() { return _hexagons_occ_toa; }
