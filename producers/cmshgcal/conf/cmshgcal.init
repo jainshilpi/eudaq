@@ -9,6 +9,6 @@
 
 [Producer.CMS-HGCAL]
 
-[Producer.TLU]
+[Producer.DWCs]
 #ErrorHandler=2
 

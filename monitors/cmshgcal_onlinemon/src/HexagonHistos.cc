@@ -206,13 +206,35 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 
       
       // ----- Maskig noisy channels ----
-      // These are noisy pixels in every hexaboard. Let's just mask them from DQM.
-      // Upd Sept. 2017: after disabling LED, those are not noisy anymore in all module, except "May"
-
+      // These are noisy pixels in most hexaboards. Let's just mask them from DQM:
       if ( pixel_x==0 && pixel_y==22 )
 	continue;
 
+      // Masking for June 2018 beam tests:
+      if ( (_sensor=="HexaBoard-RDB1" && _id==1 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB2" && _id==5 ) &&
+	   pixel_x==3 && pixel_y==12)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB2" && _id==6 ) &&
+	   pixel_x==3 && pixel_y==12)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB3" && _id==3 ) &&
+	   pixel_x==3 && pixel_y==12)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB4" && _id==3 ) &&
+	   ( (pixel_x==3 && pixel_y==12) || (pixel_x==3 && pixel_y==44) ) )
+	continue;
+      if ( (_sensor=="HexaBoard-RDB4" && _id==6 ) &&
+	   ( (pixel_x==0 && pixel_y==28) || (pixel_x==3 && pixel_y==44) ) )
+	continue;
+
+
       /*
+      // Below are masking of the modules used in 2017:
+      //if ( pixel_x==0 && pixel_y==22 )
+      //continue;
       if ( (_sensor=="HexaBoard-RDB1" && _id==0 ) &&
 	   pixel_x==3 && (pixel_y==32 || pixel_y==48))
 	continue;

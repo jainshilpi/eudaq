@@ -23,7 +23,7 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
     sprintf(out, "TOA Correlation: module %i vs. %i", _id, _ID);
     sprintf(out2, "h_corrTOA_%s_%ivs%i", _sensor.c_str(), _id, _ID);
-    _correlationTOA[_ID] = new TH2I(out2, out, 50, 0., 3000., 50, 0., 3000.);
+    _correlationTOA[_ID] = new TH2I(out2, out, 50, 1000., 3000., 50, 1000., 3000.);
     sprintf(out3, "AVG TOA, Module %i (ADC)", _id);
     sprintf(out4, "AVG TOA, Module %i (ADC)", _ID);
     SetHistoAxisLabels(_correlationTOA[_ID], out3, out4);
@@ -31,7 +31,7 @@ HexagonCorrelationHistos::HexagonCorrelationHistos(eudaq::StandardPlane p, RootM
 
     sprintf(out, "LG Correlation: module %i vs. %i", _id, _ID);
     sprintf(out2, "h_SignalLGSum_%s_%ivs%i", _sensor.c_str(), _id, _ID);
-    _correlationSignalLGSum[_ID] = new TH2I(out2, out, 50, 0., 8*1200., 50, 0., 8*1200.);
+    _correlationSignalLGSum[_ID] = new TH2I(out2, out, 50, 0., 6000., 50, 0., 6000.);
     //TB 2017: Energy sum in a layer of the EE part for 90 GeV electrons barely reaches 1000 MIPs.
     // Also, 1 MIP ~ 5 LG ADC //Thorben Quast, 07 June 2018
 
@@ -54,13 +54,15 @@ void HexagonCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, const eu
     const unsigned int avgTOA_1 = plane1.GetPixel(0, 30);
     const unsigned int avgTOA_2 = plane2.GetPixel(0, 30);
 
-    _correlationTOA[_ID]->Fill(avgTOA_1, avgTOA_2);
+    if (avgTOA_1!=0 && avgTOA_2!=0)
+      _correlationTOA[_ID]->Fill(avgTOA_1, avgTOA_2);
 
     //sum of HG in TS3 - TS0
     const unsigned int sumLG_TS3_1 = plane1.GetPixel(0, 31);
     const unsigned int sumLG_TS3_2 = plane2.GetPixel(0, 31);
-    
-    _correlationSignalLGSum[_ID]->Fill(sumLG_TS3_1, sumLG_TS3_2);
+
+    if (sumLG_TS3_1>20 && sumLG_TS3_2>20)
+      _correlationSignalLGSum[_ID]->Fill(sumLG_TS3_1, sumLG_TS3_2);
   }
 
 }

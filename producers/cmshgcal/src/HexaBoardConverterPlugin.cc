@@ -189,11 +189,11 @@ namespace eudaq {
 
 
 	    const std::vector<std::array<unsigned int,1924>> decoded = decode_raw_32bit(rawData32, RDBOARD);
-	  
+
 	    // Here we parse the data per hexaboard and per ski roc and only leave meaningful data (Zero suppress and finding main frame):
 	    const std::vector<std::vector<unsigned short>> dataBlockZS = GetZSdata(decoded, RDBOARD);
 	    //std::cout << "DBG 4444" << std::endl;
-	    
+
 	    for (unsigned h = 0; h < dataBlockZS.size(); h++){
 
 	      // std::cout<<"Hexa plane = "<<h<<std::endl;
@@ -448,7 +448,7 @@ namespace eudaq {
 	  const int hexa = ski/4;
 
 	  //std::cout<<"Chip "<<ski<<" RollMask is "<<std::hex<<decoded[ski][1920]<<std::endl;
-	  
+
 	  // ----------
 	  // -- Based on the rollmask, lets determine which time-slices (frames) to add
 	  //
@@ -520,40 +520,13 @@ namespace eudaq {
 
 	    // This channel is not conected. Notice that ski-roc numbering here is reverted by (3-ski) relation.
 	    // (Ie, the actual disconnected channel is (1,60), but in this numbering it's (2.60))
-	    if (ski==2 && ch==60) continue;
-
-	    // ----------
-	    // Temporarly!
-	    // Let's find the frame with max charge, per channel.
-	    //
-	    /*
-	      int maxADC = -10;
-	      int tmp_TS = -10;
-	      for (int ts = 0; ts < 13; ts++){
-
-	      const int ts1 = 12-ts;
-	      const int chargeLG = gray_to_brady(decoded[ski][ts1*128 + chArrPos] & 0x0FFF);
-	      //const int chargeHG = gray_to_brady(decoded[ski][ts1*128 + 64 + chArrPos] & 0x0FFF);
-
-	      if (chargeLG > maxADC){
-	      //std::cout<<ch <<": chargeHG="<<chargeHG<<"  at ts="<<ts<<std::endl;
-	      maxADC = chargeLG;
-	      tmp_TS = ts1;
-	      }
-	      }
-
-	      // ZeroSuppressed:
-	      //if (maxADC > 300)
-	      //&& maxADC - (ped+noi) > thresh)
-	      //std::cout<<ch <<": Max charge of HG="<<maxADC<<"  at ts="<<tmp_TS
-	      //	     << "  mainFrame = "<<mainFrame<<"  TS0 = "<<TS0<<std::endl;
-
-	      */
+	    // (UPD 09 June 2018: this is no longer applicable for V3 modules.)
+	    //if (ski==2 && ch==60) continue;
 
 	    unsigned short adc = 0;
 
 	    // Signal-like selection based on HG
-	    //ts = 12-(TS0+ts)%13    
+	    //ts = 12-(TS0+ts)%13
 	    const int TS3 = 12 - (TS0+3)%13;
 	    const int TS5 = 12 - (TS0+5)%13;
 	    const int TS7 = 12 - (TS0+7)%13;
@@ -589,6 +562,11 @@ namespace eudaq {
 		continue;
 	    }
 	    else if (m_runMode==2){
+	      // For the last hexaboard in the last readout board (4-7) always do a TOA selection
+	      if ( board_id == 4 && hexa == 7)
+		if (! (decoded[ski][chArrPos] & 0x1000))
+		  continue;
+	      // For the rest of them, do MIP selection
 	      if (! (hg_TS3over0 > thresh_HGTS3over0
 		     && hg_TS3over5 > thresh_HGTS3over5
 		     && hg_TS7 - hg_TS0 < 0
@@ -675,7 +653,7 @@ namespace eudaq {
 	    dataBlockZS[hexa].push_back(0);
 	    dataBlockZS[hexa].push_back(0);
 
-	    
+
 	    /* Let's not save this for the moment (no need)
 
 	    // Global TS 14 MSB (it's gray encoded?). Not decoded here!
