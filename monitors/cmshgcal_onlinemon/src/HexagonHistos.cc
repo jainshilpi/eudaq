@@ -31,8 +31,8 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   std::string sel("");
   if (_runMode==0) sel="PED";
-  else if (_runMode==0) sel="TOA";
-  else if (_runMode==0) sel="MIP";
+  else if (_runMode==1) sel="TOA";
+  else if (_runMode==2) sel="MIP";
   else sel="???";
   
   sprintf(out, "%s-%i, Occupancy based on %s", _sensor.c_str(), _id, sel.c_str());
