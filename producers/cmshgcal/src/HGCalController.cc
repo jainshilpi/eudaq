@@ -132,9 +132,9 @@ void HGCalController::startrun(int runId)
 
 void HGCalController::stoprun()
 {
-  m_mutex.lock();
+  //m_mutex.lock();
   m_state=CONFED;
-  m_mutex.unlock();
+  //m_mutex.unlock();
   boost::this_thread::sleep( boost::posix_time::microseconds(m_config.timeToWaitAtEndOfRun) ); //wait sometime until run thread is done
   m_mutex.lock();
   m_rootfile->Write();
@@ -167,6 +167,7 @@ void HGCalController::run()
     eventTimer.start();
     rdoutreadyTimer.start();
     while(1){
+      if( m_state!=RUNNING ) break;
       bool rdout_ready=true;
       for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
 	if( it->second->ReadRegister("BLOCK_READY")!=1 ) 
@@ -177,8 +178,9 @@ void HGCalController::run()
       }
       else break;
     }
+    if( m_state!=RUNNING ) {m_mutex.unlock(); break;}
     rdoutreadyTimer.stop();
-    std::cout << "\t HGCalController received block ready" << std::endl;
+    std::cout << "\t HGCalController received block ready\a" << std::endl;
 
     uint32_t trid=m_rdout_orms.begin()->second->ReadRegister("TRIG_COUNT");
     if( trid<m_triggerId ){

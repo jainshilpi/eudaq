@@ -65,12 +65,12 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
 
   sprintf(out, "%s-%i, Signal at LG", _sensor.c_str(), _id);
   sprintf(out2, "h_sigAdcLG_TS3_%s_%i", _sensor.c_str(), _id);
-  _sigAdcLG = new TH1I(out2, out, 100, -50, 500);
+  _sigAdcLG = new TH1I(out2, out, 200, -50, 500);
   SetHistoAxisLabelx(_sigAdcLG, "LG (peak) - PED, ADC counts");
 
   sprintf(out, "%s-%i, Signal at HG", _sensor.c_str(), _id);
   sprintf(out2, "h_sigAdcHG_TS3_%s_%i", _sensor.c_str(), _id);
-  _sigAdcHG = new TH1I(out2, out, 100, -100, 2600);
+  _sigAdcHG = new TH1I(out2, out, 500, -100, 2600);
   SetHistoAxisLabelx(_sigAdcHG, "HG (peak) - PED, ADC counts");
 
   
@@ -119,12 +119,12 @@ HexagonHistos::HexagonHistos(eudaq::StandardPlane p, RootMonitor *mon)
   // ---------
   sprintf(out, "%s-%i Waveform LG", _sensor.c_str(), _id);
   sprintf(out2, "h_waveform_LG_%s_%i", _sensor.c_str(), _id);
-  _waveformLG = new TH2I(out2, out, 2*nSCA, 0, nSCA, 100, 0, 3000);
+  _waveformLG = new TH2I(out2, out, 2*nSCA, 0, nSCA, 100, 0, 1500);
   SetHistoAxisLabels(_waveformLG, "Time Sample of 25 ns", "LG ADC");
 
   sprintf(out, "%s-%i, Waveform HG", _sensor.c_str(), _id);
   sprintf(out2, "h_waveform_HG_%s_%i", _sensor.c_str(), _id);
-  _waveformHG = new TH2I(out2, out, 2*nSCA, 0, nSCA, 100, 0, 4000);
+  _waveformHG = new TH2I(out2, out, 2*nSCA, 0, nSCA, 100, 0, 2600);
   SetHistoAxisLabels(_waveformHG, "Time Sample of 25 ns", "HG ADC");
 
 
@@ -217,9 +217,43 @@ void HexagonHistos::Fill(const eudaq::StandardPlane &plane, int evNumber) {
 	continue;
 
       // Masking for June 2018 beam tests:
+
+      // Mask 3, 44 in many modules
       if ( (_sensor=="HexaBoard-RDB1" && _id==1 ) &&
 	   pixel_x==3 && pixel_y==44)
 	continue;
+      if ( (_sensor=="HexaBoard-RDB1" && _id==2 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB1" && _id==3 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB2" && _id==0 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB2" && _id==4 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB2" && _id==6 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB2" && _id==7 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB3" && _id==0 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB3" && _id==3 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB3" && _id==6 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+      if ( (_sensor=="HexaBoard-RDB4" && _id==1 ) &&
+	   pixel_x==3 && pixel_y==44)
+	continue;
+
+      // others
       if ( (_sensor=="HexaBoard-RDB2" && _id==5 ) &&
 	   pixel_x==3 && pixel_y==12)
 	continue;

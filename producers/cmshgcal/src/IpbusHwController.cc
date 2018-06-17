@@ -42,9 +42,15 @@ namespace ipbus{
   void IpbusHwController::SetRegister( const std::string &name, uint32_t val )
   {
     try {
-      m_hw->getNode(name).write( val );
+      uhal::ValHeader vhead = m_hw->getNode(name).write( val );
       m_hw->dispatch();
+      while(1){
+	if( vhead.valid() ) break;
+	else
+	  std::cout << "ValHeader is not valid" << std::endl;
+      }
     } catch (...) {
+      std::cout << "ValHeader could not be valid (strange to reach this point)" << std::endl;
       return;
     }
   }
