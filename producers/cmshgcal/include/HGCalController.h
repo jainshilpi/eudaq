@@ -97,7 +97,6 @@ class HGCalController
   float m_eventtime;
   float m_rdoutreadytime;
   float m_readouttime;
-  float m_datestamptime;
   float m_rdoutdonetime;
 
 };

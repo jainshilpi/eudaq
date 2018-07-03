@@ -94,7 +94,6 @@ void HGCalController::startrun(int runId)
   m_roottree->Branch("eventtime",&m_eventtime);
   m_roottree->Branch("rdoutreadytime",&m_rdoutreadytime);
   m_roottree->Branch("readouttime",&m_readouttime);
-  m_roottree->Branch("datestamptime",&m_datestamptime);
   m_roottree->Branch("rdoutdonetime",&m_rdoutdonetime);
 
   if( m_config.saveRawData ){
@@ -107,20 +106,9 @@ void HGCalController::startrun(int runId)
     header[2]=FORMAT_VERSION;
     m_rawFile.write(reinterpret_cast<const char*>(&header[0]), sizeof(header));
   }
-
-  //wait for the date_stamp registers
-  for( std::map< int,ipbus::IpbusHwController* >::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-    it->second->ResetTheData();
-    while(1){
-      if( it->second->ReadRegister("DATE_STAMP") )
-	break;
-      else
-	boost::this_thread::sleep( boost::posix_time::microseconds(10) );
-    }
-  }
   
-  for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-    it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
+  // for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+  //   it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
   if(m_config.throwFirstTrigger){
     this->readAndThrowFirstTrigger();
   }
@@ -213,34 +201,19 @@ void HGCalController::run()
     }
     std::cout << "\t HGCalController finished reading the data" << std::endl;	
     readoutTimer.stop();
-
-    datestampTimer.start();
-    std::cout << "\t HGCalController waits the date_stamp" << std::endl;	
-    for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
-      it->second->ResetTheData();
-      while(1){
-	if( it->second->ReadRegister("DATE_STAMP") )
-	  break;
-	else
-	  boost::this_thread::sleep( boost::posix_time::microseconds(10) );
-      }
-    }
-    std::cout << "\t HGCalController received the date_stamp" << std::endl;	
-    datestampTimer.stop();
     
-    rdoutDoneTimer.start();
-    std::cout << "\t HGCalController sends readout done magic" << std::endl;	
-    for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-      it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC); 
-    std::cout << "\t HGCalController finished readout done magic" << std::endl;	
-    rdoutDoneTimer.stop();
+    // rdoutDoneTimer.start();
+    // std::cout << "\t HGCalController sends readout done magic" << std::endl;	
+    // for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+    //   it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC); 
+    // std::cout << "\t HGCalController finished readout done magic" << std::endl;	
+    // rdoutDoneTimer.stop();
     
     eventTimer.stop();
 
     m_eventtime = eventTimer.elapsed().wall/1e9;
     m_rdoutreadytime = rdoutreadyTimer.elapsed().wall/1e9;
     m_readouttime = readoutTimer.elapsed().wall/1e9;
-    m_datestamptime = datestampTimer.elapsed().wall/1e9;
     m_rdoutdonetime = rdoutDoneTimer.elapsed().wall/1e9;
 
     m_daqrate = 1.0/m_eventtime;
@@ -278,15 +251,9 @@ void HGCalController::readAndThrowFirstTrigger()
   for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it ){
     it->second->ReadDataBlock("FIFO");
     it->second->ResetTheData();
-    while(1){
-      if( it->second->ReadRegister("DATE_STAMP") )
-	break;
-      else
-	boost::this_thread::sleep( boost::posix_time::microseconds(1) );     
-    }
   }
-  for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
-    it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
+  // for( std::map<int,ipbus::IpbusHwController*>::iterator it=m_rdout_orms.begin(); it!=m_rdout_orms.end(); ++it )
+  //   it->second->SetRegister("RDOUT_DONE",RDOUT_DONE_MAGIC);
   boost::this_thread::sleep( boost::posix_time::microseconds(2000) );
 }
 
