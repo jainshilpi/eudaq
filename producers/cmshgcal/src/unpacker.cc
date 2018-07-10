@@ -146,9 +146,9 @@ void unpacker::checkTimingSync()
     prevTime[ormId]=it->second;
 
     if( ormId==maxOrmId )
-      for( std::map<int,uint64_t>::iterator it=diffTime.begin(); it!=diffTime.end(); ++it ){
-	if( it->second-diffTime.begin()->second != 0 )
-	  std::cout << "There is a timing issue, trigger id = " << trigId << std::endl;
+      for( std::map<int,uint64_t>::iterator jt=diffTime.begin(); jt!=diffTime.end(); ++jt ){
+	if( jt->second-diffTime.begin()->second != 0 )
+	  std::cout << "There is a timing issue, trigger id = " << std::dec << trigId << " ormId=" << jt->first << "\t jt->second-diffTime.begin()->second=" << jt->second-diffTime.begin()->second << " " << diffTime.begin()->second << std::endl;
       }
   }
 }

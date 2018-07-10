@@ -72,6 +72,8 @@ int main(int argc, char** argv) {
   os.str("");
   os << outputPath << "run" << std::setw(6) << std::setfill('0') << runID << ".root";
   TFile *rfile = new TFile(os.str().c_str(),"RECREATE");
+  if( !rfile->IsOpen() )
+    return 0;
   TTree *rtree = new TTree("hgcalraw","hgcal raw data");
   std::vector<uint16_t> sk2cmsData;
   long long timeStamp;
