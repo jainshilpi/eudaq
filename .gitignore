@@ -70,3 +70,5 @@ debug/*
 # ignore OS files
 Thumbs.db
 *.lnk
+
+/build
