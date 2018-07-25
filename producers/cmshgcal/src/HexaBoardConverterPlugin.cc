@@ -261,8 +261,8 @@ namespace eudaq {
 	//printf("\t SkiMask: 0x%08x;   Length of Raw: %d\n", ch_mask, raw.size());
 
 	// Check that an external mask agrees with first 32-bit word in data
-	if (ch_mask!=raw[0])
-	  EUDAQ_DEBUG("You extarnal mask ("+eudaq::to_hex(ch_mask)+") does not agree with the one found in data ("+eudaq::to_hex(raw[0])+")");
+	//if (ch_mask!=raw[0])
+	  //EUDAQ_DEBUG("You extarnal mask ("+eudaq::to_hex(ch_mask)+") does not agree with the one found in data ("+eudaq::to_hex(raw[0])+")");
 
 
 	//for (int b=0; b<2; b++)
