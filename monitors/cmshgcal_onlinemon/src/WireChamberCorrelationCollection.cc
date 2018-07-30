@@ -13,9 +13,9 @@ bool WireChamberCorrelationCollection::isPlaneRegistered(eudaq::StandardPlane p)
 void WireChamberCorrelationCollection::fillHistograms(const eudaq::StandardPlane &pl1, const eudaq::StandardPlane &pl2) {
   //std::cout<<"In WireChamberCorrelationCollection::fillHistograms(StandardPlane)"<<std::endl;
 
-  if (pl1.Sensor()!="WireChamber")
+  if (pl1.Sensor()!="DWC")
     return;
-  if (pl2.Sensor()!="WireChamber")
+  if (pl2.Sensor()!="DWC")
     return;
 
   if (!isPlaneRegistered(pl1)) {
@@ -35,7 +35,7 @@ void WireChamberCorrelationCollection::bookHistograms(const eudaq::StandardEvent
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
-      if (Plane.Sensor()=="WireChambers")
+      if (Plane.Sensor()=="DWC")
 	     registerPlane(Plane);
     }
   }
@@ -49,8 +49,8 @@ void WireChamberCorrelationCollection::Write(TFile *file) {
 
   if (gDirectory != NULL) // check if this pointer exists
   {
-    gDirectory->mkdir("WireChamberCorrelation");
-    gDirectory->cd("WireChamberCorrelation");
+    gDirectory->mkdir("DelayWireChamber_Correlation");
+    gDirectory->cd("DelayWireChamber_Correlation");
 
     std::map<eudaq::StandardPlane, WireChamberCorrelationHistos *>::iterator it;
     for (it = _map.begin(); it != _map.end(); ++it) {
@@ -93,10 +93,10 @@ void WireChamberCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int 
 
   for (int plane1 = 0; plane1 < ev.NumPlanes(); plane1++) {
     const eudaq::StandardPlane &Plane1 = ev.GetPlane(plane1);
-    if (Plane1.Sensor()!="WireChamber") continue;
+    if (Plane1.Sensor()!="DWC") continue;
     for (int plane2 = 0; plane2 < ev.NumPlanes(); plane2++) {
       const eudaq::StandardPlane &Plane2 = ev.GetPlane(plane2);
-      if (Plane2.Sensor()!="WireChamber") continue;
+      if (Plane2.Sensor()!="DWC") continue;
       if (Plane1.ID() >= Plane2.ID()) continue;
       fillHistograms(Plane1, Plane2);
     }
@@ -105,7 +105,7 @@ void WireChamberCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int 
 
 
 WireChamberCorrelationHistos *WireChamberCorrelationCollection::getWireChamberCorrelationHistos(std::string sensor, int id) {
-  const eudaq::StandardPlane p(id, "WireChamber", sensor);
+  const eudaq::StandardPlane p(id, "DWC", sensor);
   return _map[p];
 }
 

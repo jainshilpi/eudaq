@@ -6,6 +6,8 @@
 #include <bitset>
 #include <boost/format.hpp>
 
+#include "CAENv1290Unpacker.h"
+
 // All LCIO-specific parts are put in conditional compilation blocks
 // so that the other parts may still be used if LCIO is not available.
 #if USE_LCIO
@@ -15,12 +17,13 @@
 #include "lcio.h"
 #endif
 
+CAENv1290Unpacker* tdc_unpacker;
+
 namespace eudaq {
 
   // The event type for which this converter plugin will be registered
   // Modify this to match your actual event type (from the Producer)
-  //static const char *EVENT_TYPE = "RPI";
-  static const char *EVENT_TYPE = "WireChambers";
+  static const char *EVENT_TYPE = "DWC";
 
   // Declare a new class that inherits from DataConverterPlugin
   class WireChamberConverterPlugin : public DataConverterPlugin {
@@ -62,57 +65,100 @@ namespace eudaq {
 
       // If the event type is used for different sensors
       // they can be differentiated here
-      const std::string sensortype = "WireChamber";
+      const std::string sensortype = "DWC";
 
-      std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
+      //std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
 
       const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
 
+
+      sev.SetTag("cpuTime_mus", rev->GetTimestamp());
+
       //rev->Print(std::cout);
 
+      std::vector<tdcData*> unpacked;
+      std::map<std::pair<int, int>, uint32_t> time_of_arrivals;
+
+
       const unsigned nBlocks = rev->NumBlocks();
-      std::cout<<"Number o Raw Data Blocks: "<<nBlocks<<std::endl;
+      //std::cout<<"Number o Raw Data Blocks: "<<nBlocks<<std::endl;
 
-      for (unsigned blo=0; blo<nBlocks; blo++){
-        if (blo != 1) continue;  //we only want the unpacked dwc data
+      //one plane for offline 
+      int max_nhits = 1;
+      for (unsigned tdc_index=0; tdc_index<nBlocks; tdc_index++){
               
-        std::cout<<"Block = "<<blo<<"  Raw GetID = "<<rev->GetID(blo)<<std::endl;
+        //std::cout<<"Block = "<<tdc_index<<"  Raw GetID = "<<rev->GetID(tdc_index)<<std::endl;
 
-        const RawDataEvent::data_t & bl = rev->GetBlock(blo);
+        const RawDataEvent::data_t & bl = rev->GetBlock(tdc_index);
 
-        std::cout<<"size of block: "<<bl.size()<<std::endl;
+        //std::cout<<"size of block: "<<bl.size()<<std::endl;
+
+        //conversion block
+        std::vector<uint32_t> Words;
+        Words.resize(bl.size() / sizeof(uint32_t));
+        std::memcpy(&Words[0], &bl[0], bl.size());   
 
 
-        std::vector<StandardPlane> wcs;
-        for (int wc_index=0; wc_index<4; wc_index++) {    //adjust here in case only one DWC is read out
-          float xl, xr, yu, yd;
-          memcpy(&xl, &bl[4*wc_index*4+0], sizeof(xl));
-          memcpy(&xr, &bl[4*wc_index*4+4], sizeof(xr));
-          memcpy(&yu, &bl[4*wc_index*4+8], sizeof(yu));
-          memcpy(&yd, &bl[4*wc_index*4+12], sizeof(yd));
-
-          //std::cout<<"Wire chamber "<<wc_index<<": "<<"xl="<<xl<<" xr="<<xr<<"     yu="<<yu<<" yd="<<yd<<std::endl;;
-          StandardPlane wc(wc_index, EVENT_TYPE, sensortype);
-          wc.SetSizeRaw(1, 4);
-          wc.SetPixel(0, 0, 0, xl);
-          wc.SetPixel(1, 1, 0, xr);
-          wc.SetPixel(2, 0, 0, yu);
-          wc.SetPixel(3, 0, 0, yd);
-
-          wc.SetTLUEvent(GetTriggerID(ev));
-
-          wcs.push_back(wc);
-        }
-
-        for (size_t i = 0; i<wcs.size(); i++) sev.AddPlane(wcs[i]);
-
-      	//eudaq::mSleep(10);
-	
+        unpacked.push_back(tdc_unpacker->ConvertTDCData(Words));        
+        
       }
-      
 
+
+      //plane for offline reconstruction
+      StandardPlane full_dwc_plane(0, EVENT_TYPE, sensortype+"_fullTDC");
+      full_dwc_plane.SetSizeRaw(nBlocks, 16, 1+NHits_forReadout);    //nBlocks = number of TDCs, 16=number of channels in the TDC, one frame
       
-      std::cout<<"St Ev NumPlanes: "<<sev.NumPlanes()<<std::endl;
+      for (unsigned tdc_index=0; tdc_index<nBlocks; tdc_index++)for (int channel=0; channel<16; channel++) {
+        full_dwc_plane.SetPixel(tdc_index*16+channel, tdc_index, channel, unpacked[tdc_index]->hits[channel].size(), false, 0);           
+      }
+        
+      for (unsigned tdc_index=0; tdc_index<nBlocks; tdc_index++)for (int channel=0; channel<16; channel++) {
+        time_of_arrivals[std::make_pair(tdc_index, channel)] = unpacked[tdc_index]->timeOfArrivals[channel];    //it is peculiar that we need that hack in order to access the time of arrivals in a subsequent step
+        for (size_t hit_index=0; hit_index<unpacked[tdc_index]->hits[channel].size(); hit_index++) {
+          if (hit_index>=NHits_forReadout) break;
+          full_dwc_plane.SetPixel(tdc_index*16+channel, tdc_index, channel, unpacked[tdc_index]->hits[channel][hit_index], false, 1+hit_index);            
+        }
+      }
+      sev.AddPlane(full_dwc_plane);
+
+      //Hard coded assignment of channel time stamps to DWC planes for the DQM to guarantee downward compatibility with <=July 2018 DQM
+      //note: for the DWC correlation plots, the indexing must start at 0!
+      StandardPlane DWCE_plane(0, EVENT_TYPE, sensortype);
+      DWCE_plane.SetSizeRaw(4, 1, 1);
+      DWCE_plane.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(0, 0)]);   //left
+      DWCE_plane.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(0, 1)]);   //right
+      DWCE_plane.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(0, 2)]);   //up
+      DWCE_plane.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(0, 3)]);   //down
+      sev.AddPlane(DWCE_plane);
+
+      StandardPlane DWCD_plane(1, EVENT_TYPE, sensortype);
+      DWCD_plane.SetSizeRaw(4, 1, 1);
+      DWCD_plane.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(0, 4)]);   //left
+      DWCD_plane.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(0, 5)]);   //right
+      DWCD_plane.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(0, 6)]);   //up
+      DWCD_plane.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(0, 7)]);   //down
+      sev.AddPlane(DWCD_plane);
+
+      StandardPlane DWCA_plane(2, EVENT_TYPE, sensortype);
+      DWCA_plane.SetSizeRaw(4, 1, 1);
+      DWCA_plane.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(0, 8)]);   //left
+      DWCA_plane.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(0, 9)]);   //right
+      DWCA_plane.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(0, 10)]);   //up
+      DWCA_plane.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(0, 11)]);   //down
+      sev.AddPlane(DWCA_plane);
+
+      StandardPlane DWCExt_plane(3, EVENT_TYPE, sensortype);
+      DWCExt_plane.SetSizeRaw(4, 1, 1);
+      DWCExt_plane.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(0, 12)]);   //left
+      DWCExt_plane.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(0, 13)]);   //right
+      DWCExt_plane.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(0, 14)]);   //up
+      DWCExt_plane.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(0, 15)]);   //down
+      sev.AddPlane(DWCExt_plane);
+      
+    
+
+      for (size_t i=0; i<unpacked.size(); i++) delete unpacked[i];
+      unpacked.clear();
 
       // Indicate that data was successfully converted
       return true;
@@ -126,17 +172,27 @@ namespace eudaq {
       return 0;
     }
 #endif
-
+  
   private:
+    CAENv1290Unpacker* tdc_unpacker;
+
+
+    unsigned NHits_forReadout;      //limit the number of converted hits to the first NHits_forReadout
+
     // The constructor can be private, only one static instance is created
     // The DataConverterPlugin constructor must be passed the event type
     // in order to register this converter for the corresponding conversions
     // Member variables should also be initialized to default values here.
     WireChamberConverterPlugin()
-        : DataConverterPlugin(EVENT_TYPE) {}
+        : DataConverterPlugin(EVENT_TYPE) {
+          tdc_unpacker = new CAENv1290Unpacker(16);
+          NHits_forReadout = 20;
+        }
 
     // Information extracted in Initialize() can be stored here:
-
+    ~WireChamberConverterPlugin() {
+      delete tdc_unpacker;
+    }
 
     // The single instance of this converter plugin
     static WireChamberConverterPlugin m_instance;

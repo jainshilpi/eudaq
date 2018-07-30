@@ -568,10 +568,11 @@ void CAEN_V1290::generatePseudoData(std::vector<WORD> &data) {
   bitStream = bitStream | 10<<28;
   data.push_back(bitStream);
   
-  unsigned int beamX = (1/0.2)*(40)*(rand()%10000)/100;
-  unsigned int beamY = (1/0.2)*(40)*(rand()%10000)/100;
+  unsigned int beamX = (rand()%10000)/100 - 50;
+  unsigned int beamY = (rand()%10000)/100 - 50;
+  unsigned int _default = 20000;
 
-  unsigned int readouts[16] = {beamX+(rand()%10), (rand()%10), beamY+(rand()%10), (rand()%10), beamX+(rand()%10), (rand()%10), beamY+(rand()%10), (rand()%10), beamX+(rand()%10), (rand()%10), beamY+(rand()%10), (rand()%10), beamX+(rand()%10), (rand()%10), beamY+(rand()%10), (rand()%10)};
+  unsigned int readouts[16] = {_default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200, _default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200, _default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200, _default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200};
   
   //generate the channel information
   for (unsigned int channel=0; channel<16; channel++) {
@@ -579,7 +580,7 @@ void CAEN_V1290::generatePseudoData(std::vector<WORD> &data) {
 
     unsigned int readout = readouts[channel];
 
-    int N_hits = rand()%20;
+    int N_hits = rand()%18;   //maximum 10 hits in one readout
     for (int N=0; N<N_hits; N++) {
       bitStream = 0;
       bitStream = bitStream | 0<<28;

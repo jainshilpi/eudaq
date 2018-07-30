@@ -16,7 +16,6 @@
 #include <TTree.h>
 
 #include "CAEN_v1290.h"
-#include "Unpacker.h"
 
 #include <chrono>
 
@@ -26,7 +25,7 @@ enum RUNMODE{
 };
 
 
-static const std::string EVENT_TYPE = "WireChambers";
+static const std::string EVENT_TYPE = "DWC";
 
 class WireChamberProducer : public eudaq::Producer {
   public:
@@ -35,8 +34,6 @@ class WireChamberProducer : public eudaq::Producer {
     : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {
       tdc = new CAEN_V1290();
       initialized = false;
-      tdc_unpacker = NULL;
-      outTree=NULL;
       _mode = DWC_DEBUG;
       std::cout<<"Initialisation of the DWC Producer..."<<std::endl;
     }
@@ -44,9 +41,6 @@ class WireChamberProducer : public eudaq::Producer {
   virtual void OnConfigure(const eudaq::Configuration & config) {
     SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Configuring (" + config.Name() + ")");
     std::cout << "Configuring: " << config.Name() << std::endl;
-
-    //Read the data output file prefix
-    dataFilePrefix = config.Get("dataFilePrefix", "../data/dwc_run_");
 
 
     int mode = config.Get("AcquisitionMode", 0);
@@ -77,34 +71,6 @@ class WireChamberProducer : public eudaq::Producer {
     _config.windowWidth = config.Get("windowWidth", 0x40);
     _config.windowOffset = config.Get("windowOffset", -1);
 
-    //read the enabled channels
-    N_channels = config.Get("N_channels", 16);
-    EUDAQ_INFO("Enabled channels:");
-    for (unsigned int channel=0; channel<N_channels; channel++){
-      channels_enabled[channel] = (config.Get(("channel_"+std::to_string(channel)).c_str(), -1)==1) ? true : false;
-      std::cout<<"TDC channel "<<channel<<" connected ? "<<channels_enabled[channel]<<std::endl;
-    }
-
-    
-    dwc1_left_channel = config.Get("dwc1_left_channel", 0); 
-    dwc1_right_channel = config.Get("dwc1_right_channel", 1);
-    dwc1_down_channel = config.Get("dwc1_down_channel", 2); 
-    dwc1_up_channel = config.Get("dwc1_up_channel", 3);
-    
-    dwc2_left_channel = config.Get("dwc2_left_channel", 4); 
-    dwc2_right_channel = config.Get("dwc2_right_channel", 5);
-    dwc2_down_channel = config.Get("dwc2_down_channel", 6); 
-    dwc2_up_channel = config.Get("dwc2_up_channel", 7);
-    
-    dwc3_left_channel = config.Get("dwc3_left_channel", 8); 
-    dwc3_right_channel = config.Get("dwc3_right_channel", 9);      
-    dwc3_down_channel = config.Get("dwc3_down_channel", 10); 
-    dwc3_up_channel = config.Get("dwc3_up_channel", 11);
-    
-    dwc4_left_channel = config.Get("dwc4_left_channel", 12); 
-    dwc4_right_channel = config.Get("dwc4_right_channel", 13);
-    dwc4_down_channel = config.Get("dwc4_down_channel", 14); 
-    dwc4_up_channel = config.Get("dwc4_up_channel", 15);
       
 
     if (_mode == DWC_RUN) {
@@ -117,7 +83,6 @@ class WireChamberProducer : public eudaq::Producer {
       }
     }
 
-    defaultTimestamp = config.Get("defaultTimestamp", -999);
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
 
   }
@@ -142,31 +107,6 @@ class WireChamberProducer : public eudaq::Producer {
       }
     }
 
-    dwc_timestamps.clear();
-    dwc_hits.clear();
-    channels.clear();
-    for (size_t channel=0; channel<N_channels; channel++) {
-      channels.push_back(-1);
-      dwc_timestamps.push_back(defaultTimestamp);
-      dwc_hits.push_back(std::vector<int>(0));
-    }
-
-    if (tdc_unpacker != NULL) delete tdc_unpacker;
-    tdc_unpacker = new Unpacker(N_channels);
-
-    if (outTree != NULL) delete outTree;
-    outTree = new TTree("DelayWireChambers", "DelayWireChambers");
-    outTree->Branch("run", &m_run);
-    outTree->Branch("event", &m_ev);
-    outTree->Branch("channels", &channels);
-
-    for (int ch=0; ch<N_channels; ch++)
-      outTree->Branch(("dwc_hits_ch"+std::to_string(ch)).c_str(), &dwc_hits[ch]);
-    
-    outTree->Branch("dwc_timestamps", &dwc_timestamps);
-    outTree->Branch("timeSinceStart", &timeSinceStart);
-
-
     SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
     startTime = std::chrono::steady_clock::now();
     started=true;
@@ -184,14 +124,7 @@ class WireChamberProducer : public eudaq::Producer {
     // You can also set tags on it (as with the BORE) if necessary
     SendEvent(eudaq::RawDataEvent::EORE("Test", m_run, ++m_ev));
 
-    std::ostringstream os;
-    os.str(""); os<<"Saving the data into the outputfile: "<<dataFilePrefix<<m_run<<".root";
-    EUDAQ_INFO(os.str().c_str());
-    //save the tree into a file
-    TFile* outfile = new TFile((dataFilePrefix+std::to_string(m_run)+".root").c_str(), "RECREATE");
-    outTree->Write();
-    outfile->Close();
-
+    
     stopping = false;
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopped");
   }
@@ -204,7 +137,7 @@ class WireChamberProducer : public eudaq::Producer {
     eudaq::mSleep(200);
 
     delete tdc;
-    delete tdc_unpacker;
+
   }
 
 
@@ -232,61 +165,16 @@ class WireChamberProducer : public eudaq::Producer {
       m_ev++;
      
 
-      tdcData unpacked = tdc_unpacker->ConvertTDCData(dataStream);
-
-      for (int channel=0; channel<N_channels; channel++) {
-        channels[channel] = channel;  
-        dwc_timestamps[channel] = channels_enabled[channel] ? unpacked.timeOfArrivals[channel] : defaultTimestamp;
-      
-        dwc_hits[channel].clear();
-        for (size_t i=0; i<unpacked.hits[channel].size(); i++) dwc_hits[channel].push_back(unpacked.hits[channel][i]);
-      }
-
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-      outTree->Fill();
 
       std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart/1000.<<" ms +++"<<std::endl;
-      for (int channel=0; channel<N_channels; channel++) std::cout<<" "<<dwc_timestamps[channel]; std::cout<<std::endl;
-
-      // ------
-      // Here, can we do a conversion of the raw data to X,Y positions of the Wire Chambers ->yes
-      // Let's assume we can, and the numbers are stored in a vector of floats
-      
- 
-      //ATTENTION !
-      //possible source of segfault if the key, i.e. the assigned channel is not in between 0 and N_channels. N_channels and all the channel assignments originate from the configuration
-      PosXY.clear();
-      PosXY.push_back(dwc_timestamps[dwc1_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc1_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc1_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc1_up_channel]);
-      
-      //x-y of wire chamber 2
-      PosXY.push_back(dwc_timestamps[dwc2_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc2_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc2_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc2_up_channel]);
-      
-      //x-y of wire chamber 3
-      PosXY.push_back(dwc_timestamps[dwc3_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc3_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc3_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc3_up_channel]);  
-
-      //x-y of wire chamber 4
-      PosXY.push_back(dwc_timestamps[dwc4_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc4_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc4_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc4_up_channel]);
-
-
+        
       //making an EUDAQ event
       eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
-
+      ev.setTimeStamp(timeSinceStart);
       ev.AddBlock(0, dataStream);
-      ev.AddBlock(1, PosXY);
-
+      
       //Adding the event to the EUDAQ format
       SendEvent(ev);
 
@@ -301,31 +189,15 @@ class WireChamberProducer : public eudaq::Producer {
     bool stopping, done, started;
     bool initialized;
 
-    std::string dataFilePrefix;
+    std::chrono::steady_clock::time_point startTime; 
+    uint64_t timeSinceStart;
+ 
 
     //set on configuration
     CAEN_V1290* tdc;
-    Unpacker* tdc_unpacker;
+    
 
     std::vector<WORD> dataStream;
-
-    int N_channels;
-    std::map<int, bool> channels_enabled;
-
-    //generated for each run
-    TTree* outTree;
-
-    std::vector<int> dwc_timestamps;
-    std::vector<std::vector<int> > dwc_hits;
-    std::vector<int> channels;
-    std::chrono::steady_clock::time_point startTime;
-    Long64_t timeSinceStart;
-
-    int defaultTimestamp;
-
-    std::vector<float> PosXY;
-    //mapping and conversion parameters for the online monitoring
-    size_t dwc1_left_channel, dwc1_right_channel, dwc1_down_channel, dwc1_up_channel, dwc2_left_channel, dwc2_right_channel, dwc2_down_channel, dwc2_up_channel, dwc3_left_channel, dwc3_right_channel, dwc3_down_channel, dwc3_up_channel, dwc4_left_channel, dwc4_right_channel, dwc4_down_channel, dwc4_up_channel;
 
 };
 

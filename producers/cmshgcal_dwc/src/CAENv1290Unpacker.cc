@@ -1,4 +1,4 @@
-#include "Unpacker.h"
+#include "CAENv1290Unpacker.h"
 
 //#define DEBUG_UNPACKER
 
@@ -6,7 +6,7 @@
 
 //implementation adapted from H4DQM: https://github.com/cmsromadaq/H4DQM/blob/master/src/CAEN_V1290.cpp
 //CAEN v1290 manual found in: http://www.tunl.duke.edu/documents/public/electronics/CAEN/caen_v1290.pdf
-int Unpacker::Unpack (std::vector<WORD> Words) {
+int CAENv1290Unpacker::Unpack (std::vector<uint32_t>& Words, tdcData* currentData) {
   for (size_t i = 0; i<Words.size(); i++) {
     uint32_t currentWord = Words[i];
     
@@ -17,7 +17,7 @@ int Unpacker::Unpack (std::vector<WORD> Words) {
     
     if (currentWord>>28 == 10 ) { //TDC BOE
       unsigned int tdcEvent= (currentWord) & 0xFFFFFF; 
-      currentData.event = tdcEvent;
+      currentData->event = tdcEvent;
       #ifdef DEBUG_UNPACKER 
         std::cout << "[CAEN_V12490][Unpack] | TDC 1190 BOE: event " << tdcEvent+1 << std::endl;
       #endif
@@ -62,27 +62,29 @@ int Unpacker::Unpack (std::vector<WORD> Words) {
 }
 
 
-tdcData Unpacker::ConvertTDCData(std::vector<WORD> Words) {
+tdcData* CAENv1290Unpacker::ConvertTDCData(std::vector<uint32_t>& Words) {
 
   for(std::map<unsigned int, std::vector<unsigned int> >::iterator channelTimeStamps = timeStamps.begin(); channelTimeStamps != timeStamps.end(); ++channelTimeStamps) {
     channelTimeStamps->second.clear();
   }
   timeStamps.clear();
 
+  tdcData* currentData = new tdcData;
+
   //unpack the stream
-  Unpack(Words);
+  Unpack(Words, currentData);
   
   for (int ch=0; ch<N_channels; ch++) {
-    currentData.timeOfArrivals[ch] = -1;  //fill all 16 channels with a value indicating that no hit has been registered
-    currentData.hits[ch].clear();
+    currentData->timeOfArrivals[ch] = -1;  //fill all 16 channels with a value indicating that no hit has been registered
+    currentData->hits[ch].clear();
   } 
 
   for(std::map<unsigned int, std::vector<unsigned int> >::iterator channelTimeStamps = timeStamps.begin(); channelTimeStamps != timeStamps.end(); ++channelTimeStamps) {
     if (channelTimeStamps->second.size() == 0) continue;
     
     unsigned int this_channel = channelTimeStamps->first; 
-    currentData.timeOfArrivals[this_channel] = *min_element(channelTimeStamps->second.begin(), channelTimeStamps->second.end());
-    currentData.hits[this_channel] = channelTimeStamps->second;
+    currentData->timeOfArrivals[this_channel] = *min_element(channelTimeStamps->second.begin(), channelTimeStamps->second.end());
+    currentData->hits[this_channel] = channelTimeStamps->second;
     #ifdef DEBUG_UNPACKER
       std::cout<<"Number of hits in channel: "<<this_channel<<" :  "<<currentData.hits[this_channel].size()<<std::endl;
     #endif

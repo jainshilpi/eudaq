@@ -18,8 +18,8 @@ SET (HgcOnlineMon_SOURCES
   src/CorrelationHistos.cc
   src/DATURAToHGCALCorrelationCollection.cc
   src/DATURAToHGCALCorrelationHistos.cc
-  src/DWCToHGCALCorrelationCollection.cc
-  src/DWCToHGCALCorrelationHistos.cc
+  #src/DWCToHGCALCorrelationCollection.cc
+  #src/DWCToHGCALCorrelationHistos.cc
   src/WireChamberCollection.cc
   src/WireChamberHistos.cc
   src/WireChamberCorrelationCollection.cc

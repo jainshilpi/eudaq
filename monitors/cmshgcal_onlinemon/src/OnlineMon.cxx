@@ -70,7 +70,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   beamTelescopeHitCollection = new HitmapCollection();
   beamTelescopeCorrCollection = new CorrelationCollection();
   daturaToHGCALCorrelationCollection = new DATURAToHGCALCorrelationCollection();
-  dwcToHGCALCorrelationCollection = new DWCToHGCALCorrelationCollection();
+  //dwcToHGCALCorrelationCollection = new DWCToHGCALCorrelationCollection();
 
   cout << "--- Done ---"<<endl<<endl;
 
@@ -83,7 +83,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   //_colls.push_back(beamTelescopeHitCollection);
   //_colls.push_back(beamTelescopeCorrCollection);
   //_colls.push_back(daturaToHGCALCorrelationCollection);
-  _colls.push_back(dwcToHGCALCorrelationCollection);
+  //_colls.push_back(dwcToHGCALCorrelationCollection);
   
   // set the root Monitor
   if (_offline <= 0) {
@@ -95,7 +95,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
     beamTelescopeHitCollection->setRootMonitor(this);
     beamTelescopeCorrCollection->setRootMonitor(this);
     daturaToHGCALCorrelationCollection->setRootMonitor(this);
-    dwcToHGCALCorrelationCollection->setRootMonitor(this);
+    //dwcToHGCALCorrelationCollection->setRootMonitor(this);
 
     onlinemon->setCollections(_colls);
   }

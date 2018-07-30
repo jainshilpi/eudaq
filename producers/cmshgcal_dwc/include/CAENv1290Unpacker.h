@@ -1,5 +1,5 @@
-#ifndef UNPACKER_H
-#define UNPACKER_H
+#ifndef CAENv1290Unpacker_H
+#define CAENv1290Unpacker_H
 
 #include <fstream>
 #include <iostream>
@@ -11,7 +11,6 @@
 #include <algorithm> 
 
 #include "eudaq/Logger.hh"
-#include "CAEN_v1290.h"
 
 #define WORDSIZE 4
 
@@ -25,15 +24,14 @@ struct tdcData {
 
 #define DEBUG_BOARD 0
 
-class Unpacker {
+class CAENv1290Unpacker {
   public: 
-    Unpacker(int N) {N_channels = N;}
-    tdcData ConvertTDCData(std::vector<WORD>);
+    CAENv1290Unpacker(int N) {N_channels = N;}
+    tdcData* ConvertTDCData(std::vector<uint32_t>&);
     
   private:
-    int Unpack (std::vector<WORD>) ;
-    std::map<unsigned int, std::vector<unsigned int> > timeStamps;   
-    tdcData currentData;
+    int Unpack (std::vector<uint32_t>&, tdcData*) ;
+    std::map<unsigned int, std::vector<unsigned int> > timeStamps;       
     int N_channels;
 };
 
