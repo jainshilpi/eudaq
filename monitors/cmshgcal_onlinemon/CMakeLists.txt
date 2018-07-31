@@ -22,6 +22,8 @@ SET (HgcOnlineMon_SOURCES
   #src/DWCToHGCALCorrelationHistos.cc
   src/WireChamberCollection.cc
   src/WireChamberHistos.cc
+  src/TDCHitsCollection.cc
+  src/TDCHitsHistos.cc
   src/WireChamberCorrelationCollection.cc
   src/WireChamberCorrelationHistos.cc  
   src/CheckEOF.cc

@@ -28,6 +28,7 @@ const unsigned int WIRECHAMBER_COLLECTION_TYPE = 8;
 const unsigned int DATURATOHGCAL_COLLECTION_TYPE = 9;
 const unsigned int WIRECHAMBER_CORRELATION_COLLECTION_TYPE = 10;
 const unsigned int DWCTOHGCAL_COLLECTION_TYPE = 11;
+const unsigned int TDCHITS_COLLECTION_TYPE = 12;
 const unsigned int UNKNOWN_COLLECTION_TYPE = 9999;
 
 //!BaseCollection class

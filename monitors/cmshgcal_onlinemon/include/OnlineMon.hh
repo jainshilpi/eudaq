@@ -33,6 +33,7 @@
 #include "HexagonCorrelationCollection.hh"
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
+#include "TDCHitsCollection.hh"
 #include "WireChamberCorrelationCollection.hh"
 #include "HitmapCollection.hh"
 #include "CorrelationCollection.hh"
@@ -103,6 +104,7 @@ public:
   HexagonCorrelationCollection *hexaCorrelationCollection;
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
+  TDCHitsCollection *tdchitsCollection;
   WireChamberCorrelationCollection *wccorrCollection;
   HitmapCollection *beamTelescopeHitCollection;
   CorrelationCollection *beamTelescopeCorrCollection;

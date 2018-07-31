@@ -24,8 +24,6 @@ WireChamberCorrelationHistos::WireChamberCorrelationHistos(eudaq::StandardPlane 
 
       if (_id >= _ID) continue;
 
-      std::cout<<"For DWC "<<_id<<"  correlation to "<<_ID<<std::endl;
-
       sprintf(out, "%i vs. %i XX ", _id, _ID);
       sprintf(out2, "h_XXmap_%i_%i", _id, _ID);
       _correlationXX[_ID] = new TH2F(out2, out, 100, -50., 50., 100, -50., 50.);
