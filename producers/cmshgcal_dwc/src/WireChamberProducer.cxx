@@ -34,6 +34,7 @@ class WireChamberProducer : public eudaq::Producer {
     : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {      
       initialized = false;
       _mode = DWC_DEBUG;
+      NumberOfTDCs=-1;
       std::cout<<"Initialisation of the DWC Producer..."<<std::endl;
     }
 
@@ -57,12 +58,16 @@ class WireChamberProducer : public eudaq::Producer {
 
 
     //clear the TDCs
-    for (size_t i=0; i<tdcs.size(); i++) delete tdcs[i];
-    tdcs.clear();
     
-    NumberOfTDCs = config.Get("NumberOfTDCs", 1);
-    for (size_t i=1; i<=NumberOfTDCs; i++)
-      tdcs.push_back(new CAEN_V1290());
+    if (NumberOfTDCs==-1) {   //do not allow for dynamic changing of TDCs because the number of DQM plots depend on it and are determined at first runtime.
+      for (size_t i=0; i<tdcs.size(); i++) delete tdcs[i];
+      tdcs.clear();
+      NumberOfTDCs = config.Get("NumberOfTDCs", 1);
+      for (size_t i=1; i<=NumberOfTDCs; i++)
+        tdcs.push_back(new CAEN_V1290());      
+    } else {
+      std::cout<<"Number of TDCs(="<<NumberOfTDCs<<") has not been changed. Restart the producer to change the number of TDCs."<<std::endl;
+    }
 
     for (int i=0; i<NumberOfTDCs; i++) {
       if (_mode == DWC_RUN) {
