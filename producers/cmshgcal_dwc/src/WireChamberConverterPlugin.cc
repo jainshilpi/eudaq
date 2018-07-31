@@ -154,7 +154,42 @@ namespace eudaq {
       DWCExt_plane.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(0, 14)]);   //up
       DWCExt_plane.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(0, 15)]);   //down
       sev.AddPlane(DWCExt_plane);
-      
+
+
+      //Hard coded assignment of channel time stamps to DWC planes for the DQM to guarantee downward compatibility with <=July 2018 DQM
+      //note: for the DWC correlation plots, the indexing must start at 0!
+      StandardPlane DWCE_plane_2(4, EVENT_TYPE, sensortype);
+      DWCE_plane_2.SetSizeRaw(4, 1, 1);
+      DWCE_plane_2.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(1, 0)]);   //left
+      DWCE_plane_2.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(1, 1)]);   //right
+      DWCE_plane_2.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(1, 2)]);   //up
+      DWCE_plane_2.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(1, 3)]);   //down
+      sev.AddPlane(DWCE_plane_2);
+
+      StandardPlane DWCD_plane_2(5, EVENT_TYPE, sensortype);
+      DWCD_plane_2.SetSizeRaw(4, 1, 1);
+      DWCD_plane_2.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(1, 4)]);   //left
+      DWCD_plane_2.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(1, 5)]);   //right
+      DWCD_plane_2.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(1, 6)]);   //up
+      DWCD_plane_2.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(1, 7)]);   //down
+      sev.AddPlane(DWCD_plane_2);
+
+      StandardPlane DWCA_plane_2(6, EVENT_TYPE, sensortype);
+      DWCA_plane_2.SetSizeRaw(4, 1, 1);
+      DWCA_plane_2.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(1, 8)]);   //left
+      DWCA_plane_2.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(1, 9)]);   //right
+      DWCA_plane_2.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(1, 10)]);   //up
+      DWCA_plane_2.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(1, 11)]);   //down
+      sev.AddPlane(DWCA_plane_2);
+
+      StandardPlane DWCExt_plane_2(7, EVENT_TYPE, sensortype);
+      DWCExt_plane_2.SetSizeRaw(4, 1, 1);
+      DWCExt_plane_2.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(1, 12)]);   //left
+      DWCExt_plane_2.SetPixel(1, 0, 0, time_of_arrivals[std::make_pair(1, 13)]);   //right
+      DWCExt_plane_2.SetPixel(2, 0, 0, time_of_arrivals[std::make_pair(1, 14)]);   //up
+      DWCExt_plane_2.SetPixel(3, 0, 0, time_of_arrivals[std::make_pair(1, 15)]);   //down
+      sev.AddPlane(DWCExt_plane_2);
+  
     
 
       for (size_t i=0; i<unpacked.size(); i++) delete unpacked[i];

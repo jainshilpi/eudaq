@@ -27,13 +27,14 @@ protected:
   int _maxY;
   bool _wait;
   
+  int NDWCs;
   std::map<int, TH2F *> _correlationXX;
   std::map<int, TH2F *> _correlationXY;
   std::map<int, TH2F *> _correlationYY;
   std::map<int, TH2F *> _correlationYX;
   
 public:
-  WireChamberCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon);
+  WireChamberCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon, int NDWCs);
 
   void Fill(const eudaq::StandardPlane &plane1, const eudaq::StandardPlane &plane2);
   void Reset();

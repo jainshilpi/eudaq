@@ -7,9 +7,10 @@
 #include <cstdlib>
 #include <sstream>
 
-WireChamberCorrelationHistos::WireChamberCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon)
+WireChamberCorrelationHistos::WireChamberCorrelationHistos(eudaq::StandardPlane p, RootMonitor *mon, int _NDWCs)
   : _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false){
 
+  NDWCs = _NDWCs;
     
   char out[1024], out2[1024], out3[1024], out4[1024];
 
@@ -19,9 +20,11 @@ WireChamberCorrelationHistos::WireChamberCorrelationHistos(eudaq::StandardPlane 
   // std::endl;
 
   if (_maxX != -1 && _maxY != -1) {
-    for (int _ID=0; _ID<4; _ID++) {
+    for (int _ID=0; _ID<NDWCs; _ID++) {
 
       if (_id >= _ID) continue;
+
+      std::cout<<"For DWC "<<_id<<"  correlation to "<<_ID<<std::endl;
 
       sprintf(out, "%i vs. %i XX ", _id, _ID);
       sprintf(out2, "h_XXmap_%i_%i", _id, _ID);
@@ -119,7 +122,6 @@ void WireChamberCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, cons
   float x2 = (xr2-xl2)/40*0.2; //one time unit of the tdc corresponds to 25ps, 1. conversion into nm, 
   float y2 = (yd2-yu2)/40*0.2; //2. conversion from nm to mm via the default calibration factor from the DWC manual
 
-
   _correlationXX[_ID]->Fill(x1, x2);
   _correlationXY[_ID]->Fill(x1, y2);
   _correlationYY[_ID]->Fill(y1, y2);
@@ -129,7 +131,7 @@ void WireChamberCorrelationHistos::Fill(const eudaq::StandardPlane &plane1, cons
 
 void WireChamberCorrelationHistos::Reset() {
 
-  for (int _ID=0; _ID<4; _ID++) {
+  for (int _ID=0; _ID<NDWCs; _ID++) {
     if (_correlationXX.find(_ID)==_correlationXX.end()) continue;
     _correlationXX[_ID]->Reset();
     _correlationXY[_ID]->Reset();
@@ -147,7 +149,7 @@ void WireChamberCorrelationHistos::Calculate(const int currentEventNum) {
 
 void WireChamberCorrelationHistos::Write() {
   
-  for (int _ID=0; _ID<4; _ID++) {
+  for (int _ID=0; _ID<NDWCs; _ID++) {
     if (_correlationXX.find(_ID)==_correlationXX.end()) continue;
     _correlationXX[_ID]->Write();
     _correlationXY[_ID]->Write();

@@ -234,6 +234,25 @@ int CAEN_V1290::Config(CAEN_V1290::CAEN_V1290_Config_t &_config) {
 }
 
 
+bool CAEN_V1290::ReadyToRead() {
+  int status = 0;
+  
+  if (handle_<0) {
+    std::cout << "[CAEN_V1290]::[ERROR]::V1290 board handle not found" << status << std::endl; 
+    return ERR_CONF_NOT_FOUND;
+  }
+
+  WORD data;  
+  int v1290_rdy=0;
+
+  //Wait for a valid datum in the ADC
+  status |= CAENVME_ReadCycle(handle_,configuration_.baseAddress+CAEN_V1290_STATUS_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
+  v1290_rdy = data & CAEN_V1290_RDY_BITMASK;
+
+  return (v1290_rdy==1);
+
+}
+
 //Read the ADC buffer and send it out in WORDS vector
 int CAEN_V1290::Read(std::vector<WORD> &v) {
   int status = 0; 
@@ -249,7 +268,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   int v1290_rdy=0;
   int v1290_error=1;
 
-  int ntry = 100, nt = 0;
+  int ntry = 10, nt = 0;
   //Wait for a valid datum in the ADC
   while ( (v1290_rdy != 1 || v1290_error!=0 ) && nt<ntry ) {
     status |= CAENVME_ReadCycle(handle_,configuration_.baseAddress+CAEN_V1290_STATUS_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);

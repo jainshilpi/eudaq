@@ -31,8 +31,7 @@ class WireChamberProducer : public eudaq::Producer {
   public:
 
   WireChamberProducer(const std::string & name, const std::string & runcontrol)
-    : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {
-      tdc = new CAEN_V1290();
+    : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {      
       initialized = false;
       _mode = DWC_DEBUG;
       std::cout<<"Initialisation of the DWC Producer..."<<std::endl;
@@ -57,30 +56,36 @@ class WireChamberProducer : public eudaq::Producer {
     std::cout<<"Mode at configuration: "<<_mode<<std::endl;
 
 
-    CAEN_V1290::CAEN_V1290_Config_t _config;
+    //clear the TDCs
+    for (size_t i=0; i<tdcs.size(); i++) delete tdcs[i];
+    tdcs.clear();
+    
+    NumberOfTDCs = config.Get("NumberOfTDCs", 1);
+    for (size_t i=1; i<=NumberOfTDCs; i++)
+      tdcs.push_back(new CAEN_V1290());
 
-    _config.baseAddress = config.Get("baseAddress", 0x00AA0000);
-    _config.model = static_cast<CAEN_V1290::CAEN_V1290_Model_t>(config.Get("model", 1));
-    _config.triggerTimeSubtraction = static_cast<bool>(config.Get("triggerTimeSubtraction", 1));
-    _config.triggerMatchMode = static_cast<bool>(config.Get("triggerMatchMode", 1));
-    _config.emptyEventEnable = static_cast<bool>(config.Get("emptyEventEnable", 1));
-    _config.edgeDetectionMode = static_cast<CAEN_V1290::CAEN_V1290_EdgeDetection_t>(config.Get("edgeDetectionMode", 3));
-    _config.timeResolution = static_cast<CAEN_V1290::CAEN_V1290_TimeResolution_t>(config.Get("timeResolution", 3));
-    _config.maxHitsPerEvent = static_cast<CAEN_V1290::CAEN_V1290_MaxHits_t>(config.Get("maxHitsPerEvent", 8));
-    _config.enabledChannels = config.Get("enabledChannels", 0x00FF);
-    _config.windowWidth = config.Get("windowWidth", 0x40);
-    _config.windowOffset = config.Get("windowOffset", -1);
-
-      
-
-    if (_mode == DWC_RUN) {
-      if (!initialized) {  //the initialization is to be run just once
-        initialized = tdc->Init();
-      }
-      if (initialized) {
-        tdc->Config(_config);
-        tdc->SetupModule();
-      }
+    for (int i=0; i<NumberOfTDCs; i++) {
+      if (_mode == DWC_RUN) {
+        if (!initialized) {  //the initialization is to be run just once
+          initialized = tdcs[i]->Init();
+        }
+        if (initialized) {
+          CAEN_V1290::CAEN_V1290_Config_t _config;
+          _config.baseAddress = config.Get(("baseAddress_"+std::to_string(i+1)).c_str(), 0x00AA0000);
+          _config.model = static_cast<CAEN_V1290::CAEN_V1290_Model_t>(config.Get(("model_"+std::to_string(i+1)).c_str(), 1));
+          _config.triggerTimeSubtraction = static_cast<bool>(config.Get(("triggerTimeSubtraction_"+std::to_string(i+1)).c_str(), 1));
+          _config.triggerMatchMode = static_cast<bool>(config.Get(("triggerMatchMode_"+std::to_string(i+1)).c_str(), 1));
+          _config.emptyEventEnable = static_cast<bool>(config.Get(("emptyEventEnable_"+std::to_string(i+1)).c_str(), 1));
+          _config.edgeDetectionMode = static_cast<CAEN_V1290::CAEN_V1290_EdgeDetection_t>(config.Get(("edgeDetectionMode_"+std::to_string(i+1)).c_str(), 3));
+          _config.timeResolution = static_cast<CAEN_V1290::CAEN_V1290_TimeResolution_t>(config.Get(("timeResolution_"+std::to_string(i+1)).c_str(), 3));
+          _config.maxHitsPerEvent = static_cast<CAEN_V1290::CAEN_V1290_MaxHits_t>(config.Get(("maxHitsPerEvent_"+std::to_string(i+1)).c_str(), 8));
+          _config.enabledChannels = config.Get(("enabledChannels_"+std::to_string(i+1)).c_str(), 0x00FF);
+          _config.windowWidth = config.Get(("windowWidth_"+std::to_string(i+1)).c_str(), 0x40);
+          _config.windowOffset = config.Get(("windowOffset_"+std::to_string(i+1)).c_str(), -1);
+          tdcs[i]->Config(_config);
+          tdcs[i]->SetupModule();
+        }
+      }      
     }
 
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
@@ -100,7 +105,7 @@ class WireChamberProducer : public eudaq::Producer {
 
     if (_mode==DWC_RUN) {
       if (initialized)
-        tdc->BufferClear();
+        for (size_t i=0; i<tdcs.size(); i++) tdcs[i]->BufferClear();
       else {
         EUDAQ_INFO("ATTENTION !!! Communication to the TDC has not been established");
         SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Communication to the TDC has not been established");
@@ -136,11 +141,9 @@ class WireChamberProducer : public eudaq::Producer {
     done = true;
     eudaq::mSleep(200);
 
-    delete tdc;
+    for (size_t i=0; i<tdcs.size(); i++) delete tdcs[i];
 
   }
-
-
 
 
   void ReadoutLoop() {
@@ -152,33 +155,39 @@ class WireChamberProducer : public eudaq::Producer {
       }
 
       if (stopping) continue;
-      if (_mode==DWC_RUN && initialized) {
-        tdc->Read(dataStream);
-      } else if (_mode==DWC_DEBUG) {
-        eudaq::mSleep(40);
-        tdc->generatePseudoData(dataStream);
+
+      if (_mode==DWC_RUN) {
+        bool performReadout = false;
+        for (int i=0; i<tdcs.size(); i++) {
+          performReadout = tdcs[i]->ReadyToRead();
+          if (performReadout) break;
+        }
+        
+        if(!performReadout) continue;        
       }
 
-      if (dataStream.size() == 0)
-        continue;
-
       m_ev++;
-     
-
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-
       std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart/1000.<<" ms +++"<<std::endl;
-        
       //making an EUDAQ event
       eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
       ev.setTimeStamp(timeSinceStart);
-      ev.AddBlock(0, dataStream);
       
+      for (int i=0; i<tdcs.size(); i++) {
+        dataStream.clear();
+        if (_mode==DWC_RUN && initialized) {
+          tdcs[i]->Read(dataStream);
+        } else if (_mode==DWC_DEBUG) {
+          tdcs[i]->generatePseudoData(dataStream);
+        }
+          
+        ev.AddBlock(i, dataStream);
+      }
+
       //Adding the event to the EUDAQ format
       SendEvent(ev);
-
-      dataStream.clear();
+      if (_mode==DWC_DEBUG) eudaq::mSleep(10);
     }
   }
 
@@ -194,7 +203,8 @@ class WireChamberProducer : public eudaq::Producer {
  
 
     //set on configuration
-    CAEN_V1290* tdc;
+    int NumberOfTDCs;
+    std::vector<CAEN_V1290*> tdcs;
     
 
     std::vector<WORD> dataStream;

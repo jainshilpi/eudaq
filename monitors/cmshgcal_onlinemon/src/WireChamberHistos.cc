@@ -49,10 +49,10 @@ void WireChamberHistos::Fill(const eudaq::StandardPlane &plane) {
   float yu = plane.GetPixel(2);
   float yd = plane.GetPixel(3);
 
-  int good_xl = xl >= 0 ? 1 : 0;
-  int good_xr = xr >= 0 ? 1 : 0;
-  int good_yu = yu >= 0 ? 1 : 0;
-  int good_yd = yd >= 0 ? 1 : 0;
+  int good_xl = xl > 0 ? 1 : 0;
+  int good_xr = xr > 0 ? 1 : 0;
+  int good_yu = yu > 0 ? 1 : 0;
+  int good_yd = yd > 0 ? 1 : 0;
   int good_x = (good_xl+good_xr) == 2 ? 1: 0;
   int good_y = (good_yu+good_yd) == 2 ? 1: 0;
   int good_all = (good_x+good_y) == 2 ? 1: 0;

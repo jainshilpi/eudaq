@@ -31,7 +31,8 @@ protected:
   std::map<eudaq::StandardPlane, WireChamberCorrelationHistos *> _map;
   bool isPlaneRegistered(eudaq::StandardPlane p);
   void fillHistograms(const eudaq::StandardPlane &plane1, const eudaq::StandardPlane &plane2);
-    
+  int NumberOfDWCPlanes;
+
 public:
   void registerPlane(const eudaq::StandardPlane &p);
   void bookHistograms(const eudaq::StandardEvent &ev);
@@ -40,6 +41,7 @@ public:
     std::cout << " Initialising WireChamberCorrelation Collection" << std::endl;
     isOnePlaneRegistered = false;
     CollectionType = WIRECHAMBER_CORRELATION_COLLECTION_TYPE;
+    NumberOfDWCPlanes=-1;
   }
   void Fill(const SimpleStandardEvent &simpev) { ; };
   void Fill(const eudaq::StandardEvent &ev, int evNumber=-1);

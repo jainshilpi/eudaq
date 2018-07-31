@@ -75,7 +75,7 @@ tdcData* CAENv1290Unpacker::ConvertTDCData(std::vector<uint32_t>& Words) {
   Unpack(Words, currentData);
   
   for (int ch=0; ch<N_channels; ch++) {
-    currentData->timeOfArrivals[ch] = -1;  //fill all 16 channels with a value indicating that no hit has been registered
+    currentData->timeOfArrivals[ch] = 0;  //fill all 16 channels with a value indicating that no hit has been registered
     currentData->hits[ch].clear();
   } 
 

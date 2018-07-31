@@ -31,6 +31,14 @@ void WireChamberCorrelationCollection::fillHistograms(const eudaq::StandardPlane
 
 void WireChamberCorrelationCollection::bookHistograms(const eudaq::StandardEvent &ev) {
   //std::cout<<"In WireChamberCorrelationCollection::bookHistograms(StandardEvent)"<<std::endl;
+  if (NumberOfDWCPlanes==-1) {
+    NumberOfDWCPlanes=0;
+    for (int plane = 0; plane < ev.NumPlanes(); plane++) {
+      const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
+      if (Plane.Sensor()=="DWC") NumberOfDWCPlanes++;
+    }
+  }
+
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
@@ -90,6 +98,14 @@ void WireChamberCorrelationCollection::Reset() {
 
 void WireChamberCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   //std::cout<<"In WireChamberCorrelationCollection::Fill(StandardEvent)"<<std::endl;
+  if (NumberOfDWCPlanes==-1) {
+    NumberOfDWCPlanes=0;
+    for (int plane = 0; plane < ev.NumPlanes(); plane++) {
+      const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
+      if (Plane.Sensor()=="DWC") NumberOfDWCPlanes++;
+    }
+  }
+
 
   for (int plane1 = 0; plane1 < ev.NumPlanes(); plane1++) {
     const eudaq::StandardPlane &Plane1 = ev.GetPlane(plane1);
@@ -112,7 +128,7 @@ WireChamberCorrelationHistos *WireChamberCorrelationCollection::getWireChamberCo
 void WireChamberCorrelationCollection::registerPlane(const eudaq::StandardPlane &p) {
   //std::cout<<"In WireChamberCorrelationCollection::registerPlane(StandardPlane)"<<std::endl;
 
-  WireChamberCorrelationHistos *tmphisto = new WireChamberCorrelationHistos(p, _mon);
+  WireChamberCorrelationHistos *tmphisto = new WireChamberCorrelationHistos(p, _mon, NumberOfDWCPlanes);
   _map[p] = tmphisto;
 
   // std::cout << "Registered Plane: " << p.Sensor() << " " << p.ID() <<
@@ -127,7 +143,7 @@ void WireChamberCorrelationCollection::registerPlane(const eudaq::StandardPlane 
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
     
-    for (int _ID=0; _ID<4; _ID++) {
+    for (int _ID=0; _ID<NumberOfDWCPlanes; _ID++) {
 
       if (p.ID() >= _ID ) continue;
       sprintf(tree, "%s/Chamber %i/CorrelationXX_vs_Chamber%i", p.Sensor().c_str(), p.ID(), _ID);      
