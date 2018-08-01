@@ -95,6 +95,10 @@ if (BUILD_cmshgcal_onlinemon)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/CAENv1290Unpacker.cc)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
 
+   INCLUDE_DIRECTORIES( include ${PROJECT_SOURCE_DIR}/producers/cmshgcal_mcp/include)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_mcp/src/CAENv1742Unpacker.cc)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_mcp/src/MCPConverterPlugin.cc)
+
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/pi/src/PIConverterPlugin.cc)
 endif()
 
