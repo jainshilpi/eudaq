@@ -6,7 +6,6 @@
 #include <iostream>
 #include <stdlib.h>
 
-
 #include "eudaq/Utils.hh"
 
 #include "CAENVMElib.h"
@@ -146,7 +145,7 @@ public:
 
   } CAEN_V1290_Config_t;
 
-  CAEN_V1290(): handle_(-1) { type_="CAEN_V1290"; id_=0; _isConfigured=false; srand(0);
+  CAEN_V1290(int ID): handle_(-1) { type_="CAEN_V1290"; id_=ID; _isConfigured=false; srand(0);
   };
 
   inline unsigned int GetId(){return id_;};

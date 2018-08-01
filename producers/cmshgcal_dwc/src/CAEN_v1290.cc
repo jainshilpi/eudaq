@@ -183,7 +183,7 @@ int CAEN_V1290::Clear() {
     return ERR_RESET;
   }
 
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
 
   status |= CAENVME_SystemReset(handle_);
   if (status) {

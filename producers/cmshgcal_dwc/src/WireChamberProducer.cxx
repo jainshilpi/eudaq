@@ -63,8 +63,8 @@ class WireChamberProducer : public eudaq::Producer {
       for (size_t i=0; i<tdcs.size(); i++) delete tdcs[i];
       tdcs.clear();
       NumberOfTDCs = config.Get("NumberOfTDCs", 1);
-      for (size_t i=1; i<=NumberOfTDCs; i++)
-        tdcs.push_back(new CAEN_V1290());      
+      for (int id=1; id<=NumberOfTDCs; id++)
+        tdcs.push_back(new CAEN_V1290(id));      
     } else {
       std::cout<<"Number of TDCs(="<<NumberOfTDCs<<") has not been changed. Restart the producer to change the number of TDCs."<<std::endl;
     }
@@ -72,7 +72,7 @@ class WireChamberProducer : public eudaq::Producer {
     for (int i=0; i<NumberOfTDCs; i++) {
       if (_mode == DWC_RUN) {
         if (!initialized) {  //the initialization is to be run just once
-          initialized = tdcs[i]->Init();
+          initialized = tdcs[i]->Init() || initialized;
         }
         if (initialized) {
           CAEN_V1290::CAEN_V1290_Config_t _config;
