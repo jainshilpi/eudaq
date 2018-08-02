@@ -22,6 +22,8 @@
 
 typedef uint32_t WORD;
 
+//PG settings for the board
+
 
 #define CAEN_V1742_MAXCH  64          /* max. number of channels */
 #define CAEN_V1742_MAXSET 8           /* max. number of independent settings */
@@ -133,6 +135,7 @@ class CAEN_V1742 {
   inline CAEN_V1742_Config_t* GetConfiguration () { return &digitizerConfiguration_ ; } ;
   int Print () {Print (0) ; } ;
   int Print (int full = 0) ;
+    int setDefaults () ;
 
   private:
 
@@ -140,7 +143,6 @@ class CAEN_V1742 {
     int programDigitizer () ;
     int writeEventToOutputBuffer (std::vector<WORD>& CAEN_V1742_rawDataBinaryBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_X742_EVENT_t* event) ;
     /* sets the default values for the cfg parameters */
-    int setDefaults () ;
 
 
   private:
