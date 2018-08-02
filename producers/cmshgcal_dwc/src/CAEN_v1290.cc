@@ -16,19 +16,6 @@ bool CAEN_V1290::Init() {
   CAENVME_SWRelease(software_version);
   std::cout<<"CAENVME library version: "<<software_version<<std::endl;
 
-  //necessary: setup the communication board (VX2718)
-  int *handle = new int;
-  //corresponding values for the init function are taken from September 2016 configuration
-  //https://github.com/cmsromadaq/H4DAQ/blob/master/data/H2_2016_08_HGC/config_pcminn03_RC.xml#L26
-  status |= CAENVME_Init(static_cast<CVBoardTypes>(1), 0, 0, handle); 
-  
-  SetHandle(*handle);
-  delete handle;
-  
-  if (status) {
-    std::cout << "[CAEN_VX2718]::[ERROR]::Cannot open VX2718 board." << std::endl;
-    return false;
-  }  
   return true;
 }
 
@@ -43,7 +30,7 @@ int CAEN_V1290::SetupModule() {
   //Read Version to check connection
   WORD data=0;
   
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   status |= CAENVME_ReadCycle(handle_,configuration_.baseAddress+CAEN_V1290_FW_VER_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
   if (status) {
     std::cout << "[CAEN_V1290]::[ERROR]::Cannot open V1290 board @0x" << std::hex << configuration_.baseAddress << std::dec << " " << status <<std::endl; 
@@ -56,7 +43,7 @@ int CAEN_V1290::SetupModule() {
   }
   std::cout << "[CAEN_V1290]::[INFO]::Open V1290 board @0x" << std::hex << configuration_.baseAddress << std::dec << " FW Version Rev." << FWVersion[1] << "." << FWVersion[0] << std::endl;
   
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   data=0;
   std::cout<<"[CAEN_V1290]::[INFO]::Software reset ... "<<std::endl;
   status |= CAENVME_WriteCycle(handle_,configuration_.baseAddress+CAEN_V1290_SW_RESET_REG, &data,CAEN_V1290_ADDRESSMODE, cvD16);
@@ -68,7 +55,7 @@ int CAEN_V1290::SetupModule() {
   }    
 
   
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
 
   //Now the real configuration  
   if (configuration_.model == CAEN_V1290_N) {
@@ -82,14 +69,14 @@ int CAEN_V1290::SetupModule() {
   std::cout << "[CAEN_V1290]::[INFO]::Enable empty events" << std::endl;
   if (configuration_.emptyEventEnable) {
     WORD data=0;
-    eudaq::mSleep(100);
+    eudaq::mSleep(10);
     status |= CAENVME_WriteCycle(handle_,configuration_.baseAddress+CAEN_V1290_CON_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
-    eudaq::mSleep(100);
+    eudaq::mSleep(10);
     data |= CAEN_V1290_EMPTYEVEN_BITMASK; //enable emptyEvent
     status |= CAENVME_WriteCycle(handle_,configuration_.baseAddress+CAEN_V1290_CON_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
   }
   
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   // I step: set TRIGGER Matching mode
   if (configuration_.triggerMatchMode) {
     std::cout << "[CAEN_V1290]::[INFO]::Enabled Trigger Match Mode" << std::endl;
@@ -98,14 +85,14 @@ int CAEN_V1290::SetupModule() {
   
   CheckStatusAfterRead();
   
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   // I step: set Edge detection
   std::cout << "[CAEN_V1290]::[INFO]::EdgeDetection " << configuration_.edgeDetectionMode << std::endl;
   status |= OpWriteTDC(CAEN_V1290_EDGEDET_OPCODE);
   status |= OpWriteTDC(configuration_.edgeDetectionMode);
   
  
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   // I step: set Time Resolution
   std::cout << "[CAEN_V1290]::[INFO]::TimeResolution " << configuration_.timeResolution << std::endl;
   status |= OpWriteTDC(CAEN_V1290_TIMERESO_OPCODE);
@@ -113,13 +100,13 @@ int CAEN_V1290::SetupModule() {
   
 
     
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   // II step: set TRIGGER Window Width to value n 
   std::cout << "[CAEN_V1290]::[INFO]::Set Trigger window width " << configuration_.windowWidth << std::endl;
   status |= OpWriteTDC(CAEN_V1290_WINWIDT_OPCODE); 
   status |= OpWriteTDC(configuration_.windowWidth);
     
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   // III step: set TRIGGER Window Offset to value -n 
   std::cout << "[CAEN_V1290]::[INFO]::TimeWindowWidth " << configuration_.windowWidth << " TimeWindowOffset " << configuration_.windowOffset << std::endl;
   status |= OpWriteTDC(CAEN_V1290_WINOFFS_OPCODE); 
@@ -127,12 +114,12 @@ int CAEN_V1290::SetupModule() {
 
   
   //disable all channels
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   std::cout << "[CAEN_V1290]::[INFO]::Disabling all channel " << std::endl;
   status |= OpWriteTDC(CAEN_V1290_DISALLCHAN_OPCODE); 
   
   // enable channels
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   for (unsigned int i=0;i<channels_;++i) {
     if (! (configuration_.enabledChannels & ( 1 << i )) ) continue;
     std::cout << "[CAEN_V1290]::[INFO]::Enabling channel " << i << std::endl;
@@ -141,13 +128,13 @@ int CAEN_V1290::SetupModule() {
   }
   
   //number of hits unlimited for July 2017 data taking (14.07.2017) 
-  //eudaq::mSleep(100);
+  //eudaq::mSleep(10);
   //std::cout << "[CAEN_V1290]::[INFO]::Setting max hits per trigger " << configuration_.maxHitsPerEvent << std::endl;
   //status |= OpWriteTDC(CAEN_V1290_MAXHITS_OPCODE); 
   //status |= OpWriteTDC(configuration_.maxHitsPerEvent); 
   
   
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   //Enable trigger time subtraction 
   if (configuration_.triggerTimeSubtraction) {
     std::cout << "[CAEN_V1290]::[INFO]::Enabling trigger time subtraction " << std::endl;
@@ -542,14 +529,14 @@ int CAEN_V1290::EnableTDCTestMode(WORD testData) {
 
   // I step: Enable the test mode 
   status |= OpWriteTDC(CAEN_V1290_ENABLE_TEST_MODE_OPCODE);
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   // II step: Write the test word 
   status |= OpWriteTDC(testData);
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
   
   // III step: Write a t=0x0044 into the test-word high
   status |= OpWriteTDC(0x0044);
-  eudaq::mSleep(100);
+  eudaq::mSleep(10);
 
   // IV step: set the test output 
   for (unsigned int channel=0; channel<=15; channel++) {  

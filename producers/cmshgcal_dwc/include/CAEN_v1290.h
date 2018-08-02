@@ -167,6 +167,7 @@ public:
   virtual bool ReadyToRead();
   virtual int Read(std::vector<WORD> &v);
   virtual int SetHandle(int handle) { handle_=handle; return 0;};
+  virtual int GetHandle() { return handle_;};
 
   inline CAEN_V1290_Config_t* GetConfiguration() { return &configuration_; };
 

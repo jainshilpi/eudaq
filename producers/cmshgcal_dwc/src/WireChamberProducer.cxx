@@ -35,8 +35,36 @@ class WireChamberProducer : public eudaq::Producer {
       initialized = false;
       _mode = DWC_DEBUG;
       NumberOfTDCs=-1;
-      std::cout<<"Initialisation of the DWC Producer..."<<std::endl;
     }
+
+  void OnInitialise(const eudaq::Configuration &init){
+    std::cout<<"Initialisation of the DWC Producer..."<<std::endl;
+    try {
+      std::cout << "Reading: " << init.Name() << std::endl;
+      //necessary: setup the communication board (VX2718)
+      //corresponding values for the init function are taken from September 2016 configuration
+      //https://github.com/cmsromadaq/H4DAQ/blob/master/data/H2_2016_08_HGC/config_pcminn03_RC.xml#L26
+      VX2718handle = new int;
+      int status = CAENVME_Init(static_cast<CVBoardTypes>(1), 0, 0, VX2718handle); 
+      if (status) {
+        std::cout << "[CAEN_VX2718]::[ERROR]::Cannot open VX2718 board." << std::endl;
+      } 
+      
+      // Do any initialisation of the hardware here 
+      // "start-up configuration", which is usally done only once in the beginning
+      // Configuration file values are accessible as config.Get(name, default)
+
+      // At the end, set the ConnectionState that will be displayed in the Run Control.
+      // and set the state of the machine.
+      SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Initialised (" + init.Name() + ")");
+    } 
+    catch (...) {
+      std::cout << "Unknown exception" << std::endl;
+      EUDAQ_ERROR("Error occurred in initialization phase of DWCProducer");
+      SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Initialisation Error");
+    } 
+  }    
+
 
   virtual void OnConfigure(const eudaq::Configuration & config) {
     SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Configuring (" + config.Name() + ")");
@@ -69,11 +97,18 @@ class WireChamberProducer : public eudaq::Producer {
       std::cout<<"Number of TDCs(="<<NumberOfTDCs<<") has not been changed. Restart the producer to change the number of TDCs."<<std::endl;
     }
 
+    if (!initialized){           
+      bool tdcs_initialized = true;
+      for (int i=0; i<NumberOfTDCs; i++) {
+          tdcs[i]->SetHandle(*VX2718handle);
+          tdcs_initialized = tdcs[i]->Init() && tdcs_initialized;
+      }
+      initialized = tdcs_initialized;
+    }
+
+
     for (int i=0; i<NumberOfTDCs; i++) {
       if (_mode == DWC_RUN) {
-        if (!initialized) {  //the initialization is to be run just once
-          initialized = tdcs[i]->Init() || initialized;
-        }
         if (initialized) {
           CAEN_V1290::CAEN_V1290_Config_t _config;
           _config.baseAddress = config.Get(("baseAddress_"+std::to_string(i+1)).c_str(), 0x00AA0000);
@@ -91,10 +126,8 @@ class WireChamberProducer : public eudaq::Producer {
           tdcs[i]->SetupModule();
         }
       }      
-    }
-
+    }    
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
-
   }
 
   // This gets called whenever a new run is started
@@ -199,6 +232,8 @@ class WireChamberProducer : public eudaq::Producer {
   private:
     RUNMODE _mode;
 
+    int *VX2718handle;
+
     unsigned m_run, m_ev;
     bool stopping, done, started;
     bool initialized;
@@ -206,12 +241,10 @@ class WireChamberProducer : public eudaq::Producer {
     std::chrono::steady_clock::time_point startTime; 
     uint64_t timeSinceStart;
  
-
     //set on configuration
     int NumberOfTDCs;
     std::vector<CAEN_V1290*> tdcs;
     
-
     std::vector<WORD> dataStream;
 
 };
