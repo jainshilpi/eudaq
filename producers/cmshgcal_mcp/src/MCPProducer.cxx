@@ -1,6 +1,6 @@
 //a producer reading out MCP signals from a CAEN V1742, first used in the HGCal beam tests in October 2018
 //Thorben Quast, thorben.quast@cern.ch
-//01 August 2018
+//03 August 2018
 
 #include "eudaq/Configuration.hh"
 #include "eudaq/Producer.hh"
@@ -229,7 +229,6 @@ class MCPProducer : public eudaq::Producer {
     for (int i = 0 ; i < CAEN_V1742_MAXSET ; ++i) _config.FTThreshold[i] = val;
 
 
-
     // GRP_CH_DC_OFFSET dc_0, dc_1, dc_2, dc_3, dc_4, dc_5, dc_6, dc_7                                                                             
     // Available only for model 742, allows to set different DC offset adjust for each channel (DAC channel setting) in percent of the Full Scale.
     // -50: analog input dynamic range = -3Vpp/2 to -Vpp/2 (max negative dynamic)                                                                  
@@ -251,7 +250,7 @@ class MCPProducer : public eudaq::Producer {
     
 
     CAENV1742_instance->Config(_config);
-    CAENV1742_instance->Print(0);
+    //CAENV1742_instance->Print(0);
     
     if (mode==MCP_RUN) {
       if(!initialized) CAENV1742_instance->Init(); //will be executed only once after the intitial configuration
@@ -345,17 +344,11 @@ class MCPProducer : public eudaq::Producer {
       m_ev++;
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-      std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart/1000.<<" ms +++"<<std::endl;
+      //std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart/1000.<<" ms +++"<<std::endl;
       //making an EUDAQ event
       eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
       ev.setTimeStamp(timeSinceStart);
-      
-      
-      
-      //readout magic will go here
-      
-      
-          
+            
       ev.AddBlock(0, dataStream);
       //Adding the event to the EUDAQ format
       SendEvent(ev);
