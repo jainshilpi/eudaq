@@ -249,14 +249,12 @@ int CAEN_V1742::BufferClear (){
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
 
+//08th August: only overwrite values that are really set, otherwise: bug<-->no data (especially if Nch=0)
 int CAEN_V1742::Config(CAEN_V1742::CAEN_V1742_Config_t &_config) {
   GetConfiguration()->BaseAddress = _config.BaseAddress ;
   GetConfiguration()->LinkType = _config.LinkType ;      //hard coded value
   GetConfiguration()->LinkNum = _config.LinkNum ;
   GetConfiguration()->ConetNode = _config.ConetNode ;
-  GetConfiguration()->Nch = _config.Nch ;
-  GetConfiguration()->Nbit = _config.Nbit ;
-  GetConfiguration()->Ts = _config.Ts ;
   GetConfiguration()->RecordLength = _config.RecordLength ;
   CAEN_DGTZ_DRS4Frequency_t DRS4Frequency;
   GetConfiguration()->PostTrigger = _config.PostTrigger ;
