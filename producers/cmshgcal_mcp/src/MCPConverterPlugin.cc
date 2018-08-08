@@ -6,7 +6,7 @@
 #include <bitset>
 #include <boost/format.hpp>
 
-#include "CAENv1290Unpacker.h"
+#include "CAENv1742Unpacker.h"
 
 // All LCIO-specific parts are put in conditional compilation blocks
 // so that the other parts may still be used if LCIO is not available.
@@ -31,8 +31,7 @@ namespace eudaq {
     // This is called once at the beginning of each run.
     // You may extract information from the BORE and/or configuration
     // and store it in member variables to use during the decoding later.
-    virtual void Initialize(const Event &bore, const Configuration &cnf) {
-
+    virtual void Initialize(const Event &bore, const Configuration &cnf) {  
 #ifndef WIN32 // some linux Stuff //$$change
       (void)cnf; // just to suppress a warning about unused parameter cnf
 #endif
@@ -70,6 +69,28 @@ namespace eudaq {
 
       const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
 
+      std::cout<<"Get the time stamp of the MCP: "<<rev->GetTimestamp()<<std::endl;
+
+      const unsigned nBlocks = rev->NumBlocks();
+      std::cout<<"Number o Raw Data Blocks: "<<nBlocks<<std::endl;
+      
+      for (unsigned digititzer_index=0; digititzer_index<nBlocks; digititzer_index++){
+              
+        const RawDataEvent::data_t & bl = rev->GetBlock(digititzer_index);
+
+        std::cout<<"size of block: "<<bl.size()<<std::endl;
+
+        //conversion block
+        std::vector<uint32_t> Words;
+        Words.resize(bl.size() / sizeof(uint32_t));
+        std::memcpy(&Words[0], &bl[0], bl.size());   
+
+        unpacker->Unpack(Words);
+        
+      }
+
+
+      
 
 
       // Indicate that data was successfully converted
@@ -90,8 +111,11 @@ namespace eudaq {
     // The DataConverterPlugin constructor must be passed the event type
     // in order to register this converter for the corresponding conversions
     // Member variables should also be initialized to default values here.
+    CAEN_V1742_Unpacker* unpacker;
+
     MCPConverterPlugin()
         : DataConverterPlugin(EVENT_TYPE) {
+          unpacker = new CAEN_V1742_Unpacker;
         }
 
     // Information extracted in Initialize() can be stored here:

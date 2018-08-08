@@ -1,11 +1,12 @@
 //code adapted from here: 
 //https://github.com/cmsromadaq/H4DQM/blob/master/src/CAEN_V1742.cpp
-//Date of access: 01 August 2018
+//Date of access: 08 August 2018
 
-#ifndef CAENv1290Unpacker_H
-#define CAENv1290Unpacker_H
+#ifndef CAENv1742Unpacker_H
+#define CAENv1742Unpacker_H
 
-#include <fstream>
+#define MAX_DIGI_SAMPLES 100000
+
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -17,8 +18,45 @@
 #include "eudaq/Logger.hh"
 
 
+struct digiData {
+  unsigned int group ;
+  unsigned int frequency ;
+  unsigned int channel ;
+  unsigned int sampleIndex ;
+  float sampleValue ;
+};
 
-//TODO!!!
 
+
+class CAEN_V1742_Unpacker {
+	public :
+
+		CAEN_V1742_Unpacker () :   
+			dig1742channels_ (0),
+			isDigiSample_ (0),
+			nChannelWords_ (0),
+			nSamplesToReadout_ (0),
+			nSamplesRead_ (0),
+			channelId_ (-1),
+			groupId_ (-1)
+			{} ;
+
+		int Unpack (std::vector<uint32_t>&) ;
+
+	private :
+		unsigned int dig1742channels_ ;
+		bool isDigiSample_ ;
+		unsigned int digRawData_ ;
+		float digRawSample_ ;
+
+		int nChannelWords_ ;
+		int nSamplesToReadout_ ;
+		int nSamplesRead_ ;
+		int channelId_ ;
+		int groupId_ ;
+		uint32_t frequency_ ;
+
+};
 
 #endif
+
