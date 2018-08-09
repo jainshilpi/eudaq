@@ -730,7 +730,7 @@ int CAEN_V1742::setDefaults ()
 
   /* Default settings */
   digitizerConfiguration_.Nch = 18;
-  digitizerConfiguration_.RecordLength = (10) ;
+  digitizerConfiguration_.RecordLength = (1024) ;
   digitizerConfiguration_.PostTrigger = 80 ;
   digitizerConfiguration_.NumEvents = 1023 ;
   digitizerConfiguration_.EnableMask = 0xFF ;

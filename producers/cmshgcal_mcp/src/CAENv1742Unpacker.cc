@@ -77,7 +77,6 @@ int CAEN_V1742_Unpacker::Unpack (std::vector<uint32_t>& Words) {
 			}            
 		}		
 		else if (i>4) {
-			std::cout<<i<<"  "<<isDigiSample_<<"  "<<nSamplesToReadout_<<std::endl;
 			if (!isDigiSample_) {
 				if (0 == nSamplesToReadout_) {
 					//This is the ChHeader[0]
