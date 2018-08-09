@@ -76,23 +76,21 @@ int CAEN_V1290::SetupModule() {
     status |= CAENVME_WriteCycle(handle_,configuration_.baseAddress+CAEN_V1290_CON_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
   }
   
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   // I step: set TRIGGER Matching mode
   if (configuration_.triggerMatchMode) {
     std::cout << "[CAEN_V1290]::[INFO]::Enabled Trigger Match Mode" << std::endl;
     status |= OpWriteTDC(CAEN_V1290_TRMATCH_OPCODE);
   }
   
-  CheckStatusAfterRead();
-  
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   // I step: set Edge detection
   std::cout << "[CAEN_V1290]::[INFO]::EdgeDetection " << configuration_.edgeDetectionMode << std::endl;
   status |= OpWriteTDC(CAEN_V1290_EDGEDET_OPCODE);
   status |= OpWriteTDC(configuration_.edgeDetectionMode);
   
  
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   // I step: set Time Resolution
   std::cout << "[CAEN_V1290]::[INFO]::TimeResolution " << configuration_.timeResolution << std::endl;
   status |= OpWriteTDC(CAEN_V1290_TIMERESO_OPCODE);
@@ -100,13 +98,13 @@ int CAEN_V1290::SetupModule() {
   
 
     
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   // II step: set TRIGGER Window Width to value n 
   std::cout << "[CAEN_V1290]::[INFO]::Set Trigger window width " << configuration_.windowWidth << std::endl;
   status |= OpWriteTDC(CAEN_V1290_WINWIDT_OPCODE); 
   status |= OpWriteTDC(configuration_.windowWidth);
     
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   // III step: set TRIGGER Window Offset to value -n 
   std::cout << "[CAEN_V1290]::[INFO]::TimeWindowWidth " << configuration_.windowWidth << " TimeWindowOffset " << configuration_.windowOffset << std::endl;
   status |= OpWriteTDC(CAEN_V1290_WINOFFS_OPCODE); 
@@ -114,12 +112,12 @@ int CAEN_V1290::SetupModule() {
 
   
   //disable all channels
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   std::cout << "[CAEN_V1290]::[INFO]::Disabling all channel " << std::endl;
   status |= OpWriteTDC(CAEN_V1290_DISALLCHAN_OPCODE); 
   
   // enable channels
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   for (unsigned int i=0;i<channels_;++i) {
     if (! (configuration_.enabledChannels & ( 1 << i )) ) continue;
     std::cout << "[CAEN_V1290]::[INFO]::Enabling channel " << i << std::endl;
@@ -128,13 +126,13 @@ int CAEN_V1290::SetupModule() {
   }
   
   //number of hits unlimited for July 2017 data taking (14.07.2017) 
-  //eudaq::mSleep(10);
-  //std::cout << "[CAEN_V1290]::[INFO]::Setting max hits per trigger " << configuration_.maxHitsPerEvent << std::endl;
-  //status |= OpWriteTDC(CAEN_V1290_MAXHITS_OPCODE); 
-  //status |= OpWriteTDC(configuration_.maxHitsPerEvent); 
+  eudaq::mSleep(1);
+  std::cout << "[CAEN_V1290]::[INFO]::Setting max hits per trigger " << configuration_.maxHitsPerEvent << std::endl;
+  status |= OpWriteTDC(CAEN_V1290_MAXHITS_OPCODE); 
+  status |= OpWriteTDC(configuration_.maxHitsPerEvent); 
   
   
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   //Enable trigger time subtraction 
   if (configuration_.triggerTimeSubtraction) {
     std::cout << "[CAEN_V1290]::[INFO]::Enabling trigger time subtraction " << std::endl;
@@ -148,7 +146,10 @@ int CAEN_V1290::SetupModule() {
     std::cout << "[CAEN_V1290]::[ERROR]::Initialisation error" << status << std::endl;
     return ERR_CONFIG;
   } 
-  std::cout << "[CAEN_V1290]::[INFO]::++++++ CAEN V1290 INITIALISED ++++++" << std::endl; 
+
+
+  eudaq::mSleep(1);
+  std::cout << "[CAEN_V1290]::[INFO]::++++++ CAEN V1290 CONFIGURED ++++++" << std::endl; 
   CheckStatusAfterRead();
 
 
@@ -170,7 +171,8 @@ int CAEN_V1290::Clear() {
     return ERR_RESET;
   }
 
-  eudaq::mSleep(10);
+  /*
+  eudaq::mSleep(1);
 
   status |= CAENVME_SystemReset(handle_);
   if (status) {
@@ -179,6 +181,7 @@ int CAEN_V1290::Clear() {
   }
 
   status=Init();
+  */
   return status;
 }      
 
@@ -221,7 +224,7 @@ int CAEN_V1290::Config(CAEN_V1290::CAEN_V1290_Config_t &_config) {
 }
 
 
-bool CAEN_V1290::ReadyToRead() {
+bool CAEN_V1290::DataReady() {
   int status = 0;
   
   if (handle_<0) {
@@ -232,9 +235,12 @@ bool CAEN_V1290::ReadyToRead() {
   WORD data;  
   int v1290_rdy=0;
 
-  //Wait for a valid datum in the ADC
-  status |= CAENVME_ReadCycle(handle_,configuration_.baseAddress+CAEN_V1290_STATUS_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
-  v1290_rdy = data & CAEN_V1290_RDY_BITMASK;
+  int ntry = 50, nt = 0;
+  while ( (v1290_rdy != 1 ) && nt<ntry ) {
+    status |= CAENVME_ReadCycle(handle_,configuration_.baseAddress+CAEN_V1290_STATUS_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
+    v1290_rdy = data & CAEN_V1290_RDY_BITMASK;
+    ++nt;
+  }
 
   return (v1290_rdy==1);
 
@@ -255,7 +261,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   int v1290_rdy=0;
   int v1290_error=1;
 
-  int ntry = 10, nt = 0;
+  int ntry = 1, nt = 0;
   //Wait for a valid datum in the ADC
   while ( (v1290_rdy != 1 || v1290_error!=0 ) && nt<ntry ) {
     status |= CAENVME_ReadCycle(handle_,configuration_.baseAddress+CAEN_V1290_STATUS_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
@@ -274,11 +280,19 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
       std::cout << "[CAEN_V1290]::[ERROR]::V1290 board not ready" << status << std::endl;   
     #endif
     //v.push_back( (0x4 << 28) | (1 & 0x7FFF ));
-    return ERR_READ;
+    return ERR_NONE;
   }
 
   if (status || v1290_error!=0) {
     std::cout << "[CAEN_V1290]::[ERROR]::Cannot get a valid data from V1290 board " << status << std::endl;   
+    #ifdef CAENV1290_DEBUG
+      std::cout<<"CAEN_V1290_ERROR0_BITMASK: "<< (data & CAEN_V1290_ERROR0_BITMASK)<<std::endl;
+      std::cout<<"CAEN_V1290_ERROR1_BITMASK: "<< (data & CAEN_V1290_ERROR1_BITMASK)<<std::endl;
+      std::cout<<"CAEN_V1290_ERROR2_BITMASK: "<< (data & CAEN_V1290_ERROR2_BITMASK)<<std::endl;
+      std::cout<<"CAEN_V1290_ERROR3_BITMASK: "<< (data & CAEN_V1290_ERROR3_BITMASK)<<std::endl;
+      std::cout<<"CAEN_V1290_TRGLOST_BITMASK: "<< (data & CAEN_V1290_TRGLOST_BITMASK)<<std::endl;    
+    #endif
+    
     v.push_back( (0x4 << 28) | (2 & 0x7FFF ));
     return ERR_READ;
   }  
@@ -377,8 +391,6 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
     return ERR_READ;
   }
 
-  status |= CheckStatusAfterRead();
-
   if (status) {
     std::cout << "[CAEN_V1290]::[ERROR]::MEB Full or problems reading" << status << std::endl; 
     return ERR_READ;
@@ -421,32 +433,36 @@ int CAEN_V1290::CheckStatusAfterRead() {
   v1290_error |= data & CAEN_V1290_TRGLOST_BITMASK;
   
   if( v1290_FULL || v1290_error ) { 
-    std::cout << "[CAEN_V1290]::[INFO]::Trying to restore V1290 board. Reset" << status << std::endl; 
-    #ifdef CAENV1290_DEBUG
-      std::cout<<"[CAEN_V1290]::[INFO]::Status: "<<std::endl;
-      std::cout<<"v1290_EMPTYEVEN: "<<v1290_EMPTYEVEN<<std::endl;
-      std::cout<<"v1290_RDY: "<<v1290_RDY<<std::endl;
-      std::cout<<"v1290_FULL: "<<v1290_FULL<<std::endl;
-      std::cout<<"v1290_TRGMATCH: "<<v1290_TRGMATCH<<std::endl;
-      std::cout<<"v1290_TERMON: "<<v1290_TERMON<<std::endl;
-      std::cout<<"v1290_ERROR0: "<<v1290_ERROR0<<std::endl;
-      std::cout<<"v1290_ERROR1: "<<v1290_ERROR1<<std::endl;
-      std::cout<<"v1290_ERROR2: "<<v1290_ERROR2<<std::endl;
-      std::cout<<"v1290_ERROR3: "<<v1290_ERROR3<<std::endl;
-      std::cout<<"v1290_TRGLOST: "<<v1290_TRGLOST<<std::endl;
-      std::cout<<"v1290_WORDTYPE: "<<v1290_WORDTYE<<std::endl;
-      std::cout<<std::endl;
-    #endif
+    std::cout << "[CAEN_V1290]::[INFO]::Trying to restore V1290 board. Reset" << status << std::endl;     
+    std::cout<<"[CAEN_V1290]::[INFO]::Status: "<<std::endl;
+    std::cout<<"v1290_EMPTYEVEN: "<<v1290_EMPTYEVEN<<std::endl;
+    std::cout<<"v1290_RDY: "<<v1290_RDY<<std::endl;
+    std::cout<<"v1290_FULL: "<<v1290_FULL<<std::endl;
+    std::cout<<"v1290_TRGMATCH: "<<v1290_TRGMATCH<<std::endl;
+    std::cout<<"v1290_TERMON: "<<v1290_TERMON<<std::endl;
+    std::cout<<"v1290_ERROR0: "<<v1290_ERROR0<<std::endl;
+    std::cout<<"v1290_ERROR1: "<<v1290_ERROR1<<std::endl;
+    std::cout<<"v1290_ERROR2: "<<v1290_ERROR2<<std::endl;
+    std::cout<<"v1290_ERROR3: "<<v1290_ERROR3<<std::endl;
+    std::cout<<"v1290_TRGLOST: "<<v1290_TRGLOST<<std::endl;
+    std::cout<<"v1290_WORDTYPE: "<<v1290_WORDTYE<<std::endl;
+    std::cout<<std::endl;
+    
     
     status=BufferClear();
+    //full reset of TDC if the clearing of buffers did not help, added on 09 August 2018 by T.Q.
     if (status) {
       status=Clear();
+      SetupModule();
     }
   } 
   if (status) {
     std::cout << "[CAEN_V1290]::[ERROR]::Cannot restore healthy state in V1290 board " << status << std::endl; 
     return ERR_READ;
-  }  
+  } else {
+    std::cout << "[CAEN_V1290]::[STATUS]::V1290 board is in healthy state " << status << std::endl; 
+    return ERR_NONE;
+  }
 
   return 0;
 }

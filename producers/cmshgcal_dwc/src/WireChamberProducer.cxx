@@ -195,9 +195,9 @@ class WireChamberProducer : public eudaq::Producer {
       if (stopping) continue;
 
       if (_mode==DWC_RUN) {
-        bool performReadout = false;
+        performReadout = false;
         for (int i=0; i<tdcs.size(); i++) {
-          performReadout = tdcs[i]->ReadyToRead();
+          performReadout = tdcs[i]->DataReady();
           if (performReadout) break;
         }
         
@@ -215,9 +215,11 @@ class WireChamberProducer : public eudaq::Producer {
       for (int i=0; i<tdcs.size(); i++) {
         dataStream.clear();
         if (_mode==DWC_RUN && initialized) {
-          tdcs[i]->Read(dataStream);
+          tdc_error = tdcs[i]->Read(dataStream);
+          if (readoutError!=CAEN_V1290::ERR_READ) readoutError = tdc_error;
         } else if (_mode==DWC_DEBUG) {
           tdcs[i]->generatePseudoData(dataStream);
+          readoutError = CAEN_V1290::ERR_NONE;
         }
           
         ev.AddBlock(i, dataStream);
@@ -225,6 +227,20 @@ class WireChamberProducer : public eudaq::Producer {
 
       //Adding the event to the EUDAQ format
       SendEvent(ev);
+      
+
+
+      if (readoutError==CAEN_V1290::ERR_READ) {
+        SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Resetting");
+        for (int i=0; i<tdcs.size(); i++) {
+          std::cout<<"Checking the status of TDC "<<i<<" ..."<<std::endl;
+          tdcs[i]->CheckStatusAfterRead();
+        }
+        SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
+      }
+
+
+
       if (_mode==DWC_DEBUG) eudaq::mSleep(10);
     }
   }
@@ -237,6 +253,9 @@ class WireChamberProducer : public eudaq::Producer {
     unsigned m_run, m_ev;
     bool stopping, done, started;
     bool initialized;
+
+    bool performReadout;
+    int readoutError, tdc_error;
 
     std::chrono::steady_clock::time_point startTime; 
     uint64_t timeSinceStart;

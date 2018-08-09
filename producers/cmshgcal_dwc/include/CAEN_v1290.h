@@ -164,7 +164,7 @@ public:
   //virtual int Config(BoardConfig *bC);
   virtual int Config(CAEN_V1290::CAEN_V1290_Config_t &);
   virtual bool IsConfigured() const {return _isConfigured;};
-  virtual bool ReadyToRead();
+  virtual bool DataReady();
   virtual int Read(std::vector<WORD> &v);
   virtual int SetHandle(int handle) { handle_=handle; return 0;};
   virtual int GetHandle() { return handle_;};
