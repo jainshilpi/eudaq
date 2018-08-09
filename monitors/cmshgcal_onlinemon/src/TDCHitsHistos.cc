@@ -77,9 +77,11 @@ void TDCHitsHistos::Fill(const eudaq::StandardPlane &plane) {
 }
 
 void TDCHitsHistos::Reset() {
-
   _hitOccupancy->Reset();
-    
+  _hitProbability->Reset();
+  _occupancy->Reset();
+  _hitSumCount->Reset();
+  _hitCount->Reset();
 }
 
 void TDCHitsHistos::Calculate(const int currentEventNum) {
