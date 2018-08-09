@@ -100,7 +100,7 @@ namespace eudaq {
 
 
         unpacked.push_back(tdc_unpacker->ConvertTDCData(Words));        
-        
+                
       }
 
 
@@ -120,6 +120,13 @@ namespace eudaq {
         }
       }
       sev.AddPlane(full_dwc_plane);
+
+      //plane with the trigger time stamps
+      StandardPlane timestamp_dwc_plane(0, EVENT_TYPE, sensortype+"_triggerTimestamps");
+      timestamp_dwc_plane.SetSizeRaw(nBlocks, 1, 1);  
+      for (unsigned tdc_index=0; tdc_index<nBlocks; tdc_index++)  timestamp_dwc_plane.SetPixel(tdc_index, tdc_index, 1, unpacked[tdc_index]->extended_trigger_timestamp, false, 1);
+      sev.AddPlane(timestamp_dwc_plane);
+
 
       //Hard coded assignment of channel time stamps to DWC planes for the DQM to guarantee downward compatibility with <=July 2018 DQM
       //note: for the DWC correlation plots, the indexing must start at 0!

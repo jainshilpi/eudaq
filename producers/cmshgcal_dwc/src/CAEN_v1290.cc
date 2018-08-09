@@ -354,6 +354,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
         int bunchID = (data) & 0xFFF;
         std::cout << "[CAEN_V1290]::[DEBUG]::WE FOUND THE TDC HEADER of nr. " << TDCnr << " with eventID " << eventID << " and bunchID " << bunchID << std::endl;     
       #endif
+      v.push_back(data);
     } else if (wordType == CAEN_V1290_TDCTRAILER ) {
       #ifdef CAENV1290_DEBUG
         int TDCnr = (data>>24) & 0x3;
@@ -361,10 +362,10 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
         int wordCount = (data) & 0xFFF;
         std::cout << "[CAEN_V1290]::[DEBUG]::WE FOUND THE TDC TRAILER of nr. " << TDCnr << " with eventID " << eventID << " and word count " << wordCount << std::endl;     
       #endif
+      v.push_back(data);
     } else if (wordType == CAEN_V1290_TDCERROR ) {
       std::cout << "[CAEN_V1290]::[ERROR]::TDC ERROR!" << std::endl; 
-      v.clear();
-      v.push_back( (0x4 << 28) | (4 & 0x7FFF ));
+      v.push_back(data);
       return ERR_READ;
     } else if (wordType == CAEN_V1290_TDCMEASURE ) {
       v.push_back(data);
@@ -376,10 +377,11 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
         std::cout << "[CAEN_V1290]::[INFO]::HIT CHANNEL " << channel << " TYPE " << trailing << " TIME " << tdc_time << std::endl; 
       #endif
     } else if (wordType == CAEN_V1290_GLBTRTIMETAG ) {
+
     } else {
       std::cout << "[CAEN_V1290]::[ERROR]::UNKNOWN WORD TYPE!" << std::endl; 
       v.clear();
-      v.push_back( (0x4 << 28) | (5 & 0x7FFF ));
+      v.push_back( (0x7 << 28) | (5 & 0x7FFF ));
       return ERR_READ;
     }
   }

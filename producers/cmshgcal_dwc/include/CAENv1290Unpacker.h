@@ -19,6 +19,7 @@ struct tdcData {
   int ID;
   std::map<unsigned int, unsigned int> timeOfArrivals;  //like in September 2016 test-beam: minimum of all read timestamps 
   std::map<unsigned int, std::vector<unsigned int> >hits;
+  unsigned int extended_trigger_timestamp;
 
 } ;
 
