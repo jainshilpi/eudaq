@@ -95,10 +95,10 @@ sleep 3
 ######################################################################
 # wire chamber Producer
 ###############
-printf '\033[22;33m\t delay wire chamber Producer \033[0m \n'
-xterm -sb -sl 1000 -geom 80x600-280-900 -fn fixed -T "Delay Wire Chamber Producer" -e './WireChamberProducer.exe -l DEBUG -r tcp://$HOSTIP:$RCPORT' &
+#printf '\033[22;33m\t delay wire chamber Producer \033[0m \n'
+#xterm -sb -sl 1000 -geom 80x600-280-900 -fn fixed -T "Delay Wire Chamber Producer" -e './WireChamberProducer.exe -l DEBUG -r tcp://$HOSTIP:$RCPORT' &
 
-sleep 3
+#sleep 3
 
 #####################################################################
 if [ -f "HgcOnlineMon.exe" ]

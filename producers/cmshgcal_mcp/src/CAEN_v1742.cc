@@ -484,6 +484,9 @@ int CAEN_V1742::getMoreBoardInfo ()
   default:
     return -1 ;
   }
+
+
+  std::cout<<"Number of channels: "<<digitizerConfiguration_.Nch<<std::endl;
   return 0 ;
 } ;
 
@@ -676,10 +679,10 @@ int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, 
 
     //Allocating necessary space for this channel
     CAEN_V1742_eventBuffer.resize (start_ptr + 2 + Size) ;
-    std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof (unsigned int)) ;
+    std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof (uint32_t)) ;
 
     //Beware the datas are float (because they are corrected...) but copying them here bit by bit. Should remember this for reading them out
-    std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr+2]), event->DataGroup[gr].DataChannel[ch], Size * sizeof (unsigned int)) ;
+    std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr+2]), event->DataGroup[gr].DataChannel[ch], Size * sizeof (uint32_t)) ;
 
     //Update event size and #channels
     (CAEN_V1742_eventBuffer)[0]+= (Size+2) ;
@@ -693,6 +696,30 @@ int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, 
 }
 
 
+int CAEN_V1742::generateFakeData (int eventCounter, vector<WORD>& CAEN_V1742_eventBuffer) {
+  CAEN_DGTZ_EventInfo_t* eventInfo = new CAEN_DGTZ_EventInfo_t;
+  eventInfo->BoardId = 7; //dummy values
+  eventInfo->Pattern = 2;
+  eventInfo->EventCounter = eventCounter;
+  eventInfo->TriggerTimeTag = eventCounter * 40;
+  
+
+  CAEN_DGTZ_X742_EVENT_t* event = new CAEN_DGTZ_X742_EVENT_t;
+  for (int gr=0 ;gr< (digitizerConfiguration_.Nch/9) ;gr++) {
+    event->GrPresent[gr] = true;
+    for (int ch=0 ; ch<9 ; ch++) {
+      event->DataGroup[gr].ChSize[ch] = digitizerConfiguration_.RecordLength;
+      event->DataGroup[gr].DataChannel[ch] = new float[digitizerConfiguration_.RecordLength];
+      for (int i=0; i<digitizerConfiguration_.RecordLength; i++) event->DataGroup[gr].DataChannel[ch][i] = 0.5*sin(3*2*M_PI*i/digitizerConfiguration_.RecordLength);}
+    
+  }
+
+
+  writeEventToOutputBuffer(CAEN_V1742_eventBuffer, eventInfo, event);
+
+  return 0;
+} 
+
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
 
@@ -702,7 +729,8 @@ int CAEN_V1742::setDefaults ()
 //  int i,j, ch=-1, val, Off=0, tr = -1 ;
 
   /* Default settings */
-  digitizerConfiguration_.RecordLength = (1024*16) ;
+  digitizerConfiguration_.Nch = 18;
+  digitizerConfiguration_.RecordLength = (10) ;
   digitizerConfiguration_.PostTrigger = 80 ;
   digitizerConfiguration_.NumEvents = 1023 ;
   digitizerConfiguration_.EnableMask = 0xFF ;
@@ -771,7 +799,8 @@ int CAEN_V1742::Print (int full)
       cout << " FTDCoffset[" << i << "]         : " << digitizerConfiguration_.FTDCoffset[i]         << "\n" ;  
       cout << " FTThreshold[" << i << "]        : " << digitizerConfiguration_.FTThreshold[i]        << "\n" ;  
       cout << "   ---- ---- ---- ---- \n" ;
-      for (int j = 0 ; j < CAEN_V1742_MAXCH ; ++j) 
+  
+      if (full) for (int j = 0 ; j < CAEN_V1742_MAXCH ; ++j) 
         cout << "   DCoffsetGrpCh[" << i << "][" << j << "] : " << digitizerConfiguration_.DCoffsetGrpCh[i][j] << "\n" ; 
     }
 

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>    //necessary for memcopy
+#include <cmath>
 
 
 #include "eudaq/Logger.hh"
@@ -135,7 +136,9 @@ class CAEN_V1742 {
   inline CAEN_V1742_Config_t* GetConfiguration () { return &digitizerConfiguration_ ; } ;
   int Print () {Print (0) ; } ;
   int Print (int full = 0) ;
-    int setDefaults () ;
+  int setDefaults () ;
+
+  int generateFakeData (int, std::vector<WORD>&);
 
   private:
 

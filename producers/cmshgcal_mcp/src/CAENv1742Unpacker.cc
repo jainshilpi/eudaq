@@ -1,7 +1,7 @@
 #include "CAENv1742Unpacker.h"
 #include <bitset>
-#define DEBUG_UNPACKER 1
-#define DEBUG_VERBOSE_UNPACKER 1
+#define DEBUG_UNPACKER 0
+#define DEBUG_VERBOSE_UNPACKER 0
 
 
 //          ====================================================
@@ -40,7 +40,7 @@ int CAEN_V1742_Unpacker::Unpack (std::vector<uint32_t>& Words) {
 	//PG loop over board words (the external header was already read in SpillUnpacker
 	for (unsigned int i = 0 ; i < Words.size() ; ++i){
 		if (!isDigiSample_) digRawData_=Words[i];
-		else digRawSample_=Words[i];
+		else std::memcpy(&digRawSample_, &Words[i], sizeof(uint32_t)) ;
 
 		if (i==0) {
 			short dt_type = digRawData_>>28 & 0xF; //BOE is 1010 (0xA)
