@@ -218,7 +218,7 @@ class WireChamberProducer : public eudaq::Producer {
           tdc_error = tdcs[i]->Read(dataStream);
           if (readoutError!=CAEN_V1290::ERR_READ) readoutError = tdc_error;
         } else if (_mode==DWC_DEBUG) {
-          tdcs[i]->generatePseudoData(dataStream);
+          tdcs[i]->generatePseudoData(m_ev, dataStream);
           readoutError = CAEN_V1290::ERR_NONE;
         }
           

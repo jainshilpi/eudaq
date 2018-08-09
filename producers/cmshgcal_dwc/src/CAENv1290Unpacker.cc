@@ -14,10 +14,10 @@ int CAENv1290Unpacker::Unpack (std::vector<uint32_t>& Words, tdcData* currentDat
     
     #ifdef DEBUG_UNPACKER 
       std::cout << "TDC WORD: " << currentWord << std::endl;
-      std::cout << "TDC first 4 bits: " << (currentWord>>28) << std::endl;
+      std::cout << "TDC first 5 bits: " << (currentWord>>27) << std::endl;
     #endif
-    
-    if (currentWord>>28 == 10 ) { //TDC BOE
+    //bits 27-31 (starting at 0) contain the header, changed on 09th August by T.Q.
+    if (currentWord>>27 == 10 ) { //TDC BOE
       unsigned int tdcEvent= (currentWord) & 0xFFFFFF; 
       currentData->event = tdcEvent;
       #ifdef DEBUG_UNPACKER 
@@ -26,7 +26,7 @@ int CAENv1290Unpacker::Unpack (std::vector<uint32_t>& Words, tdcData* currentDat
       continue;
     }
     
-    else if (currentWord>>28 == 0) {//TDC DATUM
+    else if (currentWord>>27 == 0) {//TDC DATUM
       unsigned int channel = (currentWord>>21) & 0x1f;   //looks at the bits 21 - 26
       unsigned int measurement = currentWord & 0x1fffff;  //looks at bits 0 - 20
 
@@ -43,28 +43,27 @@ int CAENv1290Unpacker::Unpack (std::vector<uint32_t>& Words, tdcData* currentDat
       continue;
     }
 
-    else if (currentWord>>28 == 0x11) { //TDC extended trigger time tag: CAEN_V1290_GLBTRTIMETAG=0x11 
+    else if (currentWord>>27 == 0x11) { //TDC extended trigger time tag: CAEN_V1290_GLBTRTIMETAG=0x11 
       #ifdef DEBUG_UNPACKER
         std::cout << "[CAEN_V12490][Unpack] | TDC 1190 extended trigger time tag " << std::endl;
       #endif
         currentData->extended_trigger_timestamp = currentWord & 0x7ffffff;  //looks at bits 0 - 26
-      break;
     }
 
-    else if (currentWord>>28 == 8) { //TDC EOE 
+    else if (currentWord>>27 == 16) { //TDC EOE 
       #ifdef DEBUG_UNPACKER
         std::cout << "[CAEN_V12490][Unpack] | TDC 1190 BOE: end of event " << std::endl;
       #endif
       break;
     }
     
-    else if (currentWord>>28 == 4){
+    else if (currentWord>>27 == 4){
       unsigned int errorFlag = currentWord & 0x7FFF;
       std::cout << "TDC has error with flag: " << errorFlag << std::endl;
       break;
     }
    
-    else if (currentWord>>28 == 7){
+    else if (currentWord>>27 == 7){
       unsigned int errorFlag = currentWord & 0x7FFF;
       std::cout << "Unknown word type: " << errorFlag << std::endl;
       break;

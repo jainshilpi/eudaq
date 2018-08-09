@@ -30,7 +30,7 @@ int CAEN_V1290::SetupModule() {
   //Read Version to check connection
   WORD data=0;
   
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   status |= CAENVME_ReadCycle(handle_,configuration_.baseAddress+CAEN_V1290_FW_VER_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
   if (status) {
     std::cout << "[CAEN_V1290]::[ERROR]::Cannot open V1290 board @0x" << std::hex << configuration_.baseAddress << std::dec << " " << status <<std::endl; 
@@ -43,7 +43,7 @@ int CAEN_V1290::SetupModule() {
   }
   std::cout << "[CAEN_V1290]::[INFO]::Open V1290 board @0x" << std::hex << configuration_.baseAddress << std::dec << " FW Version Rev." << FWVersion[1] << "." << FWVersion[0] << std::endl;
   
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
   data=0;
   std::cout<<"[CAEN_V1290]::[INFO]::Software reset ... "<<std::endl;
   status |= CAENVME_WriteCycle(handle_,configuration_.baseAddress+CAEN_V1290_SW_RESET_REG, &data,CAEN_V1290_ADDRESSMODE, cvD16);
@@ -55,7 +55,7 @@ int CAEN_V1290::SetupModule() {
   }    
 
   
-  eudaq::mSleep(10);
+  eudaq::mSleep(1);
 
   //Now the real configuration  
   if (configuration_.model == CAEN_V1290_N) {
@@ -69,9 +69,9 @@ int CAEN_V1290::SetupModule() {
   std::cout << "[CAEN_V1290]::[INFO]::Enable empty events" << std::endl;
   if (configuration_.emptyEventEnable) {
     WORD data=0;
-    eudaq::mSleep(10);
+    eudaq::mSleep(1);
     status |= CAENVME_WriteCycle(handle_,configuration_.baseAddress+CAEN_V1290_CON_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
-    eudaq::mSleep(10);
+    eudaq::mSleep(1);
     data |= CAEN_V1290_EMPTYEVEN_BITMASK; //enable emptyEvent
     status |= CAENVME_WriteCycle(handle_,configuration_.baseAddress+CAEN_V1290_CON_REG,&data,CAEN_V1290_ADDRESSMODE,cvD16);
   }
@@ -122,7 +122,7 @@ int CAEN_V1290::SetupModule() {
     if (! (configuration_.enabledChannels & ( 1 << i )) ) continue;
     std::cout << "[CAEN_V1290]::[INFO]::Enabling channel " << i << std::endl;
     status |=OpWriteTDC(CAEN_V1290_ENCHAN_OPCODE+i);
-    eudaq::mSleep(20);
+    eudaq::mSleep(1);
   }
   
   //number of hits unlimited for July 2017 data taking (14.07.2017) 
@@ -320,7 +320,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   #ifdef CAENV1290_DEBUG
     std::cout << "[CAEN_V1290]::[DEBUG]::EVENT NUMBER " << evt_num << std::endl;
   #endif
-  v.push_back( (0xA << 28) | (evt_num & 0xFFFFFFF ));     //defines the global header in the data stream that is sent to the producer
+  v.push_back( (0xA << 27) | (evt_num & 0xFFFFFFF ));     //defines the global header in the data stream that is sent to the producer
 
 
   //Read until trailer
@@ -381,7 +381,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
     } else {
       std::cout << "[CAEN_V1290]::[ERROR]::UNKNOWN WORD TYPE!" << std::endl; 
       v.clear();
-      v.push_back( (0x7 << 28) | (5 & 0x7FFF ));
+      v.push_back( (0x7 << 27) | (5 & 0x7FFF ));
       return ERR_READ;
     }
   }
@@ -389,7 +389,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
   if (status) {
     std::cout << "[CAEN_V1290]::[ERROR]::READ ERROR!" << std::endl; 
     v.clear();
-    v.push_back( (0x4 << 28) | (6 & 0x7FFF ));
+    v.push_back( (0x4 << 27) | (6 & 0x7FFF ));
     return ERR_READ;
   }
 
@@ -583,21 +583,28 @@ int CAEN_V1290::SoftwareTrigger() {
 
 
 
-void CAEN_V1290::generatePseudoData(std::vector<WORD> &data) {
+void CAEN_V1290::generatePseudoData(unsigned int eventNr, std::vector<WORD> &data) {
 
   WORD bitStream = 0;
 
   //first the BOE
-  unsigned int eventNr = 1;
-  bitStream = bitStream | 10<<28;
+  bitStream = bitStream | 10<<27;
   data.push_back(bitStream);
   
+  //extended trigger time stamp
+  bitStream = 0;
+  bitStream = bitStream | 0x11<<27;
+  bitStream = bitStream | eventNr*40;
+  data.push_back(bitStream);
+  
+
   unsigned int beamX = (rand()%10000)/100 - 50;
   unsigned int beamY = (rand()%10000)/100 - 50;
   unsigned int _default = 20000;
 
   unsigned int readouts[16] = {_default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200, _default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200, _default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200, _default+rand()%1000, _default-beamX*200, _default+rand()%1000, _default-beamY*200};
-  
+
+
   //generate the channel information
   for (unsigned int channel=0; channel<16; channel++) {
     if (rand()%100 < 10) continue;  //ten percent change of no hit detection 
@@ -607,7 +614,7 @@ void CAEN_V1290::generatePseudoData(std::vector<WORD> &data) {
     int N_hits = rand()%18;   //maximum 10 hits in one readout
     for (int N=0; N<N_hits; N++) {
       bitStream = 0;
-      bitStream = bitStream | 0<<28;
+      bitStream = bitStream | 0<<27;
       bitStream = bitStream | channel<<21;
       bitStream = bitStream | (readout+N);
       data.push_back(bitStream);
@@ -616,6 +623,6 @@ void CAEN_V1290::generatePseudoData(std::vector<WORD> &data) {
   
   //last the BOE
   bitStream = 0;
-  bitStream = bitStream | 0x08<<28;
+  bitStream = bitStream | 0x10<<27;
   data.push_back(bitStream);
 }
