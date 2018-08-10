@@ -322,7 +322,7 @@ namespace eudaq {
       }
       m_result_pix = &m_temp_pix;
       
-    } else if (m_pix.size() == 32 || m_pix.size() == 21){ // HGCAL Hexaboard data or DWC data
+    } else if (m_pix.size() == 32 || m_pix.size() == 21 || m_pix.size() == 1025){ // HGCAL Hexaboard data or DWC data or digitizer data
       m_temp_pix.resize(0);
       m_temp_x.resize(0);
       m_temp_y.resize(0);

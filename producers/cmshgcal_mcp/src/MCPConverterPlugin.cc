@@ -17,6 +17,11 @@
 #include "lcio.h"
 #endif
 
+//must be adjusted to each setup of the digitizer
+#define Nchannels 9
+#define Ngroups 4
+#define Nsamples 1024
+
 
 namespace eudaq {
 
@@ -69,29 +74,49 @@ namespace eudaq {
 
       const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
 
-      std::cout<<"Get the time stamp of the MCP: "<<rev->GetTimestamp()<<std::endl;
+      std::cout<<"time stamp: "<<rev->GetTimestamp()<<std::endl;
+      sev.SetTag("cpuTime_mcpProducer_mus", rev->GetTimestamp());
 
       const unsigned nBlocks = rev->NumBlocks();
-      std::cout<<"Number o Raw Data Blocks: "<<nBlocks<<std::endl;
+      if (nBlocks>1) {
+        std::cout<<"More than one blocks in the MCPConverter, stop!!!"<<std::endl;
+        return false;
+      }
       
+      std::vector<digiData> converted_samples;      
+      unsigned int digitizer_triggerTimeTag;
       for (unsigned digititzer_index=0; digititzer_index<nBlocks; digititzer_index++){
               
         const RawDataEvent::data_t & bl = rev->GetBlock(digititzer_index);
-
-        std::cout<<"size of block: "<<bl.size()<<std::endl;
 
         //conversion block
         std::vector<uint32_t> Words;
         Words.resize(bl.size() / sizeof(uint32_t));
         std::memcpy(&Words[0], &bl[0], bl.size());   
 
-        unpacker->Unpack(Words);
+        unpacker->Unpack(Words, converted_samples, digitizer_triggerTimeTag);
         
       }
+      sev.SetTag("digitizer_triggertimetag", digitizer_triggerTimeTag);
 
+      StandardPlane digitizer_full_plane(0, EVENT_TYPE, sensortype);
+      digitizer_full_plane.SetSizeRaw(Ngroups, Nchannels, Nsamples+1);    
+      for (int gr=0; gr<Ngroups; gr++) for (int ch=0; ch<Nchannels; ch++) digitizer_full_plane.SetPixel(gr*Nchannels+ch, gr, ch, Nsamples, false, 0);
 
+      //plane for offline reconstruction
+      int gr, ch, sample_index;
+      for (int i=0; i<converted_samples.size(); i++) {
+        gr = converted_samples[i].group;
+        ch = converted_samples[i].channel;
+        sample_index = converted_samples[i].sampleIndex;
+        digitizer_full_plane.SetPixel(gr*Nchannels+ch, gr, ch, converted_samples[i].sampleValue, false, 1+sample_index);
+      }
+
+      sev.AddPlane(digitizer_full_plane);
+
+      //todo:
       
-
+      //2. make DQM plots (2 per channel: accumulation + last event % 100)
 
       // Indicate that data was successfully converted
       return true;

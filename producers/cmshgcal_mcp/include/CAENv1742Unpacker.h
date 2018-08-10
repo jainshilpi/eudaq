@@ -41,7 +41,7 @@ class CAEN_V1742_Unpacker {
 			groupId_ (-1)
 			{} ;
 
-		int Unpack (std::vector<uint32_t>&) ;
+		int Unpack (std::vector<uint32_t>&, std::vector<digiData>&, unsigned int &triggerTimeTag) ;
 
 	private :
 		unsigned int dig1742channels_ ;

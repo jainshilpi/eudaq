@@ -32,11 +32,10 @@
  */
 
 
-int CAEN_V1742_Unpacker::Unpack (std::vector<uint32_t>& Words) {
+int CAEN_V1742_Unpacker::Unpack (std::vector<uint32_t>& Words, std::vector<digiData>& samples, unsigned int &triggerTimeTag) {
 	isDigiSample_ = 0 ;
 
 
-	std::cout<<"Size of the words in the unpacking: "<<Words.size()<<std::endl;
 	//PG loop over board words (the external header was already read in SpillUnpacker
 	for (unsigned int i = 0 ; i < Words.size() ; ++i){
 		if (!isDigiSample_) digRawData_=Words[i];
@@ -62,7 +61,6 @@ int CAEN_V1742_Unpacker::Unpack (std::vector<uint32_t>& Words) {
 		}
 		else if (i==2) { 
 			dig1742channels_ = digRawData_;
-			std::cout<<"digi1742channels: "<<dig1742channels_<<std::endl;
 		}
 		else if (i==3) { 
 			unsigned int digiEvt = digRawData_;
@@ -71,7 +69,7 @@ int CAEN_V1742_Unpacker::Unpack (std::vector<uint32_t>& Words) {
 			}            
 		}
 		else if (i==4) { 
-			unsigned int triggerTimeTag = digRawData_;
+			triggerTimeTag = digRawData_;
 			if (DEBUG_UNPACKER) {
 				std::cout << "[CAEN_V1742][Unpack]       | DIGI 1742 BOE: trigger time tag " << triggerTimeTag << "\n" ;
 			}            
@@ -135,7 +133,7 @@ int CAEN_V1742_Unpacker::Unpack (std::vector<uint32_t>& Words) {
 					<< aDigiSample.sampleIndex 
 					<< " : " << aDigiSample.sampleValue << "\n" ;
 				}
-				//event->digiValues.push_back (aDigiSample) ;
+				samples.push_back (aDigiSample) ;
 
 				if (1 == nSamplesToReadout_) {
 					//Next sample will be a ChHeader and should be read as as a uint

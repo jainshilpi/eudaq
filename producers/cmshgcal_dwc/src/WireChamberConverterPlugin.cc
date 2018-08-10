@@ -72,7 +72,7 @@ namespace eudaq {
       const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
 
 
-      sev.SetTag("cpuTime_mus", rev->GetTimestamp());
+      sev.SetTag("cpuTime_dwcProducer_mus", rev->GetTimestamp());
 
       //rev->Print(std::cout);
 
