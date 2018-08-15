@@ -197,8 +197,7 @@ class WireChamberProducer : public eudaq::Producer {
       if (_mode==DWC_RUN) {
         performReadout = false;
         for (int i=0; i<tdcs.size(); i++) {
-          performReadout = tdcs[i]->DataReady();
-          if (performReadout) break;
+          performReadout = performReadout || tdcs[i]->DataReady();
         }
         
         if(!performReadout) continue;        
@@ -241,7 +240,7 @@ class WireChamberProducer : public eudaq::Producer {
 
 
 
-      if (_mode==DWC_DEBUG) eudaq::mSleep(10);
+      if (_mode==DWC_DEBUG) eudaq::mSleep(100);
     }
   }
 
