@@ -27,7 +27,7 @@ namespace eudaq {
 
   // The event type for which this converter plugin will be registered
   // Modify this to match your actual event type (from the Producer)
-  static const char *EVENT_TYPE = "MCP";
+  static const char *EVENT_TYPE = "DIGITIZER";
 
   // Declare a new class that inherits from DataConverterPlugin
   class MCPConverterPlugin : public DataConverterPlugin {
@@ -68,7 +68,7 @@ namespace eudaq {
 
       // If the event type is used for different sensors
       // they can be differentiated here
-      const std::string sensortype = "MCP";
+      const std::string sensortype = "DIGITIZER";
 
       //std::cout<<"\t Dans GetStandardSubEvent()  "<<std::endl;
 

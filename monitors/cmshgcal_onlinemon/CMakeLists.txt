@@ -24,6 +24,8 @@ SET (HgcOnlineMon_SOURCES
   src/WireChamberHistos.cc
   src/TDCHitsCollection.cc
   src/TDCHitsHistos.cc
+  src/DigitizerCollection.cc
+  src/DigitizerHistos.cc  
   src/WireChamberCorrelationCollection.cc
   src/WireChamberCorrelationHistos.cc  
   src/CheckEOF.cc

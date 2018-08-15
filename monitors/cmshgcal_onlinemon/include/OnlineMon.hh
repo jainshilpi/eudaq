@@ -34,6 +34,7 @@
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
 #include "TDCHitsCollection.hh"
+#include "DigitizerCollection.hh"
 #include "WireChamberCorrelationCollection.hh"
 #include "HitmapCollection.hh"
 #include "CorrelationCollection.hh"
@@ -110,6 +111,7 @@ public:
   CorrelationCollection *beamTelescopeCorrCollection;
   DATURAToHGCALCorrelationCollection *daturaToHGCALCorrelationCollection;
   //DWCToHGCALCorrelationCollection *dwcToHGCALCorrelationCollection;
+  DigitizerCollection* digitizerCollection;
 
   virtual void StartIdleing() {}
   OnlineMonWindow *getOnlineMon() { return onlinemon; }

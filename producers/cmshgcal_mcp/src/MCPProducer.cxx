@@ -30,7 +30,7 @@ enum RUNMODE{
 };
 
 
-static const std::string EVENT_TYPE = "MCP";
+static const std::string EVENT_TYPE = "DIGITIZER";
 
 class MCPProducer : public eudaq::Producer {
   public:
@@ -376,7 +376,7 @@ class MCPProducer : public eudaq::Producer {
       SendEvent(ev);
       dataStream.clear();
 
-      if (_mode==MCP_DEBUG) eudaq::mSleep(10);
+      if (_mode==MCP_DEBUG) eudaq::mSleep(100);
     }
   }
 
