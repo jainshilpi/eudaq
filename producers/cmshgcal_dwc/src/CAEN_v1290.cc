@@ -235,11 +235,12 @@ bool CAEN_V1290::DataReady() {
   WORD data;
   int v1290_rdy = 0;
 
-  int ntry = 50, nt = 0;
+  int ntry = 10, nt = 0;
   while ( (v1290_rdy != 1 ) && nt < ntry ) {
     status |= CAENVME_ReadCycle(handle_, configuration_.baseAddress + CAEN_V1290_STATUS_REG, &data, CAEN_V1290_ADDRESSMODE, cvD16);
     v1290_rdy = data & CAEN_V1290_RDY_BITMASK;
     ++nt;
+    usleep(10);
   }
 
   return (v1290_rdy == 1);

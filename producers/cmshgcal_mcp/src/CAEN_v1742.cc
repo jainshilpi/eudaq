@@ -316,8 +316,6 @@ int CAEN_V1742::Read (vector<WORD> &v) {
   ERROR_CODES ErrCode = ERR_NONE ;
 
 
-
-
   uint32_t BufferSize, NumEvents;
   CAEN_DGTZ_EventInfo_t       EventInfo ;
   ostringstream s;
@@ -326,10 +324,9 @@ int CAEN_V1742::Read (vector<WORD> &v) {
   int itry = 0;
   int TIMEOUT = 100;
 
-  while (1 > NumEvents && itry < TIMEOUT) {
+  BufferSize = 0;
+  while (BufferSize == 0 && itry < TIMEOUT) {
     ++itry;
-    BufferSize = 0;
-    NumEvents = 0;
     ret = CAEN_DGTZ_ReadData (digitizerHandle_, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer_, &BufferSize) ;
     if (ret) {
       s.str(""); s << "[CAEN_V1742]::[ERROR]::READOUT ERROR (ReadData)!!!";
@@ -337,21 +334,9 @@ int CAEN_V1742::Read (vector<WORD> &v) {
       ErrCode = ERR_READOUT ;
       return ErrCode ;
     }
-
-    if (BufferSize != 0) {
-      ret = CAEN_DGTZ_GetNumEvents (digitizerHandle_, buffer_, BufferSize, &NumEvents) ;
-      if (ret) {
-        s.str(""); s << "[CAEN_V1742]::[ERROR]::READOUT ERROR (NumEvents)!!!";
-        std::cout << s.str() << std::endl;
-        ErrCode = ERR_READOUT ;
-        return ErrCode ;
-      }
-      if (NumEvents == 0) {
-        s.str(""); s << "[CAEN_V1742]::[WARNING]::NO EVENTS BUT BUFFERSIZE !=0";
-        std::cout << s.str() << std::endl;
-      }
-    }
+    usleep(10);
   }
+  
 
   //nothing to read out in the buffer
   if (itry == TIMEOUT) {
@@ -363,6 +348,18 @@ int CAEN_V1742::Read (vector<WORD> &v) {
     return ErrCode;    
   }
 
+  ret = CAEN_DGTZ_GetNumEvents (digitizerHandle_, buffer_, BufferSize, &NumEvents) ;
+  if (ret) {
+    s.str(""); s << "[CAEN_V1742]::[ERROR]::READOUT ERROR (NumEvents)!!!";
+    std::cout << s.str() << std::endl;
+    ErrCode = ERR_READOUT ;
+    return ErrCode ;
+  }
+  if (NumEvents == 0) {
+    s.str(""); s << "[CAEN_V1742]::[ERROR]::NO EVENTS BUT BUFFERSIZE !=0";
+    std::cout << s.str() << std::endl;
+  }
+  
   //For the moment empty the buffers one by one
   if (NumEvents != 1) {
     s.str(""); s << "[CAEN_V1742]::[ERROR]::MISMATCHED EVENTS!!!" << NumEvents;
