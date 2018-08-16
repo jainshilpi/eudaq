@@ -91,8 +91,11 @@ public:
       for (size_t i = 0; i < tdcs.size(); i++) delete tdcs[i];
       tdcs.clear();
       NumberOfTDCs = config.Get("NumberOfTDCs", 1);
-      for (int id = 1; id <= NumberOfTDCs; id++)
+      tdcDataReady = new bool[NumberOfTDCs];
+      for (int id = 1; id <= NumberOfTDCs; id++){
         tdcs.push_back(new CAEN_V1290(id));
+        tdcDataReady[id-1] = false;
+      }
     } else {
       std::cout << "Number of TDCs(=" << NumberOfTDCs << ") has not been changed. Restart the producer to change the number of TDCs." << std::endl;
     }
@@ -195,9 +198,13 @@ public:
       if (stopping) continue;
 
       if (_mode == DWC_RUN) {
-        performReadout = false;
+        performReadout = true;
         for (int i = 0; i < tdcs.size(); i++) {
-          performReadout = performReadout || tdcs[i]->DataReady();
+          if (tdcDataReady[i]==true) continue;
+          else {
+            tdcDataReady[i] = tdcs[i]->DataReady();
+            performReadout = performReadout && tdcDataReady[i];
+          }
         }
 
         if (!performReadout) continue;
@@ -226,7 +233,9 @@ public:
 
       //Adding the event to the EUDAQ format
       SendEvent(ev);
-
+      for (int i = 0; i < tdcs.size(); i++) {
+        tdcDataReady[i] = false;
+      }
 
 
       if (readoutError == CAEN_V1290::ERR_READ) {
@@ -253,6 +262,7 @@ private:
   bool stopping, done, started;
   bool initialized;
 
+  bool* tdcDataReady;
   bool performReadout;
   int readoutError, tdc_error;
 
