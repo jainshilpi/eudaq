@@ -32,7 +32,7 @@ public:
 
   WireChamberProducer(const std::string & name, const std::string & runcontrol)
     : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {
-    initialized = false;
+    initialized = false; connection_initialized = false;
     _mode = DWC_DEBUG;
     NumberOfTDCs = -1;
   }
@@ -40,6 +40,7 @@ public:
   void OnInitialise(const eudaq::Configuration &init) {
     std::cout << "Initialisation of the DWC Producer..." << std::endl;
     try {
+      if (connection_initialized) return;
       std::cout << "Reading: " << init.Name() << std::endl;
       //necessary: setup the communication board (VX2718)
       //corresponding values for the init function are taken from September 2016 configuration
@@ -49,7 +50,7 @@ public:
       if (status) {
         std::cout << "[CAEN_VX2718]::[ERROR]::Cannot open VX2718 board." << std::endl;
       }
-
+      connection_initialized = true;
       // Do any initialisation of the hardware here
       // "start-up configuration", which is usally done only once in the beginning
       // Configuration file values are accessible as config.Get(name, default)
@@ -260,7 +261,7 @@ private:
 
   unsigned m_run, m_ev;
   bool stopping, done, started;
-  bool initialized;
+  bool initialized, connection_initialized;
 
   bool* tdcDataReady;
   bool performReadout;
