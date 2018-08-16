@@ -145,7 +145,10 @@ int CAEN_V1742::SetupModule () {
   //now allocate the eventBuffers
   uint32_t AllocatedSize=0;
   
-  ret = CAEN_DGTZ_AllocateEvent(digitizerHandle_, (void**)&event_);
+  if (boardInfo_.FamilyCode != CAEN_DGTZ_XX720_FAMILY_CODE)
+    ret = CAEN_DGTZ_AllocateEvent(digitizerHandle_, (void**)&eventV1742_);
+  else  //it is the V1720 with a different event structure than the V1742
+    ret = CAEN_DGTZ_AllocateEvent(digitizerHandle_, (void**)&eventV1720_);
 
   if (ret != CAEN_DGTZ_Success) {
     ErrCode = ERR_MALLOC;
@@ -378,19 +381,23 @@ int CAEN_V1742::Read (vector<WORD> &v) {
     ErrCode = ERR_EVENT_BUILD ;
     return ErrCode ;
   }
-  ret = CAEN_DGTZ_DecodeEvent (digitizerHandle_, eventPtr_, (void**)&event_) ;
+  if (boardInfo_.FamilyCode != CAEN_DGTZ_XX720_FAMILY_CODE)
+    ret = CAEN_DGTZ_DecodeEvent (digitizerHandle_, eventPtr_, (void**)&eventV1742_) ;
+  else
+    ret = CAEN_DGTZ_DecodeEvent (digitizerHandle_, eventPtr_, (void**)&eventV1720_) ;
+
   if (ret) {
     s.str(""); s << "[CAEN_V1742]::[ERROR]::EVENT BUILD ERROR!!!";  
     std::cout<<s.str()<<std::endl;
     ErrCode = ERR_EVENT_BUILD ;
     return ErrCode ;
   }    
-  // if (digitizerConfiguration_.useCorrections != -1) { // if manual corrections
-  //     ApplyDataCorrection ( 0, digitizerConfiguration_.useCorrections, digitizerConfiguration_.DRS4Frequency, & (event_->DataGroup[0]), &Table_gr0) ;
-  //     ApplyDataCorrection ( 1, digitizerConfiguration_.useCorrections, digitizerConfiguration_.DRS4Frequency, & (event_->DataGroup[1]), &Table_gr1) ;
-  //       }
   
-  ret = (CAEN_DGTZ_ErrorCode) writeEventToOutputBuffer (v,&EventInfo,event_) ;
+  if (boardInfo_.FamilyCode != CAEN_DGTZ_XX720_FAMILY_CODE)
+    ret = (CAEN_DGTZ_ErrorCode) writeEventToOutputBuffer (v,&EventInfo, eventV1742_) ;
+  else
+    ret = (CAEN_DGTZ_ErrorCode) writeEventToOutputBuffer (v,&EventInfo, eventV1720_) ;
+
   if (ret) {
     s.str(""); s << "[CAEN_V1742]::[ERROR]::EVENT BUILD ERROR!!!";
     std::cout<<s.str()<<std::endl;
@@ -651,7 +658,7 @@ int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, 
   // Word[7+Ch0 #Words] = [ Ch1 Corr. samples  (float) ]
   //               ...   = [          .....             ]
 
-  //CAEN_V1742_eventBuffer.clear () ;
+  CAEN_V1742_eventBuffer.clear () ;
   CAEN_V1742_eventBuffer.reserve(5 + digitizerConfiguration_.Nch*(digitizerConfiguration_.RecordLength+2)) ; //allocate once for all channels in a board
   CAEN_V1742_eventBuffer.resize (5) ;
   (CAEN_V1742_eventBuffer)[0]=0xA0000005 ; 
@@ -692,8 +699,74 @@ int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, 
   }
   
   return 0 ;
-
 }
+
+//August-October 2018 setup in the lab uses a V1720 for testing purposes which has a different event type in the decoding
+int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_UINT16_EVENT_t* event)
+{
+  int gr,ch ;
+  //we enforce the same data structure here
+  //          ====================================================
+  //          |           V1720 == V1742 Raw Event Data Format   |
+  //          ====================================================
+
+  //                       31  -  28 27  -  16 15   -   0
+  //            Word[0] = [ 1010  ] [Event Tot #Words  ] //Event Header (5 words)
+  //            Word[1] = [     Board Id    ] [ Pattern]  
+  //            Word[2] = [      #channels readout     ]
+  //            Word[3] = [        Event counter       ]
+  //            Word[4] = [      Trigger Time Tag      ]
+  //            Word[5] = [ 1000  ] [    Ch0   #Words  ] // Ch0 Data (2 + #samples words)
+  //            Word[6] = [    Ch0  #Gr    ] [ Ch0 #Ch ] 
+  //            Word[7] = [ Ch0 Corr. samples  (float) ]
+  //                ..  = [ Ch0 Corr. samples  (float) ]
+  // Word[5+Ch0 #Words] = [ 1000  ] [    Ch1   #Words  ] // Ch1 Data (2 + #samples words)
+  // Word[6+Ch0 #Words] = [    Ch1  #Gr    ] [ Ch1 #Ch ]
+  // Word[7+Ch0 #Words] = [ Ch1 Corr. samples  (float) ]
+  //               ...   = [          .....             ]
+
+  CAEN_V1742_eventBuffer.clear () ;
+  CAEN_V1742_eventBuffer.reserve(5 + digitizerConfiguration_.Nch*(digitizerConfiguration_.RecordLength+2)) ; //allocate once for all channels in a board
+  CAEN_V1742_eventBuffer.resize (5) ;
+  (CAEN_V1742_eventBuffer)[0]=0xA0000005 ; 
+  (CAEN_V1742_eventBuffer)[1]=( (eventInfo->BoardId)<<26) +eventInfo->Pattern ;
+  (CAEN_V1742_eventBuffer)[2]=0 ;
+  (CAEN_V1742_eventBuffer)[3]=eventInfo->EventCounter ;
+  (CAEN_V1742_eventBuffer)[4]=eventInfo->TriggerTimeTag ;
+
+//uint32_t ChSize[MAX_UINT16_CHANNEL_SIZE]; // the number of samples stored in DataChannel array
+//785  uint16_t *DataChannel[MAX_UINT16_CHANNEL_SIZE]; // the array of ChSize samples
+
+  for (gr=0;gr<=0;gr++) {
+    for (ch=0 ; ch<8 ; ch++) {
+      int Size = event->ChSize[ch] ;
+      if (Size <= 0) continue ;
+      
+      // Channel Header for this event
+       uint32_t ChHeader[2] ;
+       ChHeader[0] = (8<<28) + ( (digitizerConfiguration_.DRS4Frequency & 0x3) << 26 ) + ( (2 + Size) & 0x3FFFFFF) ; //Number of words written for this channel
+       ChHeader[1] = (gr<<16)+ch ;
+
+      //Starting pointer
+      int start_ptr=CAEN_V1742_eventBuffer.size () ;
+
+      //Allocating necessary space for this channel
+      CAEN_V1742_eventBuffer.resize (start_ptr + 2 + Size) ;
+      std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof (uint32_t)) ;
+
+      //Beware the datas are float (because they are corrected...) but copying them here bit by bit. Should remember this for reading them out
+      std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr+2]), event->DataChannel[ch], Size * sizeof (uint32_t)) ;
+
+      //Update event size and #channels
+      (CAEN_V1742_eventBuffer)[0]+= (Size+2) ;
+      (CAEN_V1742_eventBuffer)[2]++ ;
+    }
+  }
+  
+  
+  return 0 ;
+}
+
 
 
 int CAEN_V1742::generateFakeData (int eventCounter, vector<WORD>& CAEN_V1742_eventBuffer) {

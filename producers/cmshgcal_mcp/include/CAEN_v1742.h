@@ -112,7 +112,7 @@ class CAEN_V1742 {
   } CAEN_V1742_Config_t ;
 
   CAEN_V1742 (int ID): digitizerHandle_ (-1) { 
-    buffer_= NULL; eventPtr_=NULL, event_=NULL; type_="CAEN_V1742" ; id_=ID; _isConfigured=false; _isInitialized=false;
+    buffer_= NULL; eventPtr_=NULL, eventV1742_=NULL; eventV1720_=NULL; type_="CAEN_V1742" ; id_=ID; _isConfigured=false; _isInitialized=false;
   };
 
   inline unsigned int GetId(){return id_;};
@@ -145,6 +145,7 @@ class CAEN_V1742 {
     int getMoreBoardInfo () ;
     int programDigitizer () ;
     int writeEventToOutputBuffer (std::vector<WORD>& CAEN_V1742_rawDataBinaryBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_X742_EVENT_t* event) ;
+    int writeEventToOutputBuffer (std::vector<WORD>& CAEN_V1742_rawDataBinaryBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_UINT16_EVENT_t* event) ;
     /* sets the default values for the cfg parameters */
 
 
@@ -156,7 +157,8 @@ class CAEN_V1742 {
     //Memory buffers for DR
     char *buffer_;
     char *eventPtr_;
-    CAEN_DGTZ_X742_EVENT_t * event_;  
+    CAEN_DGTZ_X742_EVENT_t * eventV1742_;  
+    CAEN_DGTZ_UINT16_EVENT_t * eventV1720_; //extra event type for first attempts in the lab with the V1720, it does not have groups, 16 August 2018, T.Q.
 
 
   protected:
