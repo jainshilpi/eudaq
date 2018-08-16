@@ -13,9 +13,9 @@ bool DigitizerCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 void DigitizerCollection::fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &pl, int eventNumber) {
   //std::cout<<"In DigitizerCollection::fillHistograms(StandardPlane)"<<std::endl;
 
-  if (pl.Sensor()!="DIGITIZER")
+  if (pl.Sensor() != "DIGITIZER")
     return;
-  
+
   if (!isPlaneRegistered(pl)) {
     registerPlane(pl);
     isOnePlaneRegistered = true;
@@ -33,7 +33,7 @@ void DigitizerCollection::bookHistograms(const eudaq::StandardEvent &ev) {
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
-      if (Plane.Sensor()=="DIGITIZER") registerPlane(Plane);
+      if (Plane.Sensor() == "DIGITIZER") registerPlane(Plane);
     }
   }
 }
@@ -42,7 +42,7 @@ void DigitizerCollection::Write(TFile *file) {
   if (file == NULL) {
     // cout << "DigitizerCollection::Write File pointer is NULL"<<endl;
     exit(-1);
-  }  
+  }
 
   if (gDirectory != NULL) // check if this pointer exists
   {
@@ -54,7 +54,7 @@ void DigitizerCollection::Write(TFile *file) {
 
       char sensorfolder[255] = "";
       sprintf(sensorfolder, "%s_%d", it->first.Sensor().c_str(), it->first.ID());
-      
+
       // cout << "Making new subfolder " << sensorfolder << endl;
       gDirectory->mkdir(sensorfolder);
       gDirectory->cd(sensorfolder);
@@ -90,7 +90,7 @@ void DigitizerCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-    if (Plane.Sensor()=="DIGITIZER")
+    if (Plane.Sensor() == "DIGITIZER")
       fillHistograms(ev, Plane, evNumber);
   }
 }
@@ -107,40 +107,40 @@ void DigitizerCollection::registerPlane(const eudaq::StandardPlane &p) {
   DigitizerHistos *tmphisto = new DigitizerHistos(p, _mon);
   _map[p] = tmphisto;
 
-  
+
   if (_mon != NULL) {
     if (_mon->getOnlineMon() == NULL) {
       return; // don't register items
     }
     // cout << "DigitizerCollection:: Monitor running in online-mode" << endl;
     char tree[1024], folder[1024];
-    
-
-    for (int gr=0; gr<4; gr++) for (int ch=0; ch<9; ch++) {
-      int key = gr*100 + ch;
-      sprintf(tree, "%s/group%i/IntegratedWaveform_ch%i", "DIGITIZER", gr, ch);      
-      _mon->getOnlineMon()->registerTreeItem(tree);
-      _mon->getOnlineMon()->registerHisto(tree, getDigitizerHistos(p.Sensor(), p.ID())->getIntegratedWaveform(key), "COLZ", 0);
-
-      sprintf(tree, "%s/group%i/LastWaveform_ch%i", "DIGITIZER", gr, ch);      
-      _mon->getOnlineMon()->registerTreeItem(tree);
-      _mon->getOnlineMon()->registerHisto(tree, getDigitizerHistos(p.Sensor(), p.ID())->getLastWaveform(key), "", 0);      
-      
 
 
-      //some are added as summary objects
-      if ((gr==0) && (ch==0)) {
-        sprintf(tree, "%s/group%i/IntegratedWaveform_ch%i", "DIGITIZER", gr, ch);      
-        _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree); 
-        sprintf(tree, "%s/group%i/LastWaveform_ch%i", "DIGITIZER", gr, ch);      
-        _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree); 
+    for (int gr = 0; gr < 4; gr++) for (int ch = 0; ch < 9; ch++) {
+        int key = gr * 100 + ch;
+        sprintf(tree, "%s/group%i/IntegratedWaveform_ch%i", "DIGITIZER", gr, ch);
+        _mon->getOnlineMon()->registerTreeItem(tree);
+        _mon->getOnlineMon()->registerHisto(tree, getDigitizerHistos(p.Sensor(), p.ID())->getIntegratedWaveform(key), "COLZ", 0);
+
+        sprintf(tree, "%s/group%i/LastWaveform_ch%i", "DIGITIZER", gr, ch);
+        _mon->getOnlineMon()->registerTreeItem(tree);
+        _mon->getOnlineMon()->registerHisto(tree, getDigitizerHistos(p.Sensor(), p.ID())->getLastWaveform(key), "", 0);
+
+
+
+        //some are added as summary objects
+        if ((gr == 0) && (ch == 0)) {
+          sprintf(tree, "%s/group%i/IntegratedWaveform_ch%i", "DIGITIZER", gr, ch);
+          _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree);
+          sprintf(tree, "%s/group%i/LastWaveform_ch%i", "DIGITIZER", gr, ch);
+          _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree);
+        }
+        if ((gr == 0) && (ch == 1)) {
+          sprintf(tree, "%s/group%i/IntegratedWaveform_ch%i", "DIGITIZER", gr, ch);
+          _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree);
+          sprintf(tree, "%s/group%i/LastWaveform_ch%i", "DIGITIZER", gr, ch);
+          _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree);
+        }
       }
-      if ((gr==0) && (ch==1)) {
-        sprintf(tree, "%s/group%i/IntegratedWaveform_ch%i", "DIGITIZER", gr, ch);      
-        _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree); 
-        sprintf(tree, "%s/group%i/LastWaveform_ch%i", "DIGITIZER", gr, ch);      
-        _mon->getOnlineMon()->addTreeItemSummary("DIGITIZER", tree); 
-      }      
-    }
   }
 }

@@ -5,7 +5,7 @@
 #define CAEN_V1742_H
 
 #include <string>
-#include <vector> 
+#include <vector>
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>    //necessary for memcopy
@@ -16,7 +16,7 @@
 #include "eudaq/Utils.hh"
 
 #include "CAENVMElib.h"
-#include "CAENVMEtypes.h" 
+#include "CAENVMEtypes.h"
 #include "CAENVMEoslib.h"
 #include "CAENComm.h"
 #include <CAENDigitizer.h>
@@ -38,10 +38,10 @@ typedef uint32_t WORD;
 
 class CAEN_V1742 {
 
-  public:
+public:
 
   typedef enum  {
-    ERR_NONE= 0,
+    ERR_NONE = 0,
     ERR_CONF_NOT_FOUND,
     ERR_CONF_INVALID,
     ERR_DGZ_OPEN,
@@ -80,7 +80,7 @@ class CAEN_V1742 {
 
 
     int NumEvents ;
-    int InterruptNumEvents ; 
+    int InterruptNumEvents ;
     int TestPattern ;
     int DesMode ;
     int TriggerEdge ;
@@ -111,15 +111,15 @@ class CAEN_V1742 {
 
   } CAEN_V1742_Config_t ;
 
-  CAEN_V1742 (int ID): digitizerHandle_ (-1) { 
-    buffer_= NULL; eventPtr_=NULL, eventV1742_=NULL; eventV1720_=NULL; type_="CAEN_V1742" ; id_=ID; _isConfigured=false; _isInitialized=false;
+  CAEN_V1742 (int ID): digitizerHandle_ (-1) {
+    buffer_ = NULL; eventPtr_ = NULL, eventV1742_ = NULL; eventV1720_ = NULL; type_ = "CAEN_V1742" ; id_ = ID; _isConfigured = false; _isInitialized = false;
   };
 
-  inline unsigned int GetId(){return id_;};
-  inline void SetId(unsigned int id){id_=id;};
+  inline unsigned int GetId() {return id_;};
+  inline void SetId(unsigned int id) {id_ = id;};
   // --- GetType
   inline std::string GetType() const { return type_;}
-  // --- Configurable  
+  // --- Configurable
 
   virtual int Init () ;
   virtual int SetupModule ();
@@ -140,32 +140,32 @@ class CAEN_V1742 {
 
   int generateFakeData (int, std::vector<WORD>&);
 
-  private:
+private:
 
-    int getMoreBoardInfo () ;
-    int programDigitizer () ;
-    int writeEventToOutputBuffer (std::vector<WORD>& CAEN_V1742_rawDataBinaryBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_X742_EVENT_t* event) ;
-    int writeEventToOutputBuffer (std::vector<WORD>& CAEN_V1742_rawDataBinaryBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_UINT16_EVENT_t* event) ;
-    /* sets the default values for the cfg parameters */
-
-
-  private:
-    int              digitizerHandle_ ;
-    CAEN_V1742_Config_t   digitizerConfiguration_ ;
-    CAEN_DGTZ_BoardInfo_t boardInfo_ ;  
-
-    //Memory buffers for DR
-    char *buffer_;
-    char *eventPtr_;
-    CAEN_DGTZ_X742_EVENT_t * eventV1742_;  
-    CAEN_DGTZ_UINT16_EVENT_t * eventV1720_; //extra event type for first attempts in the lab with the V1720, it does not have groups, 16 August 2018, T.Q.
+  int getMoreBoardInfo () ;
+  int programDigitizer () ;
+  int writeEventToOutputBuffer (std::vector<WORD>& CAEN_V1742_rawDataBinaryBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_X742_EVENT_t* event) ;
+  int writeEventToOutputBuffer (std::vector<WORD>& CAEN_V1742_rawDataBinaryBuffer, CAEN_DGTZ_EventInfo_t* eventInfo, CAEN_DGTZ_UINT16_EVENT_t* event) ;
+  /* sets the default values for the cfg parameters */
 
 
-  protected:
-    unsigned int id_;
-    std::string type_;
-    bool _isConfigured;
-    int _isInitialized;
+private:
+  int              digitizerHandle_ ;
+  CAEN_V1742_Config_t   digitizerConfiguration_ ;
+  CAEN_DGTZ_BoardInfo_t boardInfo_ ;
+
+  //Memory buffers for DR
+  char *buffer_;
+  char *eventPtr_;
+  CAEN_DGTZ_X742_EVENT_t * eventV1742_;
+  CAEN_DGTZ_UINT16_EVENT_t * eventV1720_; //extra event type for first attempts in the lab with the V1720, it does not have groups, 16 August 2018, T.Q.
+
+
+protected:
+  unsigned int id_;
+  std::string type_;
+  bool _isConfigured;
+  int _isInitialized;
 
 };
 

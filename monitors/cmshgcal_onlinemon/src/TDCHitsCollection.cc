@@ -13,18 +13,18 @@ bool TDCHitsCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 void TDCHitsCollection::fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &pl) {
   //std::cout<<"In TDCHitsCollection::fillHistograms(StandardPlane)"<<std::endl;
 
-  if (NumberOfDWCPlanes==-1) {
-    NumberOfDWCPlanes=0;
+  if (NumberOfDWCPlanes == -1) {
+    NumberOfDWCPlanes = 0;
     for (int plane = 0; plane < ev.NumPlanes(); plane++) {
       const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-      if (Plane.Sensor()=="DWC") NumberOfDWCPlanes++;
+      if (Plane.Sensor() == "DWC") NumberOfDWCPlanes++;
     }
   }
 
 
-  if (pl.Sensor()!="DWC_fullTDC")
+  if (pl.Sensor() != "DWC_fullTDC")
     return;
-  
+
   if (!isPlaneRegistered(pl)) {
     registerPlane(pl);
     isOnePlaneRegistered = true;
@@ -38,11 +38,11 @@ void TDCHitsCollection::fillHistograms(const eudaq::StandardEvent &ev, const eud
 
 void TDCHitsCollection::bookHistograms(const eudaq::StandardEvent &ev) {
   //std::cout<<"In TDCHitsCollection::bookHistograms(StandardEvent)"<<std::endl;
-  if (NumberOfDWCPlanes==-1) {
-    NumberOfDWCPlanes=0;
+  if (NumberOfDWCPlanes == -1) {
+    NumberOfDWCPlanes = 0;
     for (int plane = 0; plane < ev.NumPlanes(); plane++) {
       const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-      if (Plane.Sensor()=="DWC") NumberOfDWCPlanes++;
+      if (Plane.Sensor() == "DWC") NumberOfDWCPlanes++;
     }
   }
 
@@ -50,7 +50,7 @@ void TDCHitsCollection::bookHistograms(const eudaq::StandardEvent &ev) {
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
-      if (Plane.Sensor()=="DWC_fullTDC") registerPlane(Plane);
+      if (Plane.Sensor() == "DWC_fullTDC") registerPlane(Plane);
     }
   }
 }
@@ -59,7 +59,7 @@ void TDCHitsCollection::Write(TFile *file) {
   if (file == NULL) {
     // cout << "TDCHitsCollection::Write File pointer is NULL"<<endl;
     exit(-1);
-  }  
+  }
 
   if (gDirectory != NULL) // check if this pointer exists
   {
@@ -71,7 +71,7 @@ void TDCHitsCollection::Write(TFile *file) {
 
       char sensorfolder[255] = "";
       sprintf(sensorfolder, "%s_%d", it->first.Sensor().c_str(), it->first.ID());
-      
+
       // cout << "Making new subfolder " << sensorfolder << endl;
       gDirectory->mkdir(sensorfolder);
       gDirectory->cd(sensorfolder);
@@ -107,7 +107,7 @@ void TDCHitsCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-    if (Plane.Sensor()=="DWC_fullTDC")
+    if (Plane.Sensor() == "DWC_fullTDC")
       fillHistograms(ev, Plane);
   }
 }
@@ -127,23 +127,23 @@ void TDCHitsCollection::registerPlane(const eudaq::StandardPlane &p) {
   // std::cout << "Registered Plane: " << p.Sensor() << " " << p.ID() <<
   // std::endl;
   // PlaneRegistered(p.Sensor(),p.ID());
-  
+
   if (_mon != NULL) {
     if (_mon->getOnlineMon() == NULL) {
       return; // don't register items
     }
     // cout << "TDCHitsCollection:: Monitor running in online-mode" << endl;
     char tree[1024], folder[1024];
-    
+
 
     sprintf(tree, "%s/HitOccupancy", "DWC");      //Todo: Register here when more is added
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getTDCHitsHistos(p.Sensor(), p.ID())->getHitOccupancy(), "COLZ2", 0);
-    
+
     sprintf(tree, "%s/HitProbability", "DWC");      //Todo: Register here when more is added
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getTDCHitsHistos(p.Sensor(), p.ID())->getHitProbability(), "COLZ2", 0);
     sprintf(folder, "%s", "DWC");
-    _mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
+    _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
   }
 }

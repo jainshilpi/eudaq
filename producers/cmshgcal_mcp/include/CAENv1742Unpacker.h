@@ -1,4 +1,4 @@
-//code adapted from here: 
+//code adapted from here:
 //https://github.com/cmsromadaq/H4DQM/blob/master/src/CAEN_V1742.cpp
 //Date of access: 08 August 2018
 
@@ -13,48 +13,48 @@
 #include <algorithm>
 #include <map>
 #include <vector>
-#include <algorithm> 
+#include <algorithm>
 
 #include "eudaq/Logger.hh"
 
 
 struct digiData {
-  unsigned int group ;
-  unsigned int frequency ;
-  unsigned int channel ;
-  unsigned int sampleIndex ;
-  float sampleValue ;
+	unsigned int group ;
+	unsigned int frequency ;
+	unsigned int channel ;
+	unsigned int sampleIndex ;
+	float sampleValue ;
 };
 
 
 
 class CAEN_V1742_Unpacker {
-	public :
+public :
 
-		CAEN_V1742_Unpacker () :   
-			dig1742channels_ (0),
-			isDigiSample_ (0),
-			nChannelWords_ (0),
-			nSamplesToReadout_ (0),
-			nSamplesRead_ (0),
-			channelId_ (-1),
-			groupId_ (-1)
-			{} ;
+	CAEN_V1742_Unpacker () :
+		dig1742channels_ (0),
+		isDigiSample_ (0),
+		nChannelWords_ (0),
+		nSamplesToReadout_ (0),
+		nSamplesRead_ (0),
+		channelId_ (-1),
+		groupId_ (-1)
+	{} ;
 
-		int Unpack (std::vector<uint32_t>&, std::vector<digiData>&, unsigned int &triggerTimeTag) ;
+	int Unpack (std::vector<uint32_t>&, std::vector<digiData>&, unsigned int &triggerTimeTag) ;
 
-	private :
-		unsigned int dig1742channels_ ;
-		bool isDigiSample_ ;
-		unsigned int digRawData_ ;
-		float digRawSample_ ;
+private :
+	unsigned int dig1742channels_ ;
+	bool isDigiSample_ ;
+	unsigned int digRawData_ ;
+	float digRawSample_ ;
 
-		int nChannelWords_ ;
-		int nSamplesToReadout_ ;
-		int nSamplesRead_ ;
-		int channelId_ ;
-		int groupId_ ;
-		uint32_t frequency_ ;
+	int nChannelWords_ ;
+	int nSamplesToReadout_ ;
+	int nSamplesRead_ ;
+	int channelId_ ;
+	int groupId_ ;
+	uint32_t frequency_ ;
 
 };
 
