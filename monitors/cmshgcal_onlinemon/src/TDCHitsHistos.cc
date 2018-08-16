@@ -59,14 +59,8 @@ void TDCHitsHistos::Fill(const eudaq::StandardPlane &plane, int eventNumber) {
       _occupancy->Fill(1.*channel, 1.*tdc_index);
     }
 
-
-  for (size_t nbinx = 0; nbinx < _hitSumCount->GetNbinsX(); nbinx++) for (size_t nbiny = 0; nbiny < _hitSumCount->GetNbinsY(); nbiny++) {
-      _hitOccupancy->SetBinContent(nbinx, nbiny, _hitSumCount->GetBinContent(nbinx, nbiny));
-      _hitProbability->SetBinContent(nbinx, nbiny, _hitCount->GetBinContent(nbinx, nbiny));
-    }
-
   if ((lastEventForRefresh == -1) || (eventNumber - lastEventForRefresh > 100)) return;
-  
+
   //otherwise, update the plots:
 
   _hitSumCount->Copy(*_hitOccupancy);
