@@ -59,7 +59,7 @@ void TDCHitsHistos::Fill(const eudaq::StandardPlane &plane, int eventNumber) {
       _occupancy->Fill(1.*channel, 1.*tdc_index);
     }
 
-  if ((lastEventForRefresh == -1) || (eventNumber - lastEventForRefresh > 100)) return;
+  if (!((lastEventForRefresh == -1) || (eventNumber - lastEventForRefresh > 100))) return;
 
   //otherwise, update the plots:
 
