@@ -378,7 +378,7 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
       std::cout << "[CAEN_V1290]::[INFO]::HIT CHANNEL " << channel << " TYPE " << trailing << " TIME " << tdc_time << std::endl;
 #endif
     } else if (wordType == CAEN_V1290_GLBTRTIMETAG ) {
-
+      v.push_back(data);
     } else {
       std::cout << "[CAEN_V1290]::[ERROR]::UNKNOWN WORD TYPE!" << std::endl;
       v.clear();
