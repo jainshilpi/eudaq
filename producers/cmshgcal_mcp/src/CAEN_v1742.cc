@@ -754,8 +754,9 @@ int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, 
       CAEN_V1742_eventBuffer.resize (start_ptr + 2 + Size) ;
       std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof (uint32_t)) ;
 
-      //Beware the datas are float (because they are corrected...) but copying them here bit by bit. Should remember this for reading them out
-      std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr + 2]), event->DataChannel[ch], Size * sizeof (uint32_t)) ;
+      for (int sample_index=0; sample_index<Size; sample_index++) {
+        (CAEN_V1742_eventBuffer)[start_ptr + 2 + sample_index] = (float)event->DataChannel[ch][sample_index];//just a temporal solution! for checking lab setup, 16 August 2018
+      }
 
       //Update event size and #channels
       (CAEN_V1742_eventBuffer)[0] += (Size + 2) ;
