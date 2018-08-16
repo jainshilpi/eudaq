@@ -354,7 +354,7 @@ public:
       if (stopping) continue;
 
       if (_mode == MCP_RUN) {
-        if (CAENV1742_instance->Read(dataStream) != 0); continue;   //successful readout <--> error code is zero = NONE
+        if (CAENV1742_instance->Read(dataStream) != 0) continue;   //successful readout <--> error code is zero = NONE
       } else {
         CAENV1742_instance->generateFakeData(m_ev + 1, dataStream);
       }
