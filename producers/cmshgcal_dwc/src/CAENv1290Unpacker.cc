@@ -21,7 +21,7 @@ int CAENv1290Unpacker::Unpack (std::vector<uint32_t>& Words, tdcData* currentDat
       unsigned int tdcEvent = (currentWord) & 0xFFFFFF;
       currentData->event = tdcEvent;
 #ifdef DEBUG_UNPACKER
-      std::cout << "[CAEN_V12490][Unpack] | TDC 1190 BOE: event " << tdcEvent + 1 << std::endl;
+      std::cout << "[CAEN_V12490][Unpack] | TDC 1290 BOE: event " << tdcEvent + 1 << std::endl;
 #endif
       continue;
     }
@@ -31,7 +31,7 @@ int CAENv1290Unpacker::Unpack (std::vector<uint32_t>& Words, tdcData* currentDat
       unsigned int measurement = currentWord & 0x1fffff;  //looks at bits 0 - 20
 
 #ifdef DEBUG_UNPACKER
-      std::cout << "[CAEN_V12490][Unpack] | tdc 1190 board channel " << channel + " measurement " << measurement << std::endl;
+      std::cout << "[CAEN_V12490][Unpack] | tdc 1290 board channel " << channel + " measurement " << measurement << std::endl;
 #endif
 
       //check if channel exists, if not create it
@@ -45,14 +45,14 @@ int CAENv1290Unpacker::Unpack (std::vector<uint32_t>& Words, tdcData* currentDat
 
     else if (currentWord >> 27 == 0x11) { //TDC extended trigger time tag: CAEN_V1290_GLBTRTIMETAG=0x11
 #ifdef DEBUG_UNPACKER
-      std::cout << "[CAEN_V12490][Unpack] | TDC 1190 extended trigger time tag " << std::endl;
+      std::cout << "[CAEN_V12490][Unpack] | TDC 1290 extended trigger time tag " << std::endl;
 #endif
       currentData->extended_trigger_timestamp = currentWord & 0x7ffffff;  //looks at bits 0 - 26
     }
 
     else if (currentWord >> 27 == 16) { //TDC EOE
 #ifdef DEBUG_UNPACKER
-      std::cout << "[CAEN_V12490][Unpack] | TDC 1190 BOE: end of event " << std::endl;
+      std::cout << "[CAEN_V12490][Unpack] | TDC 1290 BOE: end of event " << std::endl;
 #endif
       break;
     }

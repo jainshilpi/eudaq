@@ -74,7 +74,6 @@ public:
 
     const RawDataEvent * rev = dynamic_cast<const RawDataEvent *> ( &ev );
 
-    std::cout << "time stamp: " << rev->GetTimestamp() << std::endl;
     sev.SetTag("cpuTime_mcpProducer_mus", rev->GetTimestamp());
 
     const unsigned nBlocks = rev->NumBlocks();
