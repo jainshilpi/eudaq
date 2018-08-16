@@ -734,9 +734,8 @@ int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, 
   (CAEN_V1742_eventBuffer)[3] = eventInfo->EventCounter ;
   (CAEN_V1742_eventBuffer)[4] = eventInfo->TriggerTimeTag ;
 
-//uint32_t ChSize[MAX_UINT16_CHANNEL_SIZE]; // the number of samples stored in DataChannel array
-//785  uint16_t *DataChannel[MAX_UINT16_CHANNEL_SIZE]; // the array of ChSize samples
 
+  float *sample_value = new float; 
   for (gr = 0; gr <= 0; gr++) {
     for (ch = 0 ; ch < 8 ; ch++) {
       int Size = event->ChSize[ch] ;
@@ -755,7 +754,8 @@ int CAEN_V1742::writeEventToOutputBuffer (vector<WORD>& CAEN_V1742_eventBuffer, 
       std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof (uint32_t)) ;
 
       for (int sample_index=0; sample_index<Size; sample_index++) {
-        (CAEN_V1742_eventBuffer)[start_ptr + 2 + sample_index] = (float)event->DataChannel[ch][sample_index];//just a temporal solution! for checking lab setup, 16 August 2018
+        *sample_value = event->DataChannel[ch][sample_index];
+        std::memcpy (& ( (CAEN_V1742_eventBuffer)[start_ptr + 2 + sample_index]), sample_value, 1 * sizeof (uint32_t)) ;
       }
 
       //Update event size and #channels
