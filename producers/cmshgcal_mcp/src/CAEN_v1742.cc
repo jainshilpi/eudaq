@@ -512,40 +512,52 @@ int CAEN_V1742::programDigitizer ()
   }
 
   /* execute generic write commands */
-  for (i = 0 ; i < digitizerConfiguration_.GWn ; i++)
+  for (i = 0 ; i < digitizerConfiguration_.GWn ; i++) {
+    usleep(1000);
     ret |= CAEN_DGTZ_WriteRegister (digitizerHandle_, digitizerConfiguration_.GWaddr[i], digitizerConfiguration_.GWdata[i]) ;
+  }
 
   // Set the waveform test bit for debugging
   if (digitizerConfiguration_.TestPattern) {
     ret |= CAEN_DGTZ_WriteRegister (digitizerHandle_, CAEN_DGTZ_BROAD_CH_CONFIGBIT_SET_ADD, 1 << 3) ;
+    usleep(1000);
     s.str(""); s << "[CAEN_V1742]::[INFO]::Setup test pattern";
     std::cout << s.str() << std::endl;
   }
   // custom setting for X742 boards
   if (boardInfo_.FamilyCode == CAEN_DGTZ_XX742_FAMILY_CODE) {
     ret |= CAEN_DGTZ_SetFastTriggerDigitizing (digitizerHandle_, (CAEN_DGTZ_EnaDis_t)digitizerConfiguration_.FastTriggerEnabled) ;
+    usleep(1000);
     ret |= CAEN_DGTZ_SetFastTriggerMode (digitizerHandle_, (CAEN_DGTZ_TriggerMode_t)digitizerConfiguration_.FastTriggerMode) ;
+    usleep(1000);
     s.str(""); s << "[CAEN_V1742]::[INFO]::Configuring fast trigger: " << digitizerConfiguration_.FastTriggerEnabled << "," << digitizerConfiguration_.FastTriggerMode;
     std::cout << s.str() << std::endl;
   }
   if ( (boardInfo_.FamilyCode == CAEN_DGTZ_XX751_FAMILY_CODE) || (boardInfo_.FamilyCode == CAEN_DGTZ_XX731_FAMILY_CODE)) {
     ret |= CAEN_DGTZ_SetDESMode (digitizerHandle_, ( CAEN_DGTZ_EnaDis_t) digitizerConfiguration_.DesMode) ;
+    usleep(1000);
     s.str(""); s << "[CAEN_V1742]::[INFO]::Setting DES Mode: " << digitizerConfiguration_.DesMode;
     std::cout << s.str() << std::endl;
   }
   ret |= CAEN_DGTZ_SetRecordLength (digitizerHandle_, digitizerConfiguration_.RecordLength) ;
+  usleep(1000);
   s.str(""); s << "[CAEN_V1742]::[INFO]::Setting record length: " << digitizerConfiguration_.RecordLength;
   std::cout << s.str() << std::endl;
   ret |= CAEN_DGTZ_SetPostTriggerSize (digitizerHandle_, (uint32_t) digitizerConfiguration_.PostTrigger) ;
+  usleep(1000);
   s.str(""); s << "[CAEN_V1742]::[INFO]::Setting post trigger size: " << digitizerConfiguration_.PostTrigger;
   std::cout << s.str() << std::endl;
-  if (boardInfo_.FamilyCode != CAEN_DGTZ_XX742_FAMILY_CODE)
+  if (boardInfo_.FamilyCode != CAEN_DGTZ_XX742_FAMILY_CODE){
     ret |= CAEN_DGTZ_GetPostTriggerSize (digitizerHandle_, &digitizerConfiguration_.PostTrigger) ;
+    usleep(1000);
+  }
   ret |= CAEN_DGTZ_SetIOLevel (digitizerHandle_, (CAEN_DGTZ_IOLevel_t) digitizerConfiguration_.FPIOtype) ;
+  usleep(1000);
   s.str(""); s << "[CAEN_V1742]::[INFO]::Setting FPIO type: " << digitizerConfiguration_.FPIOtype;
   std::cout << s.str() << std::endl;
   if ( digitizerConfiguration_.InterruptNumEvents > 0) {
     // Interrupt handling
+    usleep(1000);
     if ( ret |= CAEN_DGTZ_SetInterruptConfig ( digitizerHandle_, CAEN_DGTZ_ENABLE,
                 CAEN_V1742_VME_INTERRUPT_LEVEL, CAEN_V1742_VME_INTERRUPT_STATUS_ID,
                 digitizerConfiguration_.InterruptNumEvents, CAEN_V1742_INTERRUPT_MODE) != CAEN_DGTZ_Success) {
@@ -559,49 +571,67 @@ int CAEN_V1742::programDigitizer ()
   }
 
   ret |= CAEN_DGTZ_SetMaxNumEventsBLT (digitizerHandle_, digitizerConfiguration_.NumEvents) ;
+  usleep(1000);
   s.str(""); s << "[CAEN_V1742]::[INFO]::Setting maximum of events blt: " << digitizerConfiguration_.NumEvents;
   std::cout << s.str() << std::endl;
   ret |= CAEN_DGTZ_SetAcquisitionMode (digitizerHandle_, CAEN_DGTZ_SW_CONTROLLED) ;   //?
+  usleep(1000);
   s.str(""); s << "[CAEN_V1742]::[INFO]::Setting acquisition mode: " << CAEN_DGTZ_SW_CONTROLLED;
   std::cout << s.str() << std::endl;
   ret |= CAEN_DGTZ_SetExtTriggerInputMode (digitizerHandle_, digitizerConfiguration_.ExtTriggerMode) ;
+  usleep(1000);
   s.str(""); s << "[CAEN_V1742]::[INFO]::Setting external trigger input mode: " << digitizerConfiguration_.ExtTriggerMode;
   std::cout << s.str() << std::endl;
 
 
   if ( (boardInfo_.FamilyCode == CAEN_DGTZ_XX740_FAMILY_CODE) || (boardInfo_.FamilyCode == CAEN_DGTZ_XX742_FAMILY_CODE)) {
     ret |= CAEN_DGTZ_SetGroupEnableMask (digitizerHandle_, digitizerConfiguration_.EnableMask) ;
+    usleep(1000);
     for (i = 0 ; i < (digitizerConfiguration_.Nch / 9) ; i++) {
       if (digitizerConfiguration_.EnableMask & (1 << i)) {
         if (boardInfo_.FamilyCode == CAEN_DGTZ_XX742_FAMILY_CODE) {
           for (j = 0 ; j < 8 ; j++) {
-            if (digitizerConfiguration_.DCoffsetGrpCh[i][j] != -1)
+            if (digitizerConfiguration_.DCoffsetGrpCh[i][j] != -1) {
               ret |= CAEN_DGTZ_SetChannelDCOffset (digitizerHandle_, (i * 8) + j, digitizerConfiguration_.DCoffsetGrpCh[i][j]) ;
-            else
+              usleep(1000);
+            }
+            else {
               ret |= CAEN_DGTZ_SetChannelDCOffset (digitizerHandle_, (i * 8) + j, digitizerConfiguration_.DCoffset[i]) ;
+              usleep(1000);
+            }
           }
         }
         else {
           ret |= CAEN_DGTZ_SetGroupDCOffset (digitizerHandle_, i, digitizerConfiguration_.DCoffset[i]) ;
+          usleep(1000);
           ret |= CAEN_DGTZ_SetGroupSelfTrigger (digitizerHandle_, digitizerConfiguration_.ChannelTriggerMode[i], (1 << i)) ;
+          usleep(1000);
           ret |= CAEN_DGTZ_SetGroupTriggerThreshold (digitizerHandle_, i, digitizerConfiguration_.Threshold[i]) ;
+          usleep(1000);
           ret |= CAEN_DGTZ_SetChannelGroupMask (digitizerHandle_, i, digitizerConfiguration_.GroupTrgEnableMask[i]) ;
+          usleep(1000);
         }
         ret |= CAEN_DGTZ_SetTriggerPolarity (digitizerHandle_, i, (CAEN_DGTZ_TriggerPolarity_t) digitizerConfiguration_.TriggerEdge) ;
+        usleep(1000);
         s.str(""); s << "[CAEN_V1742]::[INFO]::Setting trigger polarity: " << digitizerConfiguration_.TriggerEdge;
         std::cout << s.str() << std::endl;
       }
     }
   } else {
     ret |= CAEN_DGTZ_SetChannelEnableMask (digitizerHandle_, digitizerConfiguration_.EnableMask) ;
+    usleep(1000);
     s.str(""); s << "[CAEN_V1742]::[INFO]::Setting channel enable mask: " << digitizerConfiguration_.EnableMask;
     std::cout << s.str() << std::endl;
     for (i = 0 ; i < digitizerConfiguration_.Nch ; i++) {
       if (digitizerConfiguration_.EnableMask & (1 << i)) {
         ret |= CAEN_DGTZ_SetChannelDCOffset (digitizerHandle_, i, digitizerConfiguration_.DCoffset[i]) ;
+        usleep(1000);
         ret |= CAEN_DGTZ_SetChannelSelfTrigger (digitizerHandle_, digitizerConfiguration_.ChannelTriggerMode[i], (1 << i)) ;
+        usleep(1000);
         ret |= CAEN_DGTZ_SetChannelTriggerThreshold (digitizerHandle_, i, digitizerConfiguration_.Threshold[i]) ;
+        usleep(1000);
         ret |= CAEN_DGTZ_SetTriggerPolarity (digitizerHandle_, i, (CAEN_DGTZ_TriggerPolarity_t) digitizerConfiguration_.TriggerEdge) ;
+        usleep(1000);
       }
     }
   }
@@ -609,10 +639,13 @@ int CAEN_V1742::programDigitizer ()
     for (i = 0 ; i < (digitizerConfiguration_.Nch / 9) ; i++) {
       s.str(""); s << "[CAEN_V1742]::[INFO]::Setting DRS4_FREQUENCY_CONFIG for Chip#" << i << " to " << digitizerConfiguration_.DRS4Frequency;
       ret |= CAEN_DGTZ_SetDRS4SamplingFrequency(digitizerHandle_, digitizerConfiguration_.DRS4Frequency);
+      usleep(1000);
       s << " " << ret;
       ret |= CAEN_DGTZ_SetGroupFastTriggerDCOffset (digitizerHandle_, i, digitizerConfiguration_.FTDCoffset[i]) ;
+      usleep(1000);
       s << " " << ret;
       ret |= CAEN_DGTZ_SetGroupFastTriggerThreshold (digitizerHandle_, i, digitizerConfiguration_.FTThreshold[i]) ;
+      usleep(1000);
       s << " " << ret;
       std::cout << s.str() << std::endl;
     }
