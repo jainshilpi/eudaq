@@ -324,7 +324,7 @@ int CAEN_V1742::Read (vector<WORD> &v) {
 
   NumEvents = 0 ;
   int itry = 0;
-  int TIMEOUT = 10;
+  int TIMEOUT = 100;
 
   while (1 > NumEvents && itry < TIMEOUT) {
     ++itry;
@@ -359,7 +359,8 @@ int CAEN_V1742::Read (vector<WORD> &v) {
     s.str(""); s << "[CAEN_V1742]::[ERROR]::READ TIMEOUT!!!";
     std::cout << s.str() << std::endl;
 #endif
-    return 0;
+    ErrCode = ERR_READOUT_TIMEOUT ;
+    return ErrCode;    
   }
 
   //For the moment empty the buffers one by one
