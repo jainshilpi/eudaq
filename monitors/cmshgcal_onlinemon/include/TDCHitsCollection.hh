@@ -30,7 +30,7 @@ protected:
   bool isOnePlaneRegistered;
   std::map<eudaq::StandardPlane, TDCHitsHistos *> _map;
   bool isPlaneRegistered(eudaq::StandardPlane p);
-  void fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &plane);
+  void fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &plane, int evNumber);
   int NumberOfDWCPlanes;  
 
 public:

@@ -35,11 +35,13 @@ protected:
   TH2F *_hitSumCount;
   TH2F *_hitCount;
 
+  int lastEventForRefresh;
+
     
 public:
   TDCHitsHistos(eudaq::StandardPlane p, RootMonitor *mon, int _NDWCs);
 
-  void Fill(const eudaq::StandardPlane &plane);
+  void Fill(const eudaq::StandardPlane &plane, int eventNumber);
   void Reset();
 
   void Calculate(const int currentEventNum);

@@ -10,7 +10,7 @@ bool TDCHitsCollection::isPlaneRegistered(eudaq::StandardPlane p) {
   return (it != _map.end());
 }
 
-void TDCHitsCollection::fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &pl) {
+void TDCHitsCollection::fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &pl, int eventNumber) {
   //std::cout<<"In TDCHitsCollection::fillHistograms(StandardPlane)"<<std::endl;
 
   if (NumberOfDWCPlanes == -1) {
@@ -31,7 +31,7 @@ void TDCHitsCollection::fillHistograms(const eudaq::StandardEvent &ev, const eud
   }
 
   TDCHitsHistos *wcmap = _map[pl];
-  wcmap->Fill(pl);
+  wcmap->Fill(pl, eventNumber);
 
   ++counting;
 }
@@ -108,7 +108,7 @@ void TDCHitsCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
     if (Plane.Sensor() == "DWC_fullTDC")
-      fillHistograms(ev, Plane);
+      fillHistograms(ev, Plane, evNumber);
   }
 }
 

@@ -12,6 +12,8 @@ TDCHitsHistos::TDCHitsHistos(eudaq::StandardPlane p, RootMonitor *mon, int _NDWC
   : _sensor(p.Sensor()), _id(p.ID()), _maxX(p.XSize()),  _maxY(p.YSize()), _wait(false),
     _hitOccupancy(NULL), _hitProbability(NULL), _occupancy(NULL), _hitCount(NULL), _hitSumCount(NULL) {
 
+  lastEventForRefresh = -1;
+
   char out[1024], out2[1024];
 
   _mon = mon;
@@ -27,12 +29,17 @@ TDCHitsHistos::TDCHitsHistos(eudaq::StandardPlane p, RootMonitor *mon, int _NDWC
   sprintf(out2, "hitOccupancy_%s_%i", _sensor.c_str(), _id);
   _hitOccupancy = new TH2F(out2, out, NChannelsPerTDC, 0, NChannelsPerTDC, NTDCs, 0, NTDCs);
   SetHistoAxisLabels(_hitOccupancy, "channel", "TDC");
+  _hitSumCount = new TH2F(out2, out, NChannelsPerTDC, 0, NChannelsPerTDC, NTDCs, 0, NTDCs);
+  SetHistoAxisLabels(_hitSumCount, "channel", "TDC");
+  //_hitOccupancy = _hitSumCount/_occupancy
 
-
-  sprintf(out, "%s %i hit probability", _sensor.c_str(), _id);
+  sprintf(out, "%s %i at least one hit probability", _sensor.c_str(), _id);
   sprintf(out2, "hitProbability_%s_%i", _sensor.c_str(), _id);
   _hitProbability = new TH2F(out2, out, NChannelsPerTDC, 0, NChannelsPerTDC, NTDCs, 0, NTDCs);
   SetHistoAxisLabels(_hitProbability, "channel", "TDC");
+  _hitCount = new TH2F(out2, out, NChannelsPerTDC, 0, NChannelsPerTDC, NTDCs, 0, NTDCs);
+  SetHistoAxisLabels(_hitCount, "channel", "TDC");
+  //_hitProbability = _hitCount/_occupancy
 
 
   sprintf(out, "%s %i _occupancy", _sensor.c_str(), _id);
@@ -40,20 +47,10 @@ TDCHitsHistos::TDCHitsHistos(eudaq::StandardPlane p, RootMonitor *mon, int _NDWC
   _occupancy = new TH2F(out2, out, NChannelsPerTDC, 0, NChannelsPerTDC, NTDCs, 0, NTDCs);
   SetHistoAxisLabels(_occupancy, "channel", "TDC");
 
-  sprintf(out, "%s %i _hitSumCount", _sensor.c_str(), _id);
-  sprintf(out2, "_hitSumCount%s_%i", _sensor.c_str(), _id);
-  _hitSumCount = new TH2F(out2, out, NChannelsPerTDC, 0, NChannelsPerTDC, NTDCs, 0, NTDCs);
-  SetHistoAxisLabels(_hitSumCount, "channel", "TDC");
-
-  sprintf(out, "%s %i _hitCount", _sensor.c_str(), _id);
-  sprintf(out2, "_hitCount%s_%i", _sensor.c_str(), _id);
-  _hitCount = new TH2F(out2, out, NChannelsPerTDC, 0, NChannelsPerTDC, NTDCs, 0, NTDCs);
-  SetHistoAxisLabels(_hitCount, "channel", "TDC");
-
   //helper objects
 }
 
-void TDCHitsHistos::Fill(const eudaq::StandardPlane &plane) {
+void TDCHitsHistos::Fill(const eudaq::StandardPlane &plane, int eventNumber) {
   // std::cout<< "FILL with a plane." << std::endl;
 
   for (unsigned tdc_index = 0; tdc_index < NTDCs; tdc_index++)for (int channel = 0; channel < NChannelsPerTDC; channel++) {
@@ -68,12 +65,17 @@ void TDCHitsHistos::Fill(const eudaq::StandardPlane &plane) {
       _hitProbability->SetBinContent(nbinx, nbiny, _hitCount->GetBinContent(nbinx, nbiny));
     }
 
+  if ((lastEventForRefresh == -1) || (eventNumber - lastEventForRefresh > 100)) return;
+  
+  //otherwise, update the plots:
+
   _hitSumCount->Copy(*_hitOccupancy);
   _hitOccupancy->Divide(_occupancy);
 
   _hitCount->Copy(*_hitProbability);
   _hitProbability->Divide(_occupancy);
 
+  lastEventForRefresh = eventNumber;
 }
 
 void TDCHitsHistos::Reset() {
@@ -82,6 +84,7 @@ void TDCHitsHistos::Reset() {
   _occupancy->Reset();
   _hitSumCount->Reset();
   _hitCount->Reset();
+  lastEventForRefresh = -1;
 }
 
 void TDCHitsHistos::Calculate(const int currentEventNum) {
