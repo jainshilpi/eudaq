@@ -36,6 +36,7 @@ DigitizerHistos::DigitizerHistos(eudaq::StandardPlane plane, RootMonitor *mon)
     sprintf(out2, "%s_%i_last_waveform_group_%i_channel_%i", _sensor.c_str(), _id, digitizer_group, digitizer_channel);
     lastWaveform[key] = new TH1F(out2, out, n_samples, 0.5, n_samples + 0.5);
     lastWaveform[key]->SetStats(false);
+    lastWaveform[key]->Sumw2();
     lastWaveform[key]->GetYaxis()->SetTitle("uncorrected ADC");
   }
   lastShownEvent = -1;
