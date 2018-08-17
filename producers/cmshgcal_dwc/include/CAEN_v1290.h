@@ -51,6 +51,7 @@ typedef uint32_t WORD;
 #define CAEN_V1290_DISALLCHAN_OPCODE       0x4300
 
 #define CAEN_V1290_EMPTYEVEN_BITMASK       0x0008
+#define CAEN_V1290_TIMESTAMP_BITMASK       0x0200
 #define CAEN_V1290_RDY_BITMASK             0x0001
 #define CAEN_V1290_FULL_BITMASK            0x0004
 #define CAEN_V1290_TRGMATCH_BITMASK        0x0008
@@ -135,6 +136,7 @@ public:
 
     unsigned int edgeDetectionMode;
     unsigned int enabledChannels;
+    unsigned int recordTriggerTimeStamp;
 
     unsigned int maxHitsPerEvent;
 

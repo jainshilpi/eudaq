@@ -66,16 +66,22 @@ int CAEN_V1290::SetupModule() {
 
   }
 
-  std::cout << "[CAEN_V1290]::[INFO]::Enable empty events" << std::endl;
+  //configurations using the con register
+  data = 0;
+  status |= CAENVME_WriteCycle(handle_, configuration_.baseAddress + CAEN_V1290_CON_REG, &data, CAEN_V1290_ADDRESSMODE, cvD16);
   if (configuration_.emptyEventEnable) {
-    WORD data = 0;
-    eudaq::mSleep(1);
-    status |= CAENVME_WriteCycle(handle_, configuration_.baseAddress + CAEN_V1290_CON_REG, &data, CAEN_V1290_ADDRESSMODE, cvD16);
-    eudaq::mSleep(1);
+    std::cout << "[CAEN_V1290]::[INFO]::Enable empty events" << std::endl;
     data |= CAEN_V1290_EMPTYEVEN_BITMASK; //enable emptyEvent
-    status |= CAENVME_WriteCycle(handle_, configuration_.baseAddress + CAEN_V1290_CON_REG, &data, CAEN_V1290_ADDRESSMODE, cvD16);
   }
+  if (configuration_.recordTriggerTimeStamp) {
+    std::cout << "[CAEN_V1290]::[INFO]::Enable empty events" << std::endl;
+    data |= CAEN_V1290_TIMESTAMP_BITMASK; //enable writing of trigger time stamps
+  }
+  eudaq::mSleep(1);
+  status |= CAENVME_WriteCycle(handle_, configuration_.baseAddress + CAEN_V1290_CON_REG, &data, CAEN_V1290_ADDRESSMODE, cvD16);
 
+
+  //OpWriteTDC writes to the microcontroller
   eudaq::mSleep(1);
   // I step: set TRIGGER Matching mode
   if (configuration_.triggerMatchMode) {

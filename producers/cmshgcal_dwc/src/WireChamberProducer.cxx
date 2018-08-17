@@ -120,6 +120,7 @@ public:
           _config.triggerTimeSubtraction = static_cast<bool>(config.Get(("triggerTimeSubtraction_" + std::to_string(i + 1)).c_str(), 1));
           _config.triggerMatchMode = static_cast<bool>(config.Get(("triggerMatchMode_" + std::to_string(i + 1)).c_str(), 1));
           _config.emptyEventEnable = static_cast<bool>(config.Get(("emptyEventEnable_" + std::to_string(i + 1)).c_str(), 1));
+          _config.recordTriggerTimeStamp = static_cast<bool>(config.Get(("recordTriggerTimeStamp_" + std::to_string(i + 1)).c_str(), 1));
           _config.edgeDetectionMode = static_cast<CAEN_V1290::CAEN_V1290_EdgeDetection_t>(config.Get(("edgeDetectionMode_" + std::to_string(i + 1)).c_str(), 3));
           _config.timeResolution = static_cast<CAEN_V1290::CAEN_V1290_TimeResolution_t>(config.Get(("timeResolution_" + std::to_string(i + 1)).c_str(), 3));
           _config.maxHitsPerEvent = static_cast<CAEN_V1290::CAEN_V1290_MaxHits_t>(config.Get(("maxHitsPerEvent_" + std::to_string(i + 1)).c_str(), 8));
