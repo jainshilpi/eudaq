@@ -39,6 +39,7 @@ public:
     : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {
     initialized = false;
     _mode = MCP_DEBUG;
+    m_readoutSleep=1000;    //1 ms for sleepin in readout cycle as default
 
   }
 
@@ -78,6 +79,8 @@ public:
     }
     std::cout << "Mode at configuration: " << _mode << std::endl;
 
+    m_readoutSleep=config.Get("readoutSleep", 1000);
+    std::cout<<"Sleeping in readout loop for "<<m_readoutSleep<<" us"<<std::endl;
 
 
     if (mode == MCP_RUN) {
@@ -190,7 +193,7 @@ public:
 
       // ENABLE_INPUT: enable/disable one channel (or one group in the case of the Mod 740 and Mod 742)
       // options: YES, NO
-      if (config.Get("ENABLE_INPUT", "YES") == "YES") _config.EnableMask = 0xFF ;
+      if (config.Get("ENABLE_INPUT", "YES") == "YES") _config.EnableMask = 0xF ;    //activate channels 0, 1, 2, 3
       else _config.EnableMask = 0x00 ;
 
 
@@ -311,6 +314,7 @@ public:
   // This gets called whenever a run is stopped
   virtual void OnStopRun() {
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping");
+    std::cout<<"[RUN "<<m_run<<"] Number of events read: "<<m_ev<<std::endl;
     EUDAQ_INFO("Stopping Run");
     started = false;
     // Set a flag tao signal to the polling loop that the run is over
@@ -353,6 +357,9 @@ public:
 
       if (stopping) continue;
 
+
+      usleep(m_readoutSleep);
+
       if (_mode == MCP_RUN) {
         if (CAENV1742_instance->Read(dataStream) != 0) continue;   //successful readout <--> error code is zero = NONE
       } else {
@@ -362,7 +369,7 @@ public:
       m_ev++;
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-      std::cout << "+++ Event: " << m_ev << ": " << timeSinceStart / 1000. << " ms +++" << std::endl;
+      if (!(m_ev % 1000)) std::cout <<  "[EVENT "<<m_ev<<"]  " << timeSinceStart / 1000. << " ms" << std::endl;
 
       //making an EUDAQ event
       eudaq::RawDataEvent ev(EVENT_TYPE, m_run, m_ev);
@@ -383,6 +390,8 @@ private:
   unsigned m_run, m_ev;
   bool stopping, done, started;
   bool initialized;
+
+  int m_readoutSleep;   //sleep in the readout loop in microseconds
 
   std::chrono::steady_clock::time_point startTime;
   uint64_t timeSinceStart;

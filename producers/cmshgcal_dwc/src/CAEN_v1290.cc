@@ -246,7 +246,6 @@ bool CAEN_V1290::DataReady() {
     status |= CAENVME_ReadCycle(handle_, configuration_.baseAddress + CAEN_V1290_STATUS_REG, &data, CAEN_V1290_ADDRESSMODE, cvD16);
     v1290_rdy = data & CAEN_V1290_RDY_BITMASK;
     ++nt;
-    usleep(10);
   }
 
   return (v1290_rdy == 1);
@@ -292,13 +291,11 @@ int CAEN_V1290::Read(std::vector<WORD> &v) {
 
   if (status || v1290_error != 0) {
     std::cout << "[CAEN_V1290]::[ERROR]::Cannot get a valid data from V1290 board " << status << std::endl;
-#ifdef CAENV1290_DEBUG
     std::cout << "CAEN_V1290_ERROR0_BITMASK: " << (data & CAEN_V1290_ERROR0_BITMASK) << std::endl;
     std::cout << "CAEN_V1290_ERROR1_BITMASK: " << (data & CAEN_V1290_ERROR1_BITMASK) << std::endl;
     std::cout << "CAEN_V1290_ERROR2_BITMASK: " << (data & CAEN_V1290_ERROR2_BITMASK) << std::endl;
     std::cout << "CAEN_V1290_ERROR3_BITMASK: " << (data & CAEN_V1290_ERROR3_BITMASK) << std::endl;
     std::cout << "CAEN_V1290_TRGLOST_BITMASK: " << (data & CAEN_V1290_TRGLOST_BITMASK) << std::endl;
-#endif
 
     v.push_back( (0x4 << 28) | (2 & 0x7FFF ));
     return ERR_READ;

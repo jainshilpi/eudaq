@@ -35,6 +35,7 @@ public:
     initialized = false; connection_initialized = false;
     _mode = DWC_DEBUG;
     NumberOfTDCs = -1;
+    m_readoutSleep=1000;    //1 ms for sleepin in readout cycle as default
   }
 
   void OnInitialise(const eudaq::Configuration &init) {
@@ -85,6 +86,8 @@ public:
     }
     std::cout << "Mode at configuration: " << _mode << std::endl;
 
+    m_readoutSleep=config.Get("readoutSleep", 1000);
+    std::cout<<"Sleeping in readout loop for "<<m_readoutSleep<<" us"<<std::endl;
 
     //clear the TDCs
 
@@ -164,6 +167,7 @@ public:
   virtual void OnStopRun() {
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping");
     EUDAQ_INFO("Stopping Run");
+    std::cout<<"[RUN "<<m_run<<"] Number of events read: "<<m_ev<<std::endl;
     started = false;
     // Set a flag tao signal to the polling loop that the run is over
     stopping = true;
@@ -199,6 +203,8 @@ public:
 
       if (stopping) continue;
 
+      usleep(m_readoutSleep);
+
       if (_mode == DWC_RUN) {
         performReadout = true;
         for (int i = 0; i < tdcs.size(); i++) {
@@ -215,11 +221,12 @@ public:
       m_ev++;
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-      std::cout << "+++ Event: " << m_ev << ": " << timeSinceStart / 1000. << " ms +++" << std::endl;
+      if (!(m_ev % 1000)) std::cout <<  "[EVENT "<<m_ev<<"]  " << timeSinceStart / 1000. << " ms" << std::endl;
       //making an EUDAQ event
       eudaq::RawDataEvent ev(EVENT_TYPE, m_run, m_ev);
       ev.setTimeStamp(timeSinceStart);
 
+      readoutError = CAEN_V1290::ERR_NONE;
       for (int i = 0; i < tdcs.size(); i++) {
         dataStream.clear();
         if (_mode == DWC_RUN && initialized) {
@@ -243,7 +250,7 @@ public:
       if (readoutError == CAEN_V1290::ERR_READ) {
         SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Resetting");
         for (int i = 0; i < tdcs.size(); i++) {
-          std::cout << "Checking the status of TDC " << i << " ..." << std::endl;
+          std::cout << "[EVENT "<<m_ev<<"] Checking the status of TDC " << i << " ..." << std::endl;
           tdcs[i]->CheckStatusAfterRead();
         }
         SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
@@ -263,6 +270,8 @@ private:
   unsigned m_run, m_ev;
   bool stopping, done, started;
   bool initialized, connection_initialized;
+
+  int m_readoutSleep;   //sleep in the readout loop in microseconds
 
   bool* tdcDataReady;
   bool performReadout;

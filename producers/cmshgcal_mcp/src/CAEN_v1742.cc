@@ -334,7 +334,6 @@ int CAEN_V1742::Read (vector<WORD> &v) {
       ErrCode = ERR_READOUT ;
       return ErrCode ;
     }
-    usleep(10);
   }
   
 
