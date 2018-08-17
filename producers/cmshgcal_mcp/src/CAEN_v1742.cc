@@ -306,25 +306,18 @@ int CAEN_V1742::DataReady() {
   ret = CAEN_DGTZ_Success ;
   ErrCode = ERR_NONE ;
 
-  int itry = 0;
-  int TIMEOUT = 10;                       
   uint32_t data;
   
-
-  while (itry < TIMEOUT) {
-    ++itry;
-    ret = CAEN_DGTZ_ReadRegister (digitizerHandle_, CAEN_V17XX_READOUTSTATUS_REGISTER, &data) ;
-    
-    if (ret) {
-      s.str(""); s << "[CAEN_V1742]::[ERROR]::STATUS READOUT ERROR!!!";
-      std::cout << s.str() << std::endl;
-      ErrCode = ERR_STATUS_READOUT ;
-      return ErrCode ;
-    }
+  ret = CAEN_DGTZ_ReadRegister (digitizerHandle_, CAEN_V17XX_READOUTSTATUS_REGISTER, &data) ;
   
-    if (data&=0x1) return 1;
+  if (ret) {
+    s.str(""); s << "[CAEN_V1742]::[ERROR]::STATUS READOUT ERROR!!!";
+    std::cout << s.str() << std::endl;
+    ErrCode = ERR_STATUS_READOUT ;
+    return ErrCode ;
   }
-  return 0;
+
+  return (data & (1 << 0));
 }
 
 
@@ -339,7 +332,7 @@ int CAEN_V1742::Read (vector<WORD> &v) {
 
   NumEvents = 0 ;
   int itry = 0;
-  int TIMEOUT = 10;
+  int TIMEOUT = 1000;
 
   BufferSize = 0;
   while (BufferSize == 0 && itry < TIMEOUT) {

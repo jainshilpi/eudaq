@@ -11,10 +11,6 @@
 #include <string>
 #include <vector>
 
-
-#include <TFile.h>
-#include <TTree.h>
-
 #include "CAEN_v1290.h"
 
 #include <chrono>
@@ -35,7 +31,7 @@ public:
     initialized = false; connection_initialized = false;
     _mode = DWC_DEBUG;
     NumberOfTDCs = -1;
-    m_readoutSleep=1000;    //1 ms for sleepin in readout cycle as default
+    m_readoutSleep = 1000;  //1 ms for sleepin in readout cycle as default
   }
 
   void OnInitialise(const eudaq::Configuration &init) {
@@ -86,8 +82,8 @@ public:
     }
     std::cout << "Mode at configuration: " << _mode << std::endl;
 
-    m_readoutSleep=config.Get("readoutSleep", 1000);
-    std::cout<<"Sleeping in readout loop for "<<m_readoutSleep<<" us"<<std::endl;
+    m_readoutSleep = config.Get("readoutSleep", 1000);
+    std::cout << "Sleeping in readout loop for " << m_readoutSleep << " us" << std::endl;
 
     //clear the TDCs
 
@@ -96,9 +92,9 @@ public:
       tdcs.clear();
       NumberOfTDCs = config.Get("NumberOfTDCs", 1);
       tdcDataReady = new bool[NumberOfTDCs];
-      for (int id = 1; id <= NumberOfTDCs; id++){
+      for (int id = 1; id <= NumberOfTDCs; id++) {
         tdcs.push_back(new CAEN_V1290(id));
-        tdcDataReady[id-1] = false;
+        tdcDataReady[id - 1] = false;
       }
     } else {
       std::cout << "Number of TDCs(=" << NumberOfTDCs << ") has not been changed. Restart the producer to change the number of TDCs." << std::endl;
@@ -167,7 +163,7 @@ public:
   virtual void OnStopRun() {
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping");
     EUDAQ_INFO("Stopping Run");
-    std::cout<<"[RUN "<<m_run<<"] Number of events read: "<<m_ev<<std::endl;
+    std::cout << "[RUN " << m_run << "] Number of events read: " << m_ev << std::endl;
     started = false;
     // Set a flag tao signal to the polling loop that the run is over
     stopping = true;
@@ -208,7 +204,7 @@ public:
       if (_mode == DWC_RUN) {
         performReadout = true;
         for (int i = 0; i < tdcs.size(); i++) {
-          if (tdcDataReady[i]==true) continue;
+          if (tdcDataReady[i] == true) continue;
           else {
             tdcDataReady[i] = tdcs[i]->DataReady();
             performReadout = performReadout && tdcDataReady[i];
@@ -221,7 +217,7 @@ public:
       m_ev++;
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-      if (!(m_ev % 1000)) std::cout <<  "[EVENT "<<m_ev<<"]  " << timeSinceStart / 1000. << " ms" << std::endl;
+      if (!(m_ev % 1000)) std::cout <<  "[EVENT " << m_ev << "]  " << timeSinceStart / 1000. << " ms" << std::endl;
       //making an EUDAQ event
       eudaq::RawDataEvent ev(EVENT_TYPE, m_run, m_ev);
       ev.setTimeStamp(timeSinceStart);
@@ -248,12 +244,10 @@ public:
 
 
       if (readoutError == CAEN_V1290::ERR_READ) {
-        SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Resetting");
         for (int i = 0; i < tdcs.size(); i++) {
-          std::cout << "[EVENT "<<m_ev<<"] Checking the status of TDC " << i << " ..." << std::endl;
+          std::cout << "[EVENT " << m_ev << "] Checking the status of TDC " << i << " ..." << std::endl;
           tdcs[i]->CheckStatusAfterRead();
         }
-        SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
       }
 
 
