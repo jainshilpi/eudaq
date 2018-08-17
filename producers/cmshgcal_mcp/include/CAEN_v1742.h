@@ -10,7 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>    //necessary for memcopy
 #include <cmath>
-
+#include <cstdlib>
+#include <sstream>
+#include <bitset>
 
 #include "eudaq/Logger.hh"
 #include "eudaq/Utils.hh"
@@ -36,6 +38,8 @@ typedef uint32_t WORD;
 #define CAEN_V1742_INTERRUPT_MODE           CAEN_DGTZ_IRQ_MODE_ROAK
 #define CAEN_V1742_INTERRUPT_TIMEOUT        200  // ms
 
+#define CAEN_V17XX_READOUTSTATUS_REGISTER   0xEF04
+
 class CAEN_V1742 {
 
 public:
@@ -58,6 +62,7 @@ public:
     ERR_UNHANDLED_BOARD,
     ERR_MISMATCH_EVENTS,
     ERR_FREE_BUFFER,
+    ERR_STATUS_READOUT,
     ERR_DUMMY_LAST,
   } ERROR_CODES ;
 
@@ -127,6 +132,7 @@ public:
   virtual int StopAcquisition();
   virtual int Clear () ;
   virtual int BufferClear () ;
+  virtual int DataReady() ;
   virtual int ClearBusy () ;
   // --- Actually the size in bit of int is 16/32 on 32 bit and 64 on 64bit machines
   virtual int Read (std::vector<WORD> &v) ;
@@ -160,6 +166,9 @@ private:
   CAEN_DGTZ_X742_EVENT_t * eventV1742_;
   CAEN_DGTZ_UINT16_EVENT_t * eventV1720_; //extra event type for first attempts in the lab with the V1720, it does not have groups, 16 August 2018, T.Q.
 
+  std::ostringstream s;
+  CAEN_DGTZ_ErrorCode ret;
+  ERROR_CODES ErrCode;
 
 protected:
   unsigned int id_;

@@ -361,7 +361,8 @@ public:
       usleep(m_readoutSleep);
 
       if (_mode == MCP_RUN) {
-        if (CAENV1742_instance->Read(dataStream) != 0) continue;   //successful readout <--> error code is zero = NONE
+        if (CAENV1742_instance->DataReady() != 0) continue;   //successful readout <--> error code is zero = NONE
+        CAENV1742_instance->Read(dataStream);      
       } else {
         CAENV1742_instance->generateFakeData(m_ev + 1, dataStream);
       }

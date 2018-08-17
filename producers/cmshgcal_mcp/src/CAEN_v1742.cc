@@ -1,9 +1,6 @@
 #include "CAEN_v1742.h"
 
-#include <cstdlib>
-#include <iostream>
-#include <sstream>
-#include <bitset>
+
 
 
 //#define DEBUG_CAENV1742
@@ -12,6 +9,8 @@ using namespace std ;
 
 int CAEN_V1742::Init ()
 {
+
+  s.str("");
   if (_isInitialized) return _isInitialized;
 
   char* software_version = new char[100];
@@ -23,7 +22,6 @@ int CAEN_V1742::Init ()
     return _isInitialized;
   }
 
-  ostringstream s;
 
   s.str(""); s << "[CAEN_V1742]::[INFO]::++++++ CAEN V1742 INIT ++++++";
   std::cout << s.str() << std::endl;
@@ -31,7 +29,7 @@ int CAEN_V1742::Init ()
   CAEN_DGTZ_OpenDigitizer(GetConfiguration()->LinkType, GetConfiguration()->LinkNum, GetConfiguration()->ConetNode, GetConfiguration()->BaseAddress, &digitizerHandle_);
 
   int ret = CAEN_DGTZ_Success ;
-  ERROR_CODES ErrCode = ERR_NONE ;
+  ErrCode = ERR_NONE ;
 
 
   ret = CAEN_DGTZ_GetInfo (digitizerHandle_, &boardInfo_) ;
@@ -45,7 +43,7 @@ int CAEN_V1742::Init ()
   }
 
   s.str(""); s << "[CAEN_V1742]::[INFO]::Connected to CAEN Digitizer Model " << boardInfo_.ModelName       << endl ;
-  s << "[CAEN_V1742]::[INFO]::ROC FPGA Release is "              << boardInfo_.ROC_FirmwareRel << endl ;
+  s << "[CAEN_Vthis->1742]::[INFO]::ROC FPGA Release is "              << boardInfo_.ROC_FirmwareRel << endl ;
   s << "[CAEN_V1742]::[INFO]::AMC FPGA Release is "              << boardInfo_.AMC_FirmwareRel;
 
   std::cout << s.str() << std::endl;
@@ -57,7 +55,7 @@ int CAEN_V1742::Init ()
   if (MajorNumber >= 128)
   {
     s.str(""); s << "[CAEN_V1742]::[ERROR]::This digitizer has a DPP firmware";
-#ifdef DEBUG_CAENV1742
+#ifdef DEBUG
     std::cout << s.str() << std::endl;
 #endif
     ErrCode = ERR_INVALID_BOARD_TYPE ;
@@ -81,8 +79,7 @@ int CAEN_V1742::Init ()
 
 int CAEN_V1742::SetupModule () {
   int ret = CAEN_DGTZ_Success ;
-  ERROR_CODES ErrCode = ERR_NONE ;
-  ostringstream s;
+  ErrCode = ERR_NONE ;
 
   /* *************************************************************************************** */
   /* program the digitizer                                                                   */
@@ -177,7 +174,6 @@ int CAEN_V1742::SetupModule () {
 
 int CAEN_V1742::StartAcquisition () {
   int ret = 0 ;
-  ostringstream s;
   /* reset the digitizer */
   ret |= CAEN_DGTZ_SWStartAcquisition (digitizerHandle_) ;
 
@@ -192,7 +188,6 @@ int CAEN_V1742::StartAcquisition () {
 
 int CAEN_V1742::StopAcquisition () {
   int ret = 0 ;
-  ostringstream s;
   /* reset the digitizer */
   ret |= CAEN_DGTZ_SWStopAcquisition (digitizerHandle_) ;
 
@@ -211,13 +206,12 @@ int CAEN_V1742::StopAcquisition () {
 
 int CAEN_V1742::Clear () {
   int ret = 0 ;
-  ostringstream s;
   /* reset the digitizer */
   ret |= CAEN_DGTZ_Reset (digitizerHandle_) ;
 
   if (ret != 0) {
     s.str(""); s << "[CAEN_V1742]::[ERROR]::Unable to reset digitizer.Please reset digitizer manually then restart the program";
-#ifdef DEBUG_CAENV1742
+#ifdef DEBUG
     std::cout << s.str() << std::endl;
 #endif
     return ERR_RESTART ;
@@ -232,14 +226,13 @@ int CAEN_V1742::Clear () {
 
 int CAEN_V1742::BufferClear () {
   int ret = 0 ;
-  ostringstream s;
   /* clear the digitizer buffers */
 
   ret |= CAEN_DGTZ_ClearData(digitizerHandle_);
 
   if (ret != 0) {
     s.str(""); s << "[CAEN_V1742]::[ERROR]::Unable to clear buffers";
-#ifdef DEBUG_CAENV1742
+#ifdef DEBUG
     std::cout << s.str() << std::endl;
 #endif
     return ERR_CLEARBUFFER ;
@@ -309,20 +302,44 @@ int CAEN_V1742::ClearBusy () {
 
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
+int CAEN_V1742::DataReady() {
+  ret = CAEN_DGTZ_Success ;
+  ErrCode = ERR_NONE ;
+
+  int itry = 0;
+  int TIMEOUT = 10;                       
+  uint32_t data;
+  
+
+  while (itry < TIMEOUT) {
+    ++itry;
+    ret = CAEN_DGTZ_ReadRegister (digitizerHandle_, CAEN_V17XX_READOUTSTATUS_REGISTER, &data) ;
+    
+    if (ret) {
+      s.str(""); s << "[CAEN_V1742]::[ERROR]::STATUS READOUT ERROR!!!";
+      std::cout << s.str() << std::endl;
+      ErrCode = ERR_STATUS_READOUT ;
+      return ErrCode ;
+    }
+  
+    if (data&=0x1) return 1;
+  }
+  return 0;
+}
+
 
 int CAEN_V1742::Read (vector<WORD> &v) {
 
-  CAEN_DGTZ_ErrorCode ret = CAEN_DGTZ_Success ;
-  ERROR_CODES ErrCode = ERR_NONE ;
+  ret = CAEN_DGTZ_Success ;
+  ErrCode = ERR_NONE ;
 
 
   uint32_t BufferSize, NumEvents;
   CAEN_DGTZ_EventInfo_t       EventInfo ;
-  ostringstream s;
 
   NumEvents = 0 ;
   int itry = 0;
-  int TIMEOUT = 100;
+  int TIMEOUT = 10;
 
   BufferSize = 0;
   while (BufferSize == 0 && itry < TIMEOUT) {
@@ -501,7 +518,6 @@ int CAEN_V1742::getMoreBoardInfo ()
 int CAEN_V1742::programDigitizer ()
 {
   int i, j, ret = 0 ;
-  ostringstream s;
   /* reset the digitizer */
   ret |= CAEN_DGTZ_Reset (digitizerHandle_) ;
   if (ret != 0) {
