@@ -89,9 +89,16 @@ if (BUILD_cmshgcal_onlinemon)
    include_directories(${Boost_INCLUDE_DIR})
    link_directories(${Boost_LIBRARY_DIR})
    SET(ADDITIONAL_LIBRARIES ${ADDITIONAL_LIBRARIES} ${Boost_LIBRARIES} )
-   
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal/src/HexaBoardConverterPlugin.cc)
+   
+   INCLUDE_DIRECTORIES( include ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/include)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/CAENv1290Unpacker.cc)
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_dwc/src/WireChamberConverterPlugin.cc)
+
+   INCLUDE_DIRECTORIES( include ${PROJECT_SOURCE_DIR}/producers/cmshgcal_mcp/include)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_mcp/src/CAENv1742Unpacker.cc)
+   list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/cmshgcal_mcp/src/MCPConverterPlugin.cc)
+
    list(APPEND plugins_sources ${PROJECT_SOURCE_DIR}/producers/pi/src/PIConverterPlugin.cc)
 endif()
 

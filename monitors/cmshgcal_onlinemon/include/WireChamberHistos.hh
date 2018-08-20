@@ -32,7 +32,7 @@ protected:
   TH1F *_recoY;
   TH1I *_goodAll;
   TH2F *_XYmap;
-  
+    
 public:
   WireChamberHistos(eudaq::StandardPlane p, RootMonitor *mon);
 

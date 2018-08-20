@@ -33,11 +33,13 @@
 #include "HexagonCorrelationCollection.hh"
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
+#include "TDCHitsCollection.hh"
+#include "DigitizerCollection.hh"
 #include "WireChamberCorrelationCollection.hh"
 #include "HitmapCollection.hh"
 #include "CorrelationCollection.hh"
 #include "DATURAToHGCALCorrelationCollection.hh"
-#include "DWCToHGCALCorrelationCollection.hh"
+//#include "DWCToHGCALCorrelationCollection.hh"
 
 #include "OnlineMonWindow.hh"
 #include "SimpleStandardEvent.hh"
@@ -103,11 +105,13 @@ public:
   HexagonCorrelationCollection *hexaCorrelationCollection;
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
+  TDCHitsCollection *tdchitsCollection;
   WireChamberCorrelationCollection *wccorrCollection;
   HitmapCollection *beamTelescopeHitCollection;
   CorrelationCollection *beamTelescopeCorrCollection;
   DATURAToHGCALCorrelationCollection *daturaToHGCALCorrelationCollection;
-  DWCToHGCALCorrelationCollection *dwcToHGCALCorrelationCollection;
+  //DWCToHGCALCorrelationCollection *dwcToHGCALCorrelationCollection;
+  DigitizerCollection* digitizerCollection;
 
   virtual void StartIdleing() {}
   OnlineMonWindow *getOnlineMon() { return onlinemon; }

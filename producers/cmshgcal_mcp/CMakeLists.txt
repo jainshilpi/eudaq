@@ -1,6 +1,6 @@
-SET(wirechamber_name "WireChamberProducer.exe")
+SET(mcp_name "MCPProducer.exe")
 
-SET(sourcefilesWireChambers src/CAEN_v1290.cc)
+SET(sourcefilesMCP src/CAEN_v1742.cc)
 
 add_definitions(-DLINUX)		#necessary for compilation on LINUX
 add_definitions(-std=c++11)
@@ -10,12 +10,12 @@ find_package(ROOT REQUIRED)
 INCLUDE_DIRECTORIES( include ${EXTERN_BOOST_INCLUDE_PREFIX} ${ROOT_INCLUDE_DIR})
 LINK_DIRECTORIES( ${LINK_DIRECTORIES} ${EXTERN_BOOST_LIB_PREFIX} )
 
-ADD_EXECUTABLE(${wirechamber_name} src/WireChamberProducer.cxx ${sourcefilesWireChambers})
+ADD_EXECUTABLE(${mcp_name} src/MCPProducer.cxx ${sourcefilesMCP})
 
-TARGET_LINK_LIBRARIES(${wirechamber_name} EUDAQ ${EUDAQ_THREADS_LIB} libCAENComm.so libCAENDigitizer.so libCAENVME.so)
+TARGET_LINK_LIBRARIES(${mcp_name} EUDAQ ${EUDAQ_THREADS_LIB} libCAENComm.so libCAENDigitizer.so libCAENVME.so)
 
 
-INSTALL(TARGETS ${wirechamber_name}
+INSTALL(TARGETS ${mcp_name}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)

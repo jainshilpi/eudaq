@@ -11,115 +11,127 @@
 #include <string>
 #include <vector>
 
-
-#include <TFile.h>
-#include <TTree.h>
-
 #include "CAEN_v1290.h"
-#include "Unpacker.h"
 
 #include <chrono>
 
-enum RUNMODE{
+enum RUNMODE {
   DWC_DEBUG = 0,
   DWC_RUN
 };
 
 
-static const std::string EVENT_TYPE = "WireChambers";
+static const std::string EVENT_TYPE = "DWC";
 
 class WireChamberProducer : public eudaq::Producer {
-  public:
+public:
 
   WireChamberProducer(const std::string & name, const std::string & runcontrol)
     : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {
-      tdc = new CAEN_V1290();
-      initialized = false;
-      tdc_unpacker = NULL;
-      outTree=NULL;
-      _mode = DWC_DEBUG;
-      std::cout<<"Initialisation of the DWC Producer..."<<std::endl;
+    initialized = false; connection_initialized = false;
+    _mode = DWC_DEBUG;
+    NumberOfTDCs = -1;
+    m_readoutSleep = 1000;  //1 ms for sleepin in readout cycle as default
+  }
+
+  void OnInitialise(const eudaq::Configuration &init) {
+    std::cout << "Initialisation of the DWC Producer..." << std::endl;
+    try {
+      if (connection_initialized) return;
+      std::cout << "Reading: " << init.Name() << std::endl;
+      //necessary: setup the communication board (VX2718)
+      //corresponding values for the init function are taken from September 2016 configuration
+      //https://github.com/cmsromadaq/H4DAQ/blob/master/data/H2_2016_08_HGC/config_pcminn03_RC.xml#L26
+      VX2718handle = new int;
+      int status = CAENVME_Init(static_cast<CVBoardTypes>(1), 0, 0, VX2718handle);
+      if (status) {
+        std::cout << "[CAEN_VX2718]::[ERROR]::Cannot open VX2718 board." << std::endl;
+      }
+      connection_initialized = true;
+      // Do any initialisation of the hardware here
+      // "start-up configuration", which is usally done only once in the beginning
+      // Configuration file values are accessible as config.Get(name, default)
+
+      // At the end, set the ConnectionState that will be displayed in the Run Control.
+      // and set the state of the machine.
+      SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Initialised (" + init.Name() + ")");
     }
+    catch (...) {
+      std::cout << "Unknown exception" << std::endl;
+      EUDAQ_ERROR("Error occurred in initialization phase of DWCProducer");
+      SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Initialisation Error");
+    }
+  }
+
 
   virtual void OnConfigure(const eudaq::Configuration & config) {
     SetConnectionState(eudaq::ConnectionState::STATE_UNCONF, "Configuring (" + config.Name() + ")");
     std::cout << "Configuring: " << config.Name() << std::endl;
 
-    //Read the data output file prefix
-    dataFilePrefix = config.Get("dataFilePrefix", "../data/dwc_run_");
-
 
     int mode = config.Get("AcquisitionMode", 0);
 
-    switch( mode ){
-      case 0 :
-        _mode = DWC_DEBUG;
-        break;
-      case 1:
-      default :
-        _mode = DWC_RUN;
-        break;
+    switch ( mode ) {
+    case 0 :
+      _mode = DWC_DEBUG;
+      break;
+    case 1:
+    default :
+      _mode = DWC_RUN;
+      break;
     }
-    std::cout<<"Mode at configuration: "<<_mode<<std::endl;
+    std::cout << "Mode at configuration: " << _mode << std::endl;
 
+    m_readoutSleep = config.Get("readoutSleep", 1000);
+    std::cout << "Sleeping in readout loop for " << m_readoutSleep << " us" << std::endl;
 
-    CAEN_V1290::CAEN_V1290_Config_t _config;
+    //clear the TDCs
 
-    _config.baseAddress = config.Get("baseAddress", 0x00AA0000);
-    _config.model = static_cast<CAEN_V1290::CAEN_V1290_Model_t>(config.Get("model", 1));
-    _config.triggerTimeSubtraction = static_cast<bool>(config.Get("triggerTimeSubtraction", 1));
-    _config.triggerMatchMode = static_cast<bool>(config.Get("triggerMatchMode", 1));
-    _config.emptyEventEnable = static_cast<bool>(config.Get("emptyEventEnable", 1));
-    _config.edgeDetectionMode = static_cast<CAEN_V1290::CAEN_V1290_EdgeDetection_t>(config.Get("edgeDetectionMode", 3));
-    _config.timeResolution = static_cast<CAEN_V1290::CAEN_V1290_TimeResolution_t>(config.Get("timeResolution", 3));
-    _config.maxHitsPerEvent = static_cast<CAEN_V1290::CAEN_V1290_MaxHits_t>(config.Get("maxHitsPerEvent", 8));
-    _config.enabledChannels = config.Get("enabledChannels", 0x00FF);
-    _config.windowWidth = config.Get("windowWidth", 0x40);
-    _config.windowOffset = config.Get("windowOffset", -1);
-
-    //read the enabled channels
-    N_channels = config.Get("N_channels", 16);
-    EUDAQ_INFO("Enabled channels:");
-    for (unsigned int channel=0; channel<N_channels; channel++){
-      channels_enabled[channel] = (config.Get(("channel_"+std::to_string(channel)).c_str(), -1)==1) ? true : false;
-      std::cout<<"TDC channel "<<channel<<" connected ? "<<channels_enabled[channel]<<std::endl;
-    }
-
-    
-    dwc1_left_channel = config.Get("dwc1_left_channel", 0); 
-    dwc1_right_channel = config.Get("dwc1_right_channel", 1);
-    dwc1_down_channel = config.Get("dwc1_down_channel", 2); 
-    dwc1_up_channel = config.Get("dwc1_up_channel", 3);
-    
-    dwc2_left_channel = config.Get("dwc2_left_channel", 4); 
-    dwc2_right_channel = config.Get("dwc2_right_channel", 5);
-    dwc2_down_channel = config.Get("dwc2_down_channel", 6); 
-    dwc2_up_channel = config.Get("dwc2_up_channel", 7);
-    
-    dwc3_left_channel = config.Get("dwc3_left_channel", 8); 
-    dwc3_right_channel = config.Get("dwc3_right_channel", 9);      
-    dwc3_down_channel = config.Get("dwc3_down_channel", 10); 
-    dwc3_up_channel = config.Get("dwc3_up_channel", 11);
-    
-    dwc4_left_channel = config.Get("dwc4_left_channel", 12); 
-    dwc4_right_channel = config.Get("dwc4_right_channel", 13);
-    dwc4_down_channel = config.Get("dwc4_down_channel", 14); 
-    dwc4_up_channel = config.Get("dwc4_up_channel", 15);
-      
-
-    if (_mode == DWC_RUN) {
-      if (!initialized) {  //the initialization is to be run just once
-        initialized = tdc->Init();
+    if (NumberOfTDCs == -1) { //do not allow for dynamic changing of TDCs because the number of DQM plots depend on it and are determined at first runtime.
+      for (size_t i = 0; i < tdcs.size(); i++) delete tdcs[i];
+      tdcs.clear();
+      NumberOfTDCs = config.Get("NumberOfTDCs", 1);
+      tdcDataReady = new bool[NumberOfTDCs];
+      for (int id = 1; id <= NumberOfTDCs; id++) {
+        tdcs.push_back(new CAEN_V1290(id));
+        tdcDataReady[id - 1] = false;
       }
-      if (initialized) {
-        tdc->Config(_config);
-        tdc->SetupModule();
+    } else {
+      std::cout << "Number of TDCs(=" << NumberOfTDCs << ") has not been changed. Restart the producer to change the number of TDCs." << std::endl;
+    }
+
+    if (!initialized) {
+      bool tdcs_initialized = true;
+      for (int i = 0; i < NumberOfTDCs; i++) {
+        tdcs[i]->SetHandle(*VX2718handle);
+        tdcs_initialized = tdcs[i]->Init() && tdcs_initialized;
+      }
+      initialized = tdcs_initialized;
+    }
+
+
+    for (int i = 0; i < NumberOfTDCs; i++) {
+      if (_mode == DWC_RUN) {
+        if (initialized) {
+          CAEN_V1290::CAEN_V1290_Config_t _config;
+          _config.baseAddress = config.Get(("baseAddress_" + std::to_string(i + 1)).c_str(), 0x00AA0000);
+          _config.model = static_cast<CAEN_V1290::CAEN_V1290_Model_t>(config.Get(("model_" + std::to_string(i + 1)).c_str(), 1));
+          _config.triggerTimeSubtraction = static_cast<bool>(config.Get(("triggerTimeSubtraction_" + std::to_string(i + 1)).c_str(), 1));
+          _config.triggerMatchMode = static_cast<bool>(config.Get(("triggerMatchMode_" + std::to_string(i + 1)).c_str(), 1));
+          _config.emptyEventEnable = static_cast<bool>(config.Get(("emptyEventEnable_" + std::to_string(i + 1)).c_str(), 1));
+          _config.recordTriggerTimeStamp = static_cast<bool>(config.Get(("recordTriggerTimeStamp_" + std::to_string(i + 1)).c_str(), 1));
+          _config.edgeDetectionMode = static_cast<CAEN_V1290::CAEN_V1290_EdgeDetection_t>(config.Get(("edgeDetectionMode_" + std::to_string(i + 1)).c_str(), 3));
+          _config.timeResolution = static_cast<CAEN_V1290::CAEN_V1290_TimeResolution_t>(config.Get(("timeResolution_" + std::to_string(i + 1)).c_str(), 3));
+          _config.maxHitsPerEvent = static_cast<CAEN_V1290::CAEN_V1290_MaxHits_t>(config.Get(("maxHitsPerEvent_" + std::to_string(i + 1)).c_str(), 8));
+          _config.enabledChannels = config.Get(("enabledChannels_" + std::to_string(i + 1)).c_str(), 0x00FF);
+          _config.windowWidth = config.Get(("windowWidth_" + std::to_string(i + 1)).c_str(), 0x40);
+          _config.windowOffset = config.Get(("windowOffset_" + std::to_string(i + 1)).c_str(), -1);
+          tdcs[i]->Config(_config);
+          tdcs[i]->SetupModule();
+        }
       }
     }
-
-    defaultTimestamp = config.Get("defaultTimestamp", -999);
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Configured (" + config.Name() + ")");
-
   }
 
   // This gets called whenever a new run is started
@@ -128,55 +140,31 @@ class WireChamberProducer : public eudaq::Producer {
     m_run = param;
     m_ev = 0;
 
-    EUDAQ_INFO("Start Run: "+param);
+    EUDAQ_INFO("Start Run: " + param);
     // It must send a BORE to the Data Collector
     eudaq::RawDataEvent bore(eudaq::RawDataEvent::BORE(EVENT_TYPE, m_run));
     SendEvent(bore);
 
-    if (_mode==DWC_RUN) {
+    if (_mode == DWC_RUN) {
       if (initialized)
-        tdc->BufferClear();
+        for (size_t i = 0; i < tdcs.size(); i++) tdcs[i]->BufferClear();
       else {
         EUDAQ_INFO("ATTENTION !!! Communication to the TDC has not been established");
         SetConnectionState(eudaq::ConnectionState::STATE_ERROR, "Communication to the TDC has not been established");
       }
     }
 
-    dwc_timestamps.clear();
-    dwc_hits.clear();
-    channels.clear();
-    for (size_t channel=0; channel<N_channels; channel++) {
-      channels.push_back(-1);
-      dwc_timestamps.push_back(defaultTimestamp);
-      dwc_hits.push_back(std::vector<int>(0));
-    }
-
-    if (tdc_unpacker != NULL) delete tdc_unpacker;
-    tdc_unpacker = new Unpacker(N_channels);
-
-    if (outTree != NULL) delete outTree;
-    outTree = new TTree("DelayWireChambers", "DelayWireChambers");
-    outTree->Branch("run", &m_run);
-    outTree->Branch("event", &m_ev);
-    outTree->Branch("channels", &channels);
-
-    for (int ch=0; ch<N_channels; ch++)
-      outTree->Branch(("dwc_hits_ch"+std::to_string(ch)).c_str(), &dwc_hits[ch]);
-    
-    outTree->Branch("dwc_timestamps", &dwc_timestamps);
-    outTree->Branch("timeSinceStart", &timeSinceStart);
-
-
     SetConnectionState(eudaq::ConnectionState::STATE_RUNNING, "Running");
     startTime = std::chrono::steady_clock::now();
-    started=true;
+    started = true;
   }
 
   // This gets called whenever a run is stopped
   virtual void OnStopRun() {
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping");
     EUDAQ_INFO("Stopping Run");
-    started=false;
+    std::cout << "[RUN " << m_run << "] Number of events read: " << m_ev << std::endl;
+    started = false;
     // Set a flag tao signal to the polling loop that the run is over
     stopping = true;
 
@@ -184,13 +172,6 @@ class WireChamberProducer : public eudaq::Producer {
     // You can also set tags on it (as with the BORE) if necessary
     SendEvent(eudaq::RawDataEvent::EORE("Test", m_run, ++m_ev));
 
-    std::ostringstream os;
-    os.str(""); os<<"Saving the data into the outputfile: "<<dataFilePrefix<<m_run<<".root";
-    EUDAQ_INFO(os.str().c_str());
-    //save the tree into a file
-    TFile* outfile = new TFile((dataFilePrefix+std::to_string(m_run)+".root").c_str(), "RECREATE");
-    outTree->Write();
-    outfile->Close();
 
     stopping = false;
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopped");
@@ -203,129 +184,101 @@ class WireChamberProducer : public eudaq::Producer {
     done = true;
     eudaq::mSleep(200);
 
-    delete tdc;
-    delete tdc_unpacker;
+    for (size_t i = 0; i < tdcs.size(); i++) delete tdcs[i];
+
   }
-
-
 
 
   void ReadoutLoop() {
 
-    while(!done) {
+    while (!done) {
       if (!started) {
         eudaq::mSleep(200);
         continue;
       }
 
       if (stopping) continue;
-      if (_mode==DWC_RUN && initialized) {
-        tdc->Read(dataStream);
-      } else if (_mode==DWC_DEBUG) {
-        eudaq::mSleep(40);
-        tdc->generatePseudoData(dataStream);
-      }
 
-      if (dataStream.size() == 0)
-        continue;
+      usleep(m_readoutSleep);
+
+      if (_mode == DWC_RUN) {
+        performReadout = true;
+        for (int i = 0; i < tdcs.size(); i++) {
+          if (tdcDataReady[i] == true) continue;
+          else {
+            tdcDataReady[i] = tdcs[i]->DataReady();
+            performReadout = performReadout && tdcDataReady[i];
+          }
+        }
+
+        if (!performReadout) continue;
+      }
 
       m_ev++;
-     
-
-      tdcData unpacked = tdc_unpacker->ConvertTDCData(dataStream);
-
-      for (int channel=0; channel<N_channels; channel++) {
-        channels[channel] = channel;  
-        dwc_timestamps[channel] = channels_enabled[channel] ? unpacked.timeOfArrivals[channel] : defaultTimestamp;
-      
-        dwc_hits[channel].clear();
-        for (size_t i=0; i<unpacked.hits[channel].size(); i++) dwc_hits[channel].push_back(unpacked.hits[channel][i]);
-      }
-
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-      outTree->Fill();
-
-      std::cout<<"+++ Event: "<<m_ev<<": "<<timeSinceStart/1000.<<" ms +++"<<std::endl;
-      for (int channel=0; channel<N_channels; channel++) std::cout<<" "<<dwc_timestamps[channel]; std::cout<<std::endl;
-
-      // ------
-      // Here, can we do a conversion of the raw data to X,Y positions of the Wire Chambers ->yes
-      // Let's assume we can, and the numbers are stored in a vector of floats
-      
- 
-      //ATTENTION !
-      //possible source of segfault if the key, i.e. the assigned channel is not in between 0 and N_channels. N_channels and all the channel assignments originate from the configuration
-      PosXY.clear();
-      PosXY.push_back(dwc_timestamps[dwc1_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc1_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc1_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc1_up_channel]);
-      
-      //x-y of wire chamber 2
-      PosXY.push_back(dwc_timestamps[dwc2_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc2_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc2_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc2_up_channel]);
-      
-      //x-y of wire chamber 3
-      PosXY.push_back(dwc_timestamps[dwc3_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc3_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc3_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc3_up_channel]);  
-
-      //x-y of wire chamber 4
-      PosXY.push_back(dwc_timestamps[dwc4_left_channel]);
-      PosXY.push_back(dwc_timestamps[dwc4_right_channel]);
-      PosXY.push_back(dwc_timestamps[dwc4_down_channel]);
-      PosXY.push_back(dwc_timestamps[dwc4_up_channel]);
-
-
+      if (!(m_ev % 1000)) std::cout <<  "[EVENT " << m_ev << "]  " << timeSinceStart / 1000. << " ms" << std::endl;
       //making an EUDAQ event
-      eudaq::RawDataEvent ev(EVENT_TYPE,m_run,m_ev);
+      eudaq::RawDataEvent ev(EVENT_TYPE, m_run, m_ev);
+      ev.setTimeStamp(timeSinceStart);
 
-      ev.AddBlock(0, dataStream);
-      ev.AddBlock(1, PosXY);
+      readoutError = CAEN_V1290::ERR_NONE;
+      for (int i = 0; i < tdcs.size(); i++) {
+        dataStream.clear();
+        if (_mode == DWC_RUN && initialized) {
+          tdc_error = tdcs[i]->Read(dataStream);
+          if (readoutError != CAEN_V1290::ERR_READ) readoutError = tdc_error;
+        } else if (_mode == DWC_DEBUG) {
+          tdcs[i]->generatePseudoData(m_ev, dataStream);
+          readoutError = CAEN_V1290::ERR_NONE;
+        }
+
+        ev.AddBlock(i, dataStream);
+      }
 
       //Adding the event to the EUDAQ format
       SendEvent(ev);
+      for (int i = 0; i < tdcs.size(); i++) {
+        tdcDataReady[i] = false;
+      }
 
-      dataStream.clear();
+
+      if (readoutError == CAEN_V1290::ERR_READ) {
+        for (int i = 0; i < tdcs.size(); i++) {
+          std::cout << "[EVENT " << m_ev << "] Checking the status of TDC " << i << " ..." << std::endl;
+          tdcs[i]->CheckStatusAfterRead();
+        }
+      }
+
+
+
+      if (_mode == DWC_DEBUG) eudaq::mSleep(100);
     }
   }
 
-  private:
-    RUNMODE _mode;
+private:
+  RUNMODE _mode;
 
-    unsigned m_run, m_ev;
-    bool stopping, done, started;
-    bool initialized;
+  int *VX2718handle;
 
-    std::string dataFilePrefix;
+  unsigned m_run, m_ev;
+  bool stopping, done, started;
+  bool initialized, connection_initialized;
 
-    //set on configuration
-    CAEN_V1290* tdc;
-    Unpacker* tdc_unpacker;
+  int m_readoutSleep;   //sleep in the readout loop in microseconds
 
-    std::vector<WORD> dataStream;
+  bool* tdcDataReady;
+  bool performReadout;
+  int readoutError, tdc_error;
 
-    int N_channels;
-    std::map<int, bool> channels_enabled;
+  std::chrono::steady_clock::time_point startTime;
+  uint64_t timeSinceStart;
 
-    //generated for each run
-    TTree* outTree;
+  //set on configuration
+  int NumberOfTDCs;
+  std::vector<CAEN_V1290*> tdcs;
 
-    std::vector<int> dwc_timestamps;
-    std::vector<std::vector<int> > dwc_hits;
-    std::vector<int> channels;
-    std::chrono::steady_clock::time_point startTime;
-    Long64_t timeSinceStart;
-
-    int defaultTimestamp;
-
-    std::vector<float> PosXY;
-    //mapping and conversion parameters for the online monitoring
-    size_t dwc1_left_channel, dwc1_right_channel, dwc1_down_channel, dwc1_up_channel, dwc2_left_channel, dwc2_right_channel, dwc2_down_channel, dwc2_up_channel, dwc3_left_channel, dwc3_right_channel, dwc3_down_channel, dwc3_up_channel, dwc4_left_channel, dwc4_right_channel, dwc4_down_channel, dwc4_up_channel;
+  std::vector<WORD> dataStream;
 
 };
 
@@ -334,14 +287,14 @@ int main(int /*argc*/, const char ** argv) {
   // You can use the OptionParser to get command-line arguments
   // then they will automatically be described in the help (-h) option
   eudaq::OptionParser op("Delay Wire Chamber Producer", "0.1",
-  "Just an example, modify it to suit your own needs");
+                         "Just an example, modify it to suit your own needs");
   eudaq::Option<std::string> rctrl(op, "r", "runcontrol",
-  "tcp://localhost:44000", "address",
-  "The address of the RunControl.");
+                                   "tcp://localhost:44000", "address",
+                                   "The address of the RunControl.");
   eudaq::Option<std::string> level(op, "l", "log-level", "NONE", "level",
-  "The minimum level for displaying log messages locally");
+                                   "The minimum level for displaying log messages locally");
   eudaq::Option<std::string> name (op, "n", "name", "DWCs", "string",
-  "The name of this Producer.");
+                                   "The name of this Producer.");
 
   try {
     op.Parse(argv);

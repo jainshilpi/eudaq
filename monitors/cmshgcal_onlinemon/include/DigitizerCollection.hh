@@ -1,10 +1,10 @@
 //Thorben Quast, thorben.quast@cern.ch
-//June 2018
+//August 2017
 
 // -*- mode: c -*-
 
-#ifndef WIRECHAMBERCORRELATIONCOLLECTION_HH_
-#define WIRECHAMBERCORRELATIONCOLLECTION_HH_
+#ifndef DIGITIZERCOLLECTION_HH_
+#define DIGITIZERCOLLECTION_HH_
 // ROOT Includes
 #include <RQ_OBJECT.h>
 #include <TH2I.h>
@@ -21,38 +21,36 @@
 
 // Project Includes
 #include "SimpleStandardEvent.hh"
-#include "WireChamberCorrelationHistos.hh"
+#include "DigitizerHistos.hh"
 #include "BaseCollection.hh"
 
-class WireChamberCorrelationCollection : public BaseCollection {
-  RQ_OBJECT("WireChamberCorrelationCollection")
+class DigitizerCollection : public BaseCollection {
+  RQ_OBJECT("DigitizerCollection")
 protected:
   bool isOnePlaneRegistered;
-  std::map<eudaq::StandardPlane, WireChamberCorrelationHistos *> _map;
+  std::map<eudaq::StandardPlane, DigitizerHistos *> _map;
   bool isPlaneRegistered(eudaq::StandardPlane p);
-  void fillHistograms(const eudaq::StandardPlane &plane1, const eudaq::StandardPlane &plane2);
-  int NumberOfDWCPlanes;
+  void fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &plane, int eventNumber);
 
 public:
   void registerPlane(const eudaq::StandardPlane &p);
   void bookHistograms(const eudaq::StandardEvent &ev);
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
-  WireChamberCorrelationCollection() : BaseCollection() {
-    std::cout << " Initialising WireChamberCorrelation Collection" << std::endl;
+  DigitizerCollection() : BaseCollection() {
+    std::cout << " Initialising Digitizer Collection" << std::endl;
     isOnePlaneRegistered = false;
-    CollectionType = WIRECHAMBER_CORRELATION_COLLECTION_TYPE;
-    NumberOfDWCPlanes=-1;
+    CollectionType = DIGITIZER_COLLECTION_TYPE;
   }
   void Fill(const SimpleStandardEvent &simpev) { ; };
   void Fill(const eudaq::StandardEvent &ev, int evNumber=-1);
-  WireChamberCorrelationHistos *getWireChamberCorrelationHistos(std::string sensor, int id);
+  DigitizerHistos *getDigitizerHistos(std::string sensor, int id);
   void Reset();
   virtual void Write(TFile *file);
   virtual void Calculate(const unsigned int currentEventNumber);
 };
 
 #ifdef __CINT__
-#pragma link C++ class WireChamberCorrelationCollection - ;
+#pragma link C++ class DigitizerCollection - ;
 #endif
 
-#endif /* WIRECHAMBERCORRELATIONCOLLECTION_HH_ */
+#endif /* DIGITIZERCOLLECTION_HH_ */

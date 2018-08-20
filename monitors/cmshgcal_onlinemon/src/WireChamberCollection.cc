@@ -13,9 +13,9 @@ bool WireChamberCollection::isPlaneRegistered(eudaq::StandardPlane p) {
 void WireChamberCollection::fillHistograms(const eudaq::StandardPlane &pl) {
   //std::cout<<"In WireChamberCollection::fillHistograms(StandardPlane)"<<std::endl;
 
-  if (pl.Sensor()!="WireChamber")
+  if (pl.Sensor() != "DWC")
     return;
-  
+
   if (!isPlaneRegistered(pl)) {
     registerPlane(pl);
     isOnePlaneRegistered = true;
@@ -33,8 +33,8 @@ void WireChamberCollection::bookHistograms(const eudaq::StandardEvent &ev) {
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane Plane = ev.GetPlane(plane);
     if (!isPlaneRegistered(Plane)) {
-      if (Plane.Sensor()=="WireChambers")
-	registerPlane(Plane);
+      if (Plane.Sensor() == "DWC")
+        registerPlane(Plane);
     }
   }
 }
@@ -43,19 +43,19 @@ void WireChamberCollection::Write(TFile *file) {
   if (file == NULL) {
     // cout << "WireChamberCollection::Write File pointer is NULL"<<endl;
     exit(-1);
-  }  
+  }
 
   if (gDirectory != NULL) // check if this pointer exists
   {
-    gDirectory->mkdir("WireChamber");
-    gDirectory->cd("WireChamber");
+    gDirectory->mkdir("DelayWireChamber");
+    gDirectory->cd("DelayWireChamber");
 
     std::map<eudaq::StandardPlane, WireChamberHistos *>::iterator it;
     for (it = _map.begin(); it != _map.end(); ++it) {
 
       char sensorfolder[255] = "";
       sprintf(sensorfolder, "%s_%d", it->first.Sensor().c_str(), it->first.ID());
-      
+
       // cout << "Making new subfolder " << sensorfolder << endl;
       gDirectory->mkdir(sensorfolder);
       gDirectory->cd(sensorfolder);
@@ -91,14 +91,14 @@ void WireChamberCollection::Fill(const eudaq::StandardEvent &ev, int evNumber) {
 
   for (int plane = 0; plane < ev.NumPlanes(); plane++) {
     const eudaq::StandardPlane &Plane = ev.GetPlane(plane);
-    if (Plane.Sensor()=="WireChamber")
+    if (Plane.Sensor() == "DWC")
       fillHistograms(Plane);
   }
 }
 
 
 WireChamberHistos *WireChamberCollection::getWireChamberHistos(std::string sensor, int id) {
-  const eudaq::StandardPlane p(id, "WireChamber", sensor);
+  const eudaq::StandardPlane p(id, "DWC", sensor);
   return _map[p];
 }
 
@@ -111,7 +111,7 @@ void WireChamberCollection::registerPlane(const eudaq::StandardPlane &p) {
   // std::cout << "Registered Plane: " << p.Sensor() << " " << p.ID() <<
   // std::endl;
   // PlaneRegistered(p.Sensor(),p.ID());
-  
+
   if (_mon != NULL) {
     if (_mon->getOnlineMon() == NULL) {
       return; // don't register items
@@ -119,37 +119,37 @@ void WireChamberCollection::registerPlane(const eudaq::StandardPlane &p) {
     // cout << "WireChamberCollection:: Monitor running in online-mode" << endl;
     char tree[1024], folder[1024];
     sprintf(folder, "%s", p.Sensor().c_str());
-    
+
 
     sprintf(tree, "%s/Chamber %i/Valid Measurement", p.Sensor().c_str(), p.ID());      //Todo: Register here when more is added
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getWireChamberHistos(p.Sensor(), p.ID())->getGoodAllHisto(), "", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
+    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
 
     sprintf(tree, "%s/Chamber %i/reco X", p.Sensor().c_str(), p.ID());      //Todo: Register here when more is added
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getWireChamberHistos(p.Sensor(), p.ID())->getRecoXHisto(), "", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
+    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
 
     sprintf(tree, "%s/Chamber %i/reco Y", p.Sensor().c_str(), p.ID());      //Todo: Register here when more is added
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getWireChamberHistos(p.Sensor(), p.ID())->getRecoYHisto(), "", 0);
-    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree); 
+    //_mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
-    
+
     sprintf(tree, "%s/Chamber %i/reco XY", p.Sensor().c_str(), p.ID());      //Todo: Register here when more is added
     _mon->getOnlineMon()->registerTreeItem(tree);
     _mon->getOnlineMon()->registerHisto(tree, getWireChamberHistos(p.Sensor(), p.ID())->getXYmapHisto(), "COLZ2", 0);
-    _mon->getOnlineMon()->addTreeItemSummary(folder, tree);    
-    
-     
+    _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
+
+
     ///
-    
+
     sprintf(tree, "%s/Chamber %i", p.Sensor().c_str(), p.ID());
     _mon->getOnlineMon()->makeTreeItemSummary(tree);
 
-    
+
   }
 }

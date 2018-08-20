@@ -18,7 +18,7 @@ void DWCToHGCALCorrelationCollection::fillHistograms(const eudaq::StandardPlane 
 
   if (pl.Sensor().find("HexaBoard")==std::string::npos)
     return;
-  if (plDWC.Sensor().find("WireChamber")==std::string::npos)
+  if (plDWC.Sensor().find("DWC")==std::string::npos)
     return;
   
   if (!isPlaneRegistered(pl)) {
@@ -102,7 +102,7 @@ void DWCToHGCALCorrelationCollection::Fill(const eudaq::StandardEvent &ev, int e
       int plane_dwc0_idx=-1;
       for (int plane_idx = 0; plane_idx < ev.NumPlanes(); plane_idx++) {
         const eudaq::StandardPlane &Plane2 = ev.GetPlane(plane_idx);
-        if (Plane2.Sensor().find("WireChamber")==std::string::npos) continue;
+        if (Plane2.Sensor().find("DWC")==std::string::npos) continue;
         fillHistograms(Plane, Plane2);
       }
     }

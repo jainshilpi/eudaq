@@ -1,10 +1,10 @@
 //Thorben Quast, thorben.quast@cern.ch
-//June 2018
+//June 2017
 
 // -*- mode: c -*-
 
-#ifndef WIRECHAMBERCORRELATIONCOLLECTION_HH_
-#define WIRECHAMBERCORRELATIONCOLLECTION_HH_
+#ifndef TDCHITSCOLLECTION_HH_
+#define TDCHITSCOLLECTION_HH_
 // ROOT Includes
 #include <RQ_OBJECT.h>
 #include <TH2I.h>
@@ -21,38 +21,38 @@
 
 // Project Includes
 #include "SimpleStandardEvent.hh"
-#include "WireChamberCorrelationHistos.hh"
+#include "TDCHitsHistos.hh"
 #include "BaseCollection.hh"
 
-class WireChamberCorrelationCollection : public BaseCollection {
-  RQ_OBJECT("WireChamberCorrelationCollection")
+class TDCHitsCollection : public BaseCollection {
+  RQ_OBJECT("TDCHitsCollection")
 protected:
   bool isOnePlaneRegistered;
-  std::map<eudaq::StandardPlane, WireChamberCorrelationHistos *> _map;
+  std::map<eudaq::StandardPlane, TDCHitsHistos *> _map;
   bool isPlaneRegistered(eudaq::StandardPlane p);
-  void fillHistograms(const eudaq::StandardPlane &plane1, const eudaq::StandardPlane &plane2);
-  int NumberOfDWCPlanes;
+  void fillHistograms(const eudaq::StandardEvent &ev, const eudaq::StandardPlane &plane, int evNumber);
+  int NumberOfDWCPlanes;  
 
 public:
   void registerPlane(const eudaq::StandardPlane &p);
   void bookHistograms(const eudaq::StandardEvent &ev);
   void setRootMonitor(RootMonitor *mon) { _mon = mon; }
-  WireChamberCorrelationCollection() : BaseCollection() {
-    std::cout << " Initialising WireChamberCorrelation Collection" << std::endl;
+  TDCHitsCollection() : BaseCollection() {
+    std::cout << " Initialising TDC Hits Collection" << std::endl;
     isOnePlaneRegistered = false;
-    CollectionType = WIRECHAMBER_CORRELATION_COLLECTION_TYPE;
-    NumberOfDWCPlanes=-1;
+    CollectionType = TDCHITS_COLLECTION_TYPE;
+    NumberOfDWCPlanes = -1;
   }
   void Fill(const SimpleStandardEvent &simpev) { ; };
   void Fill(const eudaq::StandardEvent &ev, int evNumber=-1);
-  WireChamberCorrelationHistos *getWireChamberCorrelationHistos(std::string sensor, int id);
+  TDCHitsHistos *getTDCHitsHistos(std::string sensor, int id);
   void Reset();
   virtual void Write(TFile *file);
   virtual void Calculate(const unsigned int currentEventNumber);
 };
 
 #ifdef __CINT__
-#pragma link C++ class WireChamberCorrelationCollection - ;
+#pragma link C++ class TDCHitsCollection - ;
 #endif
 
-#endif /* WIRECHAMBERCORRELATIONCOLLECTION_HH_ */
+#endif /* TDCHITSCOLLECTION_HH_ */
