@@ -24,8 +24,8 @@ const int nSCA=13;
 // Size of ZS data (per channel)
 const char hitSizeZS = 33;
 
-const int thresh_HGTS3over0 = 20;
-const int thresh_HGTS3over5 = 20;
+const int thresh_HGTS3over0 = 5;
+const int thresh_HGTS3over5 = 5;
 
 namespace eudaq {
 
@@ -563,15 +563,18 @@ namespace eudaq {
 	    }
 	    else if (m_runMode==2){
 	      // For the last hexaboard in the last readout board (4-7) always do a TOA selection
-	      if ( board_id == 4 && hexa == 7)
+	      if ( board_id == 4 && hexa == 7){
 		if (! (decoded[ski][chArrPos] & 0x1000))
 		  continue;
-	      // For the rest of them, do MIP selection
-	      if (! (hg_TS3over0 > thresh_HGTS3over0
-		     && hg_TS3over5 > thresh_HGTS3over5
-		     && hg_TS7 - hg_TS0 < 0
-		     ) )
-		continue;
+	      }
+	      else {
+		// For the rest of them, do MIP selection
+		if (! (hg_TS3over0 > thresh_HGTS3over0
+		       && hg_TS3over5 > thresh_HGTS3over5
+		       && hg_TS7 - hg_TS0 < 0
+		       ) )
+		  continue;
+	      }
 	    }
 	    else
 	      EUDAQ_WARN("This run-mode is not yet implemented: "+eudaq::to_string(m_runMode));

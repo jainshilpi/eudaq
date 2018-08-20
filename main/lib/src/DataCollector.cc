@@ -209,7 +209,7 @@ namespace eudaq {
           continue;
         if (m_buffer[i].events.front()->GetRunNumber() != m_runnumber) {
           EUDAQ_ERROR("Run number mismatch in event " +
-                      to_string(ev.GetEventNumber()));
+                      to_string(ev.GetEventNumber()) + " run number =  " + to_string(m_runnumber) + " run number attached to event = " + to_string(m_buffer[i].events.front()->GetRunNumber()));
         }
         if (m_ireceived[i] != "SlowProducer") {
           if ((m_buffer[i].events.front()->GetEventNumber() != m_eventnumber) &&
