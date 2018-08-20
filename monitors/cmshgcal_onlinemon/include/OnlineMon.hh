@@ -34,6 +34,7 @@
 #include "AhcalCollection.hh"
 #include "WireChamberCollection.hh"
 #include "TDCHitsCollection.hh"
+#include "HGCalAnalysisCollection.hh"
 #include "DigitizerCollection.hh"
 #include "WireChamberCorrelationCollection.hh"
 #include "HitmapCollection.hh"
@@ -103,6 +104,7 @@ public:
 
   HexagonCollection *hexaCollection;
   HexagonCorrelationCollection *hexaCorrelationCollection;
+  HGCalAnalysisCollection *hgcalAnalysisCollection;
   AhcalCollection *ahcalCollection;
   WireChamberCollection *wcCollection;
   TDCHitsCollection *tdchitsCollection;

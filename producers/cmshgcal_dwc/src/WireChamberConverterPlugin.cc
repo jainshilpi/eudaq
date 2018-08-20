@@ -23,7 +23,7 @@ namespace eudaq {
 
 // The event type for which this converter plugin will be registered
 // Modify this to match your actual event type (from the Producer)
-static const char *EVENT_TYPE = "DWC";
+static const char *EVENT_TYPE = "WireChambers";
 
 // Declare a new class that inherits from DataConverterPlugin
 class WireChamberConverterPlugin : public DataConverterPlugin {
@@ -167,7 +167,7 @@ public:
 
     //Hard coded assignment of channel time stamps to DWC planes for the DQM to guarantee downward compatibility with <=July 2018 DQM
     //note: for the DWC correlation plots, the indexing must start at 0!
-    if (nBlocks >= 2) {  //at least two TDCs
+    if (false && (nBlocks >= 2)) {  //at least two TDCs
       StandardPlane DWCE_plane_2(4, EVENT_TYPE, sensortype);
       DWCE_plane_2.SetSizeRaw(4, 1, 1);
       DWCE_plane_2.SetPixel(0, 0, 0, time_of_arrivals[std::make_pair(1, 0)]);   //left

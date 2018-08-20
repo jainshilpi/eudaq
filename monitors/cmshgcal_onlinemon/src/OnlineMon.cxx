@@ -64,6 +64,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
 
   hexaCollection = new HexagonCollection();
   hexaCorrelationCollection = new HexagonCorrelationCollection();
+  hgcalAnalysisCollection = new HGCalAnalysisCollection();
   ahcalCollection = new AhcalCollection();
   wcCollection = new WireChamberCollection();
   tdchitsCollection = new TDCHitsCollection();
@@ -79,6 +80,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   // put collections into the vector
   _colls.push_back(hexaCollection);
   _colls.push_back(hexaCorrelationCollection);
+  _colls.push_back(hgcalAnalysisCollection);
   //_colls.push_back(ahcalCollection);
   _colls.push_back(wcCollection);
   _colls.push_back(tdchitsCollection);
@@ -93,6 +95,7 @@ RootMonitor::RootMonitor(const std::string & runcontrol, const std::string & dat
   if (_offline <= 0) {
     hexaCollection->setRootMonitor(this);
     hexaCorrelationCollection->setRootMonitor(this);
+    hgcalAnalysisCollection->setRootMonitor(this);
     ahcalCollection->setRootMonitor(this);
     wcCollection->setRootMonitor(this);
     tdchitsCollection->setRootMonitor(this);
