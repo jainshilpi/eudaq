@@ -124,7 +124,7 @@ void DigitizerCollection::registerPlane(const eudaq::StandardPlane &p) {
 
         sprintf(tree, "%s/group%i/LastWaveform_ch%i", "DIGITIZER", gr, ch);
         _mon->getOnlineMon()->registerTreeItem(tree);
-        _mon->getOnlineMon()->registerHisto(tree, getDigitizerHistos(p.Sensor(), p.ID())->getLastWaveform(key), "", 0);
+        _mon->getOnlineMon()->registerHisto(tree, getDigitizerHistos(p.Sensor(), p.ID())->getLastWaveform(key), "HIST", 0);
         sprintf(folder, "%s/group%i", "DIGITIZER", gr);
         _mon->getOnlineMon()->addTreeItemSummary(folder, tree);
 
