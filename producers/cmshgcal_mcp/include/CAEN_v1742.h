@@ -93,7 +93,8 @@ public:
 
     CAEN_DGTZ_TriggerMode_t ExtTriggerMode ;
 
-    uint8_t EnableMask ;
+    int ChannelEnableMask ;
+    int GroupEnableMask ;
 
     CAEN_DGTZ_TriggerMode_t ChannelTriggerMode[CAEN_V1742_MAXSET] ;
 

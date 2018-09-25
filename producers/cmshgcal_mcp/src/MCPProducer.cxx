@@ -39,12 +39,14 @@ public:
     : eudaq::Producer(name, runcontrol), m_run(0), m_ev(0), stopping(false), done(false), started(0) {
     initialized = false;
     _mode = MCP_DEBUG;
-    m_readoutSleep=1000;    //1 ms for sleepin in readout cycle as default
+    m_readoutSleep = 1000;  //1 ms for sleepin in readout cycle as default
+    CAENV1742_instance = NULL;
 
   }
 
   void OnInitialise(const eudaq::Configuration &init) {
-    std::cout << "Initialisation of the DWC Producer..." << std::endl;
+    if (CAENV1742_instance != NULL) return;
+    std::cout << "Initialisation of the MCP Producer..." << std::endl;
     try {
       std::cout << "Reading: " << init.Name() << std::endl;
       std::cout << "Initialisation of the MCP Producer..." << std::endl;
@@ -79,8 +81,8 @@ public:
     }
     std::cout << "Mode at configuration: " << _mode << std::endl;
 
-    m_readoutSleep=config.Get("readoutSleep", 1000);
-    std::cout<<"Sleeping in readout loop for "<<m_readoutSleep<<" us"<<std::endl;
+    m_readoutSleep = config.Get("readoutSleep", 1000);
+    std::cout << "Sleeping in readout loop for " << m_readoutSleep << " us" << std::endl;
 
 
     if (mode == MCP_RUN) {
@@ -113,7 +115,7 @@ public:
       else _config.TestPattern = 0 ;
 
       // DRS4_Frequency.  Values: 0 = 5 GHz, 1 = 2.5 GHz,  2 = 1 GHz
-      _config.DRS4Frequency = (CAEN_DGTZ_DRS4Frequency_t)config.Get("DRS4_Frequency", 0);
+      _config.DRS4Frequency = (CAEN_DGTZ_DRS4Frequency_t)config.Get("DRS4_FREQUENCY", 0);
 
       // EXTERNAL_TRIGGER: external trigger input settings. When enabled, the ext. trg. can be either
       // propagated (ACQUISITION_AND_TRGOUT) or not (ACQUISITION_ONLY) through the TRGOUT
@@ -191,12 +193,9 @@ public:
       }
 
 
-      // ENABLE_INPUT: enable/disable one channel (or one group in the case of the Mod 740 and Mod 742)
-      // options: YES, NO
-      if (config.Get("ENABLE_INPUT", "YES") == "YES") _config.EnableMask = 0xF ;    //activate channels 0, 1, 2, 3
-      else _config.EnableMask = 0x00 ;
-
-
+      // Enable Mask: enable/disable one channel (or one group in the case of the Mod 740 and Mod 742)
+      _config.ChannelEnableMask = config.Get("CHANNEL_ENABLE_MASK", 0x3);
+      _config.GroupEnableMask = config.Get("GROUP_ENABLE_MASK", 0x1);
 
       // CHANNEL_TRIGGER: channel auto trigger settings. When enabled, the ch. auto trg. can be either
       // propagated (ACQUISITION_AND_TRGOUT) or not (ACQUISITION_ONLY) through the TRGOUT
@@ -314,7 +313,7 @@ public:
   // This gets called whenever a run is stopped
   virtual void OnStopRun() {
     SetConnectionState(eudaq::ConnectionState::STATE_CONF, "Stopping");
-    std::cout<<"[RUN "<<m_run<<"] Number of events read: "<<m_ev<<std::endl;
+    std::cout << "[RUN " << m_run << "] Number of events read: " << m_ev << std::endl;
     EUDAQ_INFO("Stopping Run");
     started = false;
     // Set a flag tao signal to the polling loop that the run is over
@@ -362,7 +361,7 @@ public:
 
       if (_mode == MCP_RUN) {
         if (CAENV1742_instance->DataReady() == 0) continue;   //successful readout <--> error code is zero = NONE
-        CAENV1742_instance->Read(dataStream);      
+        if (CAENV1742_instance->Read(dataStream) != 0) continue;
       } else {
         CAENV1742_instance->generateFakeData(m_ev + 1, dataStream);
       }
@@ -370,7 +369,7 @@ public:
       m_ev++;
       //get the timestamp since start:
       timeSinceStart = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-      if (!(m_ev % 1000)) std::cout <<  "[EVENT "<<m_ev<<"]  " << timeSinceStart / 1000. << " ms" << std::endl;
+      if (!(m_ev % 1000)) std::cout <<  "[EVENT " << m_ev << "]  " << timeSinceStart / 1000. << " ms" << std::endl;
 
       //making an EUDAQ event
       eudaq::RawDataEvent ev(EVENT_TYPE, m_run, m_ev);
