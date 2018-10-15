@@ -4,6 +4,8 @@
 #include <CMSHGCalLayerSumHistos.hh>
 #include "OnlineMon.hh"
 
+#include "PlaneIDtoLayerMapping.h"
+
 #define N_TIMESAMPLE 13
 #define LG_TO_MIP 0.198 //mean value of lgcoeff, extracted from injection data
 
@@ -143,6 +145,10 @@ void CMSHGCalLayerSumHistos::Fill(const eudaq::StandardEvent &event, int evNumbe
     float energyMIP_pp(0.);
     int energyLG_pp(0),energyHG_pp(0),energyTOT_pp(0),nhit_pp(0),nhitEE_pp(0),nhitFH0_pp(0),nhitFH1_pp(0);
 
+
+
+    int ilayer = PlaneIDtoLayerMapping(_id);
+    
     //energyLayer.push_back(ip,0.0);
     energyLayer.push_back(0.0);
     for (unsigned int ipix = 0; ipix < plane.HitPixels(); ipix++){
@@ -191,11 +197,11 @@ void CMSHGCalLayerSumHistos::Fill(const eudaq::StandardEvent &event, int evNumbe
       energyMIP += (sigLG-pedLG)*LG_TO_MIP;
       energyTOT += plane.GetPixel(ipix,2*N_TIMESAMPLE+3);//hardcoded: tot_slow is last(29) index
       nhit++;
-      if(ip<28) nhitEE++;
-      else if(ip<34) nhitFH0++;
+      if(_id<28) nhitEE++;
+      else if(_id<70) nhitFH0++;
       else nhitFH1++;
-      energyLayer.at(ip)+=(sigLG-pedLG)*LG_TO_MIP;
-      cogz+=(sigLG-pedLG)*LG_TO_MIP*ip;
+      energyLayer.at(ilayer-1)+=(sigLG-pedLG)*LG_TO_MIP;
+      cogz+=(sigLG-pedLG)*LG_TO_MIP*ilayer;
 
       ////now fill per-plane histos
       energyLG_pp += (sigLG-pedLG);
@@ -203,8 +209,8 @@ void CMSHGCalLayerSumHistos::Fill(const eudaq::StandardEvent &event, int evNumbe
       energyMIP_pp += (sigLG-pedLG)*LG_TO_MIP;
       energyTOT_pp += plane.GetPixel(ipix,2*N_TIMESAMPLE+3);//hardcoded: tot_slow is last(29) index
       nhit_pp++;
-      if(ip<28) nhitEE_pp++;
-      else if(ip<34) nhitFH0_pp++;
+      if(_id<28) nhitEE_pp++;
+      else if(_id<70) nhitFH0_pp++;
       else nhitFH1_pp++;
     }//for (unsigned int ipix = 0; ipix < plane.HitPixels(); ipix++)
 
